@@ -1,1 +1,30 @@
-/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
+
+:root {
+  --color-surface: #FCF9F8;
+  --color-on-surface: #1C1B1B;
+  --color-primary: #536500;
+  --color-olive: #454934;
+  --color-error: #BA1A1A;
+  --color-muted: #76786B;
+}
+
+.bg-surface {
+  background-color: var(--color-surface) !important;
+}
+
+.text-on-surface {
+  color: var(--color-on-surface);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-olive {
+  color: var(--color-olive);
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
