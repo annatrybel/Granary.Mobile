@@ -1,0 +1,155 @@
+/* Przełącznik i wyszukiwarka (z poprzedniego kroku) */
+.filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.tab-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 82.25px;
+  padding: 8px 0;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: var(--color-olive, #454934);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.active {
+    background-color: var(--color-primary, #536500);
+    color: #ffffff;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 13px 16px 14px 40px;
+  border-radius: 12px;
+  background-color: #F6F3F2;
+  border: none;
+  outline: none;
+  color: #1C1B1B;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+
+  &::placeholder { color: #757962; }
+}
+
+/* ===================================================
+   KAFELEK PRODUKTU Z OBRAMOWANIEM PO WYBRANIU
+   =================================================== */
+.selectable-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 24px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 20px 0 rgba(26, 26, 26, 0.10);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+
+  &.selected {
+    box-shadow: 0 0 0 0 #fff inset, 0 0 0 2px #536500 inset, 0 4px 20px 0 rgba(26, 26, 26, 0.10);
+  }
+}
+
+/* ===================================================
+   PŁYWAJĄCY PASEK GENEROWANIA PRZEPISU
+   =================================================== */
+.floating-recipe-bar {
+  position: fixed;
+  bottom: 104px; /* Unosi się tuż nad dolnym paskiem nawigacji */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 342px;
+  height: 82px;
+  padding: 16px;
+  border-radius: 16px;
+  background-color: #ffffff;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.10), 0 8px 10px -6px rgba(0, 0, 0, 0.10);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 50;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translate(-50%, 20px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+/* Kółko z liczbą wybranych produktów */
+.count-badge {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 9999px;
+  background-color: #536500;
+  color: #ffffff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+/* Okrągły zielony przycisk z ikona iskierki */
+.generate-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 44px;
+  height: 42px;
+  min-width: 44px;
+  border-radius: 9999px;
+  background-color: #536500;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.10);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.92);
+  }
+}

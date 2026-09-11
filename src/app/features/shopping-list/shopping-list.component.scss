@@ -1,0 +1,64 @@
+.list-section-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  color: #1C1B1B;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; 
+}
+
+/* Karta produktu na liście */
+.shopping-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 20px 0 rgba(26, 26, 26, 0.08);
+  transition: all 0.2s ease;
+
+  /* Stan gdy produkt został kupiony */
+  &.completed {
+    opacity: 0.6;
+    background-color: #F6F3F2;
+
+    .item-title {
+      text-decoration: line-through;
+      color: #76786B;
+    }
+  }
+}
+
+/* Dedykowany checkbox */
+.custom-checkbox {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 8px;
+  border: 2px solid #536500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &.checked {
+    background-color: #536500;
+    color: #ffffff;
+  }
+}
+
+/* Pasek dodawania nowego produktu */
+.add-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 9999px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 20px 0 rgba(26, 26, 26, 0.08);
+}

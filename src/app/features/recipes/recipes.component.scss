@@ -1,0 +1,82 @@
+/* 1. OVAL SEARCH BAR */
+.recipe-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 9999px;
+  background-color: #F0EDED;
+  box-shadow: 0 4px 20px 0 rgba(26, 26, 26, 0.08);
+}
+
+.search-input-field {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #1C1B1B;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+
+  &::placeholder {
+    color: #757962;
+  }
+}
+
+.filter-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+/* 2. PASEK TAGÓW / FILTRY PIGUŁKOWE */
+.recipe-tags-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.tag-pill {
+  display: flex;
+  padding: 8px 16px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 9999px;
+  background-color: #EAE7E7;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  color: #1C1B1B;
+  text-align: center;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  /* Stan aktywny */
+  &.active {
+    background-color: #536500;
+    color: #ffffff;
+  }
+}

@@ -1,0 +1,105 @@
+<main class="pt-20 pb-36 min-h-screen bg-surface">
+  <div class="flex flex-col w-full gap-4 px-6 py-2">
+    
+    <!-- 1. PRZEŁĄCZNIK KATEGORII -->
+    <div class="filter-tabs">
+      <button class="tab-btn" [class.active]="selectedCategory() === 'all'" (click)="setCategory('all')">
+        Wszystko
+      </button>
+      <button class="tab-btn" [class.active]="selectedCategory() === 'lodowka'" (click)="setCategory('lodowka')">
+        Lodówka
+      </button>
+      <button class="tab-btn" [class.active]="selectedCategory() === 'zamrazarka'" (click)="setCategory('zamrazarka')">
+        Zamrażarka
+      </button>
+      <button class="tab-btn" [class.active]="selectedCategory() === 'spizarnia'" (click)="setCategory('spizarnia')">
+        Spiżarnia
+      </button>
+    </div>
+
+    <!-- 2. PASEK NARZĘDZI: WYSZUKIWARKA + PRZYCISK DODAWANIA (NOWOŚĆ) -->
+    <div class="flex items-center gap-2.5 w-full">
+      
+      <!-- Wyszukiwarka -->
+      <div class="search-wrapper flex-1">
+        <img src="icons/search.svg" alt="Szukaj" class="search-icon" />
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Szukaj w magazynie..." 
+          [value]="searchQuery()"
+          (input)="onSearch($event)"
+        />
+      </div>
+
+      <!-- Przycisk + Dodaj spójny z wyszukiwarką -->
+      <button (click)="openAddModal()" 
+              class="h-[48px] px-4 bg-[#536500] text-white rounded-[12px] font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer hover:bg-[#445300]"
+              title="Dodaj produkt">
+        <span class="text-lg font-extrabold leading-none">+</span>
+        <span>Dodaj</span>
+      </button>
+
+    </div>
+
+    <!-- 3. LISTA PRODUKTÓW Z MOŻLIWOŚCIĄ ZAZNACZANIA -->
+    <div class="flex flex-col gap-3 mt-1">
+      @for (item of filteredItems(); track item.id) {
+        <div 
+          class="selectable-card" 
+          [class.selected]="isSelected(item.id)"
+          (click)="toggleSelect(item.id)"
+        >
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">{{ item.emoji }}</span>
+            <div class="flex flex-col">
+              <span class="font-bold text-on-surface text-base">{{ item.name }}</span>
+              <span class="text-xs text-muted">{{ item.locationName }}</span>
+            </div>
+          </div>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-surface text-primary">
+            {{ item.quantity }}
+          </span>
+        </div>
+      } @empty {
+        <div class="text-center py-8 text-muted font-medium">
+          Brak produktów spełniających kryteria.
+        </div>
+      }
+    </div>
+
+  </div>
+
+  <!-- 4. PŁYWAJĄCY PASEK GENEROWANIA PRZEPISU (Gdy wybrano min. 1 produkt) -->
+  @if (selectedCount() > 0) {
+    <div class="floating-recipe-bar">
+      
+      <div class="flex items-center gap-3 overflow-hidden">
+        <div class="count-badge">
+          {{ selectedCount() }}
+        </div>
+
+        <div class="flex flex-col overflow-hidden">
+          <span class="text-[#1C1B1B] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[24px]">
+            Wybrane produkty
+          </span>
+          <span class="text-[#454934] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[24px] truncate">
+            {{ selectedNames() }}
+          </span>
+        </div>
+      </div>
+
+      <button (click)="generateRecipe()" class="generate-btn" title="Generuj przepis">
+        <img src="icons/sparkle.svg" alt="Generuj" class="w-5 h-[18px]" />
+      </button>
+
+    </div>
+  }
+
+  <!-- 5. OKIENKO MODALU DODAWANIA PRODUKTU -->
+  @if (isAddModalOpen()) {
+    <app-add-product-modal 
+      (closeModal)="closeAddModal()" 
+      (productAdded)="onProductAdded($event)" />
+  }
+</main>

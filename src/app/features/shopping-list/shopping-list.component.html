@@ -1,0 +1,118 @@
+<main class="pt-20 pb-36 min-h-screen bg-surface">
+  <div class="flex flex-col w-full gap-5 px-6 py-2">
+    
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Do kupienia -->
+      <div class="p-3.5 bg-white rounded-2xl shadow-[0_4px_16px_0_rgba(26,26,26,0.05)] flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-[#536500]/10 text-[#536500] flex items-center justify-center font-bold text-lg shrink-0">
+          🛒
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Do kupienia</span>
+          <span class="text-lg font-extrabold text-[#1C1B1B] leading-tight">{{ pendingCount() }} szt.</span>
+        </div>
+      </div>
+
+      <!-- Kupione -->
+      <div class="p-3.5 bg-white rounded-2xl shadow-[0_4px_16px_0_rgba(26,26,26,0.05)] flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-[#7209B7]/10 text-[#7209B7] flex items-center justify-center font-bold text-lg shrink-0">
+          ✅
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Kupione</span>
+          <span class="text-lg font-extrabold text-[#7209B7] leading-tight">{{ completedCount() }} szt.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. NAGŁÓWEK SEKCJI -->
+    <div class="flex justify-between items-center px-1">
+      <div class="flex items-center gap-2">
+        <span class="font-['Plus_Jakarta_Sans'] text-lg font-bold text-[#1C1B1B]">
+          Moja lista
+        </span>
+        @if (completedCount() > 0) {
+          <button (click)="clearCompleted()" class="text-xs font-semibold text-[#ba1a1a] hover:underline cursor-pointer ml-1">
+            Wyczyść kupione
+          </button>
+        }
+      </div>
+
+      <button 
+        (click)="toggleAdding()" 
+        class="px-3.5 py-2 bg-[#536500] text-white rounded-full font-bold text-xs tracking-wide shadow-sm active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer hover:bg-[#445300]"
+      >
+        <span class="text-base font-extrabold leading-none">+</span>
+        <span>Dodaj</span>
+      </button>
+    </div>
+
+    <!-- 3. ROZWIJANY FORMULARZ WPISYWANIA -->
+    @if (isAdding()) {
+      <div class="p-3 bg-white rounded-2xl shadow-md border-2 border-[#536500] flex flex-col gap-2.5 animate-in fade-in duration-200">
+        <div class="flex items-center gap-2">
+          <input 
+            type="text" 
+            placeholder="Wpisz nazwę produktu..." 
+            class="flex-1 bg-[#F6F3F2] px-4 py-2.5 rounded-xl border-none outline-none font-['Plus_Jakarta_Sans'] text-sm text-[#1C1B1B]"
+            [value]="newItemName()"
+            (input)="onInput($event)"
+            (keyup.enter)="addItem()"
+            autofocus
+          />
+          <button 
+            (click)="addItem()" 
+            class="px-4 py-2.5 rounded-xl bg-[#536500] text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform cursor-pointer shrink-0"
+          >
+            Dodaj
+          </button>
+        </div>
+        
+        <div class="flex justify-end">
+          <button (click)="toggleAdding()" class="text-xs font-semibold text-gray-500 hover:text-gray-800 px-2 py-0.5 cursor-pointer">
+            Anuluj
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- 4. LISTA PRODUKTÓW DO KUPIENIA -->
+    <div class="flex flex-col gap-2.5">
+      @for (item of items(); track item.id) {
+        <div 
+          class="shopping-card group transition-all duration-200" 
+          [class.completed]="item.completed"
+        >
+          <!-- Lewa strona: Custom Checkbox + Nazwa -->
+          <div class="flex items-center gap-3.5 flex-1 cursor-pointer" (click)="toggleItem(item.id)">
+            <div class="custom-checkbox" [class.checked]="item.completed">
+              @if (item.completed) {
+                <span class="material-symbols-outlined text-sm font-bold">check</span>
+              }
+            </div>
+            <div class="flex flex-col">
+              <span class="item-title font-['Plus_Jakarta_Sans'] text-base font-semibold text-[#1C1B1B]">
+                {{ item.name }}
+              </span>
+              @if (item.quantity) {
+                <span class="text-xs text-gray-500 font-medium">{{ item.quantity }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- Prawa strona: Przycisk usuwania -->
+          <button (click)="removeItem(item.id)" class="text-gray-400 hover:text-[#ba1a1a] p-1.5 rounded-full transition-colors cursor-pointer" title="Usuń z listy">
+            <span class="material-symbols-outlined text-lg">delete</span>
+          </button>
+        </div>
+      } @empty {
+        <div class="text-center py-12 bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center gap-2">
+          <span class="text-3xl">🛒</span>
+          <span class="font-bold text-sm text-[#1C1B1B]">Lista jest pusta</span>
+          <span class="text-xs text-gray-500">Kliknij "+ Dodaj" powyżej, aby dodać pierwsze produkty.</span>
+        </div>
+      }
+    </div>
+
+  </div>
+</main>
