@@ -1,0 +1,183 @@
+<div class="bg-[#FAF9F5] text-neutral-900 font-sans antialiased min-h-screen w-full flex flex-col justify-between pt-safe pb-safe px-4 py-6 selection:bg-[#536500]/10 selection:text-[#536500]">
+  
+  <div class="w-full max-w-md mx-auto flex flex-col gap-4 my-auto">
+    
+    <!-- 1. NAGŁÓWEK -->
+    <div class="text-center pt-2">
+      <div class="w-14 h-14 rounded-2xl bg-[#536500]/10 text-[#536500] flex items-center justify-center mx-auto shadow-2xs">
+        <lucide-icon name="refrigerator" class="w-7 h-7 text-[#536500]"></lucide-icon>
+      </div>
+      <h1 class="text-2xl font-extrabold text-neutral-900 tracking-tight text-center mt-3">
+        Witaj w Smart Pantry
+      </h1>
+      <p class="text-xs text-neutral-500 font-medium text-center mt-1">
+        Twoja domowa spiżarnia i kuchnia w pełnej harmonii
+      </p>
+    </div>
+
+    <!-- 2. PRZEŁĄCZNIK: LOGOWANIE / REJESTRACJA -->
+    <div class="bg-neutral-200/60 p-1 rounded-full flex items-center max-w-[320px] w-full mx-auto">
+      <button 
+        type="button" 
+        (click)="setMode('login')"
+        [class.bg-white]="mode() === 'login'"
+        [class.text-neutral-900]="mode() === 'login'"
+        [class.font-bold]="mode() === 'login'"
+        [class.shadow-2xs]="mode() === 'login'"
+        [class.text-neutral-600]="mode() !== 'login'"
+        class="flex-1 py-2 rounded-full text-xs text-center transition-all cursor-pointer">
+        Zaloguj się
+      </button>
+      
+      <button 
+        type="button" 
+        (click)="setMode('register')"
+        [class.bg-white]="mode() === 'register'"
+        [class.text-neutral-900]="mode() === 'register'"
+        [class.font-bold]="mode() === 'register'"
+        [class.shadow-2xs]="mode() === 'register'"
+        [class.text-neutral-600]="mode() !== 'register'"
+        class="flex-1 py-2 rounded-full text-xs text-center transition-all cursor-pointer">
+        Utwórz konto
+      </button>
+    </div>
+
+    <!-- 3. GŁÓWNA KARTA FORMULARZA -->
+    <div class="bg-white/95 backdrop-blur-xl border border-neutral-200/90 rounded-[28px] p-5 shadow-[0_8px_30px_rgba(83,101,0,0.05)] flex flex-col gap-4">
+      
+      <form class="flex flex-col gap-4" (ngSubmit)="onSubmit()">
+        
+        <!-- Pole: Imię (widoczne tylko w trybie Rejestracji) -->
+        @if (mode() === 'register') {
+          <div class="flex flex-col gap-1.5 animate-in fade-in duration-200">
+            <label class="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
+              <lucide-icon name="user" class="w-4 h-4 text-[#536500]"></lucide-icon>
+              Twoje imię
+            </label>
+            <div class="h-13 py-3 bg-[#FAF9F5] border border-neutral-300 rounded-2xl px-4 flex items-center focus-within:border-[#536500] focus-within:ring-1 focus-within:ring-[#536500] transition-all">
+              <input 
+                type="text" 
+                [ngModel]="name()" 
+                (ngModelChange)="name.set($event)"
+                name="name"
+                placeholder="np. Anna" 
+                class="w-full bg-transparent border-none text-sm text-neutral-900 placeholder:text-neutral-400 font-medium outline-none" 
+                required
+              />
+            </div>
+          </div>
+        }
+
+        <!-- Pole: E-mail -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
+            <lucide-icon name="mail" class="w-4 h-4 text-[#536500]"></lucide-icon>
+            Adres e-mail
+          </label>
+          <div class="h-13 py-3 bg-[#FAF9F5] border border-neutral-300 rounded-2xl px-4 flex items-center focus-within:border-[#536500] focus-within:ring-1 focus-within:ring-[#536500] transition-all">
+            <input 
+              type="email" 
+              [ngModel]="email()" 
+              (ngModelChange)="email.set($event)"
+              name="email"
+              placeholder="np. anna.kowalska@email.com" 
+              class="w-full bg-transparent border-none text-sm text-neutral-900 placeholder:text-neutral-400 font-medium outline-none" 
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Pole: Hasło z przełącznikiem oka -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
+            <lucide-icon name="lock" class="w-4 h-4 text-[#536500]"></lucide-icon>
+            Hasło
+          </label>
+          <div class="h-13 py-3 bg-[#FAF9F5] border border-neutral-300 rounded-2xl px-4 flex items-center justify-between focus-within:border-[#536500] focus-within:ring-1 focus-within:ring-[#536500] transition-all">
+            <input 
+              [type]="showPassword() ? 'text' : 'password'" 
+              [ngModel]="password()" 
+              (ngModelChange)="password.set($event)"
+              name="password"
+              placeholder="Wpisz swoje hasło" 
+              class="w-full bg-transparent border-none text-sm text-neutral-900 placeholder:text-neutral-400 font-medium outline-none pr-2" 
+              required
+            />
+            <button 
+              type="button" 
+              (click)="togglePasswordVisibility()"
+              aria-label="Pokaż lub ukryj hasło" 
+              class="text-neutral-400 hover:text-neutral-700 p-1 flex items-center justify-center transition-colors cursor-pointer">
+              <!-- Ikona oka (Eye / EyeOff) z Lucide -->
+              <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Opcje pomocnicze: Zapamiętaj mnie / Zapomniałem hasła -->
+        <div class="flex items-center justify-between pt-0.5">
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-neutral-600 select-none">
+            <input 
+              type="checkbox" 
+              [ngModel]="rememberMe()" 
+              (ngModelChange)="rememberMe.set($event)"
+              name="rememberMe"
+              class="w-4 h-4 rounded text-[#536500] accent-[#536500] border-neutral-300 focus:ring-[#536500] cursor-pointer" 
+            />
+            <span>Zapamiętaj mnie</span>
+          </label>
+
+          @if (mode() === 'login') {
+            <a href="javascript:void(0)" class="text-xs font-bold text-[#536500] hover:underline">
+              Nie pamiętasz hasła?
+            </a>
+          }
+        </div>
+
+        <!-- Główny przycisk zatwierdzający -->
+        <button 
+          type="submit" 
+          [disabled]="isLoading()"
+          class="w-full h-13 py-3.5 bg-[#536500] hover:bg-[#435200] active:scale-[0.98] text-white rounded-full font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all mt-1 cursor-pointer disabled:opacity-70">
+          
+          @if (!isLoading()) {
+            <lucide-icon [name]="mode() === 'login' ? 'log-in' : 'user-plus'" class="w-4 h-4"></lucide-icon>
+            <span>
+              {{ mode() === 'login' ? 'Zaloguj się do spiżarni' : 'Utwórz konto w spiżarni' }}
+            </span>
+          } @else {
+            <span class="inline-block animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
+            <span>Przetwarzanie...</span>
+          }
+        </button>
+      </form>
+
+      <!-- Rozdzielacz logowania społecznościowego -->
+      <div class="flex items-center gap-3 my-1">
+        <div class="h-px bg-neutral-200 flex-1"></div>
+        <span class="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">lub kontynuuj przez</span>
+        <div class="h-px bg-neutral-200 flex-1"></div>
+      </div>
+
+      <!-- Przycisk logowania Google -->
+      <button 
+        type="button" 
+        (click)="loginWithGoogle()"
+        class="w-full h-12 bg-white border border-neutral-200 rounded-2xl flex items-center justify-center gap-2.5 text-xs font-bold text-neutral-800 hover:bg-neutral-50 active:scale-[0.98] shadow-2xs transition-all cursor-pointer">
+        <span class="font-extrabold text-[#536500] text-sm leading-none">G</span>
+        <span>Kontynuuj z kontem Google</span>
+      </button>
+
+    </div>
+
+    <!-- 4. NOTA O PRYWATNOŚCI W STOPCE -->
+    <div class="text-center pt-1 pb-2">
+      <p class="text-center text-[11px] text-neutral-400 font-medium leading-relaxed max-w-xs mx-auto">
+        Logując się, zyskujesz bezpieczny dostęp do swojego konta domowego. Przeczytaj naszą 
+        <a routerLink="/polityka-prywatnosci" class="text-[#536500] underline font-bold">Politykę prywatności</a>.
+      </p>
+    </div>
+
+  </div>
+
+</div>
