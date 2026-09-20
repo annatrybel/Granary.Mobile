@@ -1,0 +1,124 @@
+<div class="dashboard-page">
+  <div class="dashboard-container">
+
+    <!-- GÓRNY PASEK: POWITANIE + PODSUMOWANIE + WARTO ZUŻYĆ W JEDNYM RZĘDZIE -->
+    <header class="dashboard-top-bar">
+      <!-- Lewa strona: Powitanie i Podsumowanie -->
+      <div class="welcome-block">
+        <span class="welcome-subtitle">Witaj z powrotem, {{ userName }}</span>
+        <h1 class="welcome-title">Podsumowanie Twojej kuchni</h1>
+      </div>
+
+      <!-- Prawa strona -->
+      <div class="quick-expiring-indicator">
+        <div class="title-with-icon">
+          <svg class="hourglass-icon" width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 13.5H9V11.25C9 10.425 8.70625 9.71875 8.11875 9.13125C7.53125 8.54375 6.825 8.25 6 8.25C5.175 8.25 4.46875 8.54375 3.88125 9.13125C3.29375 9.71875 3 10.425 3 11.25V13.5ZM0 15V13.5H1.5V11.25C1.5 10.4875 1.67812 9.77187 2.03437 9.10312C2.39062 8.43437 2.8875 7.9 3.525 7.5C2.8875 7.1 2.39062 6.56562 2.03437 5.89687C1.67812 5.22813 1.5 4.5125 1.5 3.75V1.5H0V0H12V1.5H10.5V3.75C10.5 4.5125 10.3219 5.22813 9.96562 5.89687C9.60938 6.56562 9.1125 7.1 8.475 7.5C9.1125 7.9 9.60938 8.43437 9.96562 9.10312C10.3219 9.77187 10.5 10.4875 10.5 11.25V13.5H12V15H0Z" fill="#536500"/>
+          </svg>
+          <span class="expiring-label">Warto zużyć w pierwszej kolejności</span>
+        </div>
+        <span class="pill-badge">{{ expiringItems.length }} produkty</span>
+      </div>
+    </header>
+
+    <!-- 1. KAFELKI WYGASAJĄCYCH PRODUKTÓW (HORYZONTALNY SCROLL) -->
+    <section class="expiring-carousel-section">
+      <div class="expiring-scroll">
+        @for (item of expiringItems; track item.id) {
+          <article class="expiring-card">
+            
+            <div class="card-header-row">
+              <div class="warning-circle">
+                <svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6.20625 12.75C6.35625 12.7375 6.48438 12.6781 6.59062 12.5719C6.69687 12.4656 6.75 12.3375 6.75 12.1875C6.75 12.0125 6.69375 11.8719 6.58125 11.7656C6.46875 11.6594 6.325 11.6125 6.15 11.625C5.6375 11.6625 5.09375 11.5219 4.51875 11.2031C3.94375 10.8844 3.58125 10.3062 3.43125 9.46875C3.40625 9.33125 3.34063 9.21875 3.23438 9.13125C3.12812 9.04375 3.00625 9 2.86875 9C2.69375 9 2.55 9.06562 2.4375 9.19687C2.325 9.32812 2.2875 9.48125 2.325 9.65625C2.5375 10.7937 3.0375 11.6062 3.825 12.0938C4.6125 12.5813 5.40625 12.8 6.20625 12.75ZM6 15C4.2875 15 2.85938 14.4125 1.71563 13.2375C0.571875 12.0625 0 10.6 0 8.85C0 7.6 0.496875 6.24062 1.49063 4.77187C2.48438 3.30312 3.9875 1.7125 6 0C8.0125 1.7125 9.51562 3.30312 10.5094 4.77187C11.5031 6.24062 12 7.6 12 8.85C12 10.6 11.4281 12.0625 10.2844 13.2375C9.14062 14.4125 7.7125 15 6 15ZM6 13.5C7.3 13.5 8.375 13.0594 9.225 12.1781C10.075 11.2969 10.5 10.1875 10.5 8.85C10.5 7.9375 10.1219 6.90625 9.36563 5.75625C8.60938 4.60625 7.4875 3.35 6 1.9875C4.5125 3.35 3.39062 4.60625 2.63438 5.75625C1.87813 6.90625 1.5 7.9375 1.5 8.85C1.5 10.1875 1.925 11.2969 2.775 12.1781C3.625 13.0594 4.7 13.5 6 13.5Z" fill="#B45309"/>
+                </svg>
+              </div>
+
+              <div class="time-badge">
+                <span>{{ item.timeLeftText }}</span>
+              </div>
+            </div>
+
+            <!-- Dolna treść kafelka -->
+            <div class="card-content-block">
+              <span class="product-title">{{ item.name }}</span>
+              
+              <div class="category-row">
+                <span class="fridge-icon-wrapper">
+                  <svg width="10" height="12" viewBox="0 0 8 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 3V1.5H3V3H2ZM2 7.5V5H3V7.5H2ZM1 10C0.725 10 0.489583 9.90208 0.29375 9.70625C0.0979166 9.51042 0 9.275 0 9V1C0 0.725 0.0979166 0.489583 0.29375 0.29375C0.489583 0.0979166 0.725 0 1 0H7C7.275 0 7.51042 0.0979166 7.70625 0.29375C7.90208 0.489583 8 0.725 8 1V9C8 9.275 7.90208 9.51042 7.70625 9.70625C7.51042 9.90208 7.275 10 7 10H1ZM1 9H7V4.5H1V9ZM1 3.5H7V1H1V3.5Z" fill="#536500"/>
+                  </svg>
+                </span>
+                <span class="category-name">{{ item.category }}</span>
+              </div>
+            </div>
+
+          </article>
+        }
+      </div>
+    </section>
+
+    <!-- 2. STAN ZAPASÓW -->
+    <section class="stock-section">
+      <h2 class="stock-heading">Stan zapasów</h2>
+
+      <div class="stock-grid">
+        @for (stock of stockSections; track stock.title) {
+          <article class="stock-card">
+            <div class="stock-icon-wrapper">
+              @if (stock.title === 'Lodówka') {
+                <svg width="14" height="17" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2.5 5.5V2.5H4.5V5.5H2.5ZM2.5 12.5V8.5H4.5V12.5H2.5ZM1.5 16.5C1.0875 16.5 0.734375 16.3531 0.440625 16.0594C0.146875 15.7656 0 15.4125 0 15V1.5C0 1.0875 0.146875 0.734375 0.440625 0.440625C0.734375 0.146875 1.0875 0 1.5 0H12.5C12.9125 0 13.2656 0.146875 13.5594 0.440625C13.8531 0.734375 14 1.0875 14 1.5V15C14 15.4125 13.8531 15.7656 13.5594 16.0594C13.2656 16.3531 12.9125 16.5 12.5 16.5H1.5ZM1.5 15H12.5V7.5H1.5V15ZM1.5 6H12.5V1.5H1.5V6Z" fill="#536500"/>
+                </svg>
+              } @else if (stock.title === 'Spiżarnia') {
+                <svg width="14" height="17" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0 16.5V0H1.5V1.5H12V0H13.5V16.5H12V15H1.5V16.5H0ZM1.5 7.5H3V4.5H7.5V7.5H12V3H1.5V7.5ZM1.5 13.5H6V10.5H10.5V13.5H12V9H1.5V13.5ZM4.5 7.5H6V6H4.5V7.5ZM7.5 13.5H9V12H7.5V13.5ZM4.5 7.5H6H4.5ZM7.5 13.5H9H7.5Z" fill="#536500"/>
+                </svg>
+              } @else {
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6.75 15V11.8875L4.3125 14.2875L3.2625 13.2375L6.75 9.75V8.25H5.25L1.7625 11.7375L0.7125 10.6875L3.1125 8.25H0V6.75H3.1125L0.7125 4.3125L1.7625 3.2625L5.25 6.75H6.75V5.25L3.2625 1.7625L4.3125 0.7125L6.75 3.1125V0H8.25V3.1125L10.6875 0.7125L11.7375 1.7625L8.25 5.25V6.75H9.75L13.2375 3.2625L14.2875 4.3125L11.8875 6.75H15V8.25H11.8875L14.2875 10.6875L13.2375 11.7375L9.75 8.25H8.25V9.75L11.7375 13.2375L10.6875 14.2875L8.25 11.8875V15H6.75Z" fill="#536500"/>
+                </svg>
+              }
+            </div>
+
+            <span class="stock-label">{{ stock.title }}</span>
+            <span class="stock-count">{{ stock.count }} szt.</span>
+          </article>
+        }
+      </div>
+    </section>
+
+    <!-- 3. GOTUJ Z WYGASAJĄCYCH PRODUKTÓW -->
+    <section class="recipes-section">
+      <div class="recipes-heading-container">
+        <h2 class="recipes-title">Gotuj z wygasających produktów</h2>
+        <p class="recipes-subtitle">Pomysły na wykorzystanie mleka, szpinaku i pomidorków</p>
+      </div>
+
+      <div class="recipes-list">
+        @for (recipe of recipes; track recipe.id) {
+          <article class="recipe-card" [routerLink]="['/przepisy']">
+            <div class="recipe-thumb-container">
+              <img [src]="recipe.imageUrl" [alt]="recipe.title" class="recipe-thumb" />
+            </div>
+
+            <div class="recipe-info">
+              <div class="recipe-ingredient-badge">
+                <span>{{ recipe.ingredientsUsed }}</span>
+              </div>
+              <h3 class="recipe-name">{{ recipe.title }}</h3>
+              <p class="recipe-meta">{{ recipe.durationAndPortions }}</p>
+            </div>
+
+            <div class="recipe-arrow-btn" aria-hidden="true">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8.11667 6H0V4.66667H8.11667L4.38333 0.933333L5.33333 0L10.6667 5.33333L5.33333 10.6667L4.38333 9.73333L8.11667 6Z" fill="#536500"/>
+              </svg>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+  </div>
+</div>
