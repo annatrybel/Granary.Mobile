@@ -1,28 +1,46 @@
-<main class="pt-20 pb-36 min-h-screen bg-surface">
-  <div class="flex flex-col w-full gap-4 px-6 py-2">
+<main class="inventory-page">
+  <div class="inventory-container">
     
     <!-- 1. PRZEŁĄCZNIK KATEGORII -->
-    <div class="filter-tabs">
-      <button class="tab-btn" [class.active]="selectedCategory() === 'all'" (click)="setCategory('all')">
-        Wszystko
-      </button>
-      <button class="tab-btn" [class.active]="selectedCategory() === 'lodowka'" (click)="setCategory('lodowka')">
-        Lodówka
-      </button>
-      <button class="tab-btn" [class.active]="selectedCategory() === 'zamrazarka'" (click)="setCategory('zamrazarka')">
-        Zamrażarka
-      </button>
-      <button class="tab-btn" [class.active]="selectedCategory() === 'spizarnia'" (click)="setCategory('spizarnia')">
-        Spiżarnia
-      </button>
-    </div>
+    <nav class="filter-wrapper" aria-label="Kategorie magazynu">
+      <div class="filter-pill-container">
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="selectedCategory() === 'all'" 
+          (click)="setCategory('all')">
+          Wszystko
+        </button>
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="selectedCategory() === 'lodowka'" 
+          (click)="setCategory('lodowka')">
+          Lodówka
+        </button>
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="selectedCategory() === 'zamrazarka'" 
+          (click)="setCategory('zamrazarka')">
+          Zamrażarka
+        </button>
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="selectedCategory() === 'spizarnia'" 
+          (click)="setCategory('spizarnia')">
+          Spiżarnia
+        </button>
+      </div>
+    </nav>
 
-    <!-- 2. PASEK NARZĘDZI: WYSZUKIWARKA + PRZYCISK DODAWANIA (NOWOŚĆ) -->
-    <div class="flex items-center gap-2.5 w-full">
-      
-      <!-- Wyszukiwarka -->
-      <div class="search-wrapper flex-1">
-        <img src="icons/search.svg" alt="Szukaj" class="search-icon" />
+    <!-- 2. WYSZUKIWARKA + PRZYCISK DODAWANIA -->
+    <section class="toolbar-section">
+      <div class="search-wrapper">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
         <input 
           type="text" 
           class="search-input" 
@@ -32,74 +50,104 @@
         />
       </div>
 
-      <!-- Przycisk + Dodaj spójny z wyszukiwarką -->
-      <button (click)="openAddModal()" 
-              class="h-[48px] px-4 bg-[#536500] text-white rounded-[12px] font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer hover:bg-[#445300]"
-              title="Dodaj produkt">
-        <span class="text-lg font-extrabold leading-none">+</span>
+      <button (click)="openAddModal()" class="add-action-btn" title="Dodaj produkt">
+        <span class="plus-sign">+</span>
         <span>Dodaj</span>
       </button>
+    </section>
 
-    </div>
-
-    <!-- 3. LISTA PRODUKTÓW Z MOŻLIWOŚCIĄ ZAZNACZANIA -->
-    <div class="flex flex-col gap-3 mt-1">
+    <!-- 3. KAFELKI PRODUKTÓW DO ZAZNACZANIA -->
+    <section class="product-grid">
       @for (item of filteredItems(); track item.id) {
-        <div 
-          class="selectable-card" 
+        <article 
+          class="product-card" 
           [class.selected]="isSelected(item.id)"
-          (click)="toggleSelect(item.id)"
-        >
-          <div class="flex items-center gap-3">
-            <span class="text-2xl">{{ item.emoji }}</span>
-            <div class="flex flex-col">
-              <span class="font-bold text-on-surface text-base">{{ item.name }}</span>
-              <span class="text-xs text-muted">{{ item.locationName }}</span>
+          (click)="toggleSelect(item.id)">
+          
+          <div class="card-media" [style.backgroundImage]="'url(' + item.imageUrl + ')'">
+           
+            <div class="figma-circle-selector" [class.is-selected]="isSelected(item.id)">
+              @if (isSelected(item.id)) {
+                <svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 5L4.5 8.5L11 1.5" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              }
+            </div>
+
+            <div 
+              class="expiry-badge" 
+              [class.urgent]="item.expiryDays <= 3" 
+              [class.safe]="item.expiryDays > 3">
+              
+              <svg width="9" height="11" viewBox="0 0 9 11" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 1V0H6V1H3ZM4 6.5H5V3.5H4V6.5ZM4.5 10.5C3.88333 10.5 3.30208 10.3813 2.75625 10.1438C2.21042 9.90625 1.73333 9.58333 1.325 9.175C0.916667 8.76667 0.59375 8.28958 0.35625 7.74375C0.11875 7.19792 0 6.61667 0 6C0 5.38333 0.11875 4.80208 0.35625 4.25625C0.59375 3.71042 0.916667 3.23333 1.325 2.825C1.73333 2.41667 2.21042 2.09375 2.75625 1.85625C3.30208 1.61875 3.88333 1.5 4.5 1.5C5.01667 1.5 5.5125 1.58333 5.9875 1.75C6.4625 1.91667 6.90833 2.15833 7.325 2.475L8.025 1.775L8.725 2.475L8.025 3.175C8.34167 3.59167 8.58333 4.0375 8.75 4.5125C8.91667 4.9875 9 5.48333 9 6C9 6.61667 8.88125 7.19792 8.64375 7.74375C8.40625 8.28958 8.08333 8.76667 7.675 9.175C7.26667 9.58333 6.78958 9.90625 6.24375 10.1438C5.69792 10.3813 5.11667 10.5 4.5 10.5ZM4.5 9.5C5.46667 9.5 6.29167 9.15833 6.975 8.475C7.65833 7.79167 8 6.96667 8 6C8 5.03333 7.65833 4.20833 6.975 3.525C6.29167 2.84167 5.46667 2.5 4.5 2.5C3.53333 2.5 2.70833 2.84167 2.025 3.525C1.34167 4.20833 1 5.03333 1 6C1 6.96667 1.34167 7.79167 2.025 8.475C2.70833 9.15833 3.53333 9.5 4.5 9.5Z"/>
+              </svg>
+              <span>{{ item.expiryDays }} dni</span>
             </div>
           </div>
-          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-surface text-primary">
-            {{ item.quantity }}
-          </span>
-        </div>
+
+          <div class="card-details">
+            <h3 class="product-title">{{ item.name }}</h3>
+            <span class="product-location">{{ item.locationName }}</span>
+
+            <div class="quantity-pill">
+              <span class="quantity-text">{{ item.quantity }}</span>
+              <button 
+                type="button" 
+                class="delete-btn" 
+                (click)="askRemoveItem(item, $event)" 
+                title="Usuń z magazynu">
+                <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2.25 13.5C1.8375 13.5 1.48438 13.3531 1.19062 13.0594C0.896875 12.7656 0.75 12.4125 0.75 12V2.25H0V0.75H3.75V0H8.25V0.75H12V2.25H11.25V12C11.25 12.4125 11.1031 12.7656 10.8094 13.0594C10.5156 13.3531 10.1625 13.5 9.75 13.5H2.25ZM9.75 2.25H2.25V12H9.75V2.25ZM3.75 10.5H5.25V3.75H3.75V10.5ZM6.75 10.5H8.25V3.75H6.75V10.5ZM2.25 2.25V12V2.25Z" fill="#454934"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+        </article>
       } @empty {
-        <div class="text-center py-8 text-muted font-medium">
+        <div class="empty-state">
           Brak produktów spełniających kryteria.
         </div>
       }
-    </div>
+    </section>
 
   </div>
 
-  <!-- 4. PŁYWAJĄCY PASEK GENEROWANIA PRZEPISU (Gdy wybrano min. 1 produkt) -->
+  <!-- 4. PŁYWAJĄCY PASEK -->
   @if (selectedCount() > 0) {
-    <div class="floating-recipe-bar">
-      
-      <div class="flex items-center gap-3 overflow-hidden">
-        <div class="count-badge">
+    <aside class="figma-recipe-bar">
+      <div class="bar-left-side">
+        <div class="selection-count-badge">
           {{ selectedCount() }}
         </div>
 
-        <div class="flex flex-col overflow-hidden">
-          <span class="text-[#1C1B1B] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[24px]">
-            Wybrane produkty
-          </span>
-          <span class="text-[#454934] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[24px] truncate">
-            {{ selectedNames() }}
-          </span>
+        <div class="selection-text-group">
+          <span class="selection-title">Wybrane produkty</span>
+          <span class="selection-names">{{ selectedNames() }}</span>
         </div>
       </div>
 
-      <button (click)="generateRecipe()" class="generate-btn" title="Generuj przepis">
-        <img src="icons/sparkle.svg" alt="Generuj" class="w-5 h-[18px]" />
+      <button (click)="generateRecipe()" class="figma-action-btn" title="Generuj przepis">
+        <svg width="17" height="15" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.66667 9.3125L7.5 7.5L9.3125 6.66667L7.5 5.83333L6.66667 4.02083L5.83333 5.83333L4.02083 6.66667L5.83333 7.5L6.66667 9.3125ZM6.66667 13.3333L4.58333 8.75L0 6.66667L4.58333 4.58333L6.66667 0L8.75 4.58333L13.3333 6.66667L8.75 8.75L6.66667 13.3333ZM13.3333 15L12.2917 12.7083L10 11.6667L12.2917 10.625L13.3333 8.33333L14.375 10.625L16.6667 11.6667L14.375 12.7083L13.3333 15Z" fill="white"/>
+        </svg>
       </button>
-
-    </div>
+    </aside>
   }
 
-  <!-- 5. OKIENKO MODALU DODAWANIA PRODUKTU -->
+  <!-- 5.  BOTTOM DODAWANIA PRODUKTÓW -->
   @if (isAddModalOpen()) {
-    <app-add-product-modal 
-      (closeModal)="closeAddModal()" 
+    <app-add-product-sheet 
+      (closeSheet)="closeAddModal()" 
       (productAdded)="onProductAdded($event)" />
+  }
+
+  <!-- 6. MODAL POTWIERDZENIA USUNIĘCIA -->
+  @if (productToDelete(); as item) {
+    <app-confirm-delete-modal
+      [productName]="item.name"
+      (cancel)="cancelDelete()"
+      (confirm)="confirmDelete()" />
   }
 </main>
