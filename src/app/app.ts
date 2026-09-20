@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
+import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { HeaderComponent } from './layout/header.component';
 import { BottomNavComponent } from './layout/bottom-nav.component';
 
@@ -10,4 +11,17 @@ import { BottomNavComponent } from './layout/bottom-nav.component';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {}
+export class App {
+  private router = inject(Router);
+
+  showNavigation = signal<boolean>(false);
+
+  constructor() {
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      const currentUrl = event.urlAfterRedirects || event.url;
+      this.showNavigation.set(!currentUrl.includes('/auth'));
+    });
+  }
+}

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AuthComponent } from './features/auth/auth.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { InventoryComponent } from './features/inventory/inventory.component';
 import { RecipesComponent } from './features/recipes/recipes.component';
@@ -7,8 +8,18 @@ import { ShoppingListComponent } from './features/shopping-list/shopping-list.co
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'pulpit',
+    redirectTo: 'auth',
     pathMatch: 'full'
+  },
+
+  {
+    path: 'auth',
+    component: AuthComponent 
+  },
+
+  {    
+    path: 'login',
+    redirectTo: 'auth'
   },
 
   {
@@ -33,6 +44,6 @@ export const routes: Routes = [
 
   {
     path: '**',
-    redirectTo: 'pulpit'
+    redirectTo: 'auth'
   }
 ];

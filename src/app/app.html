@@ -1,5 +1,9 @@
-<app-header />
+@if (showNavigation()) {
+  <app-header />
+}
 
 <router-outlet />
 
-<app-bottom-nav />
+@if (showNavigation()) {
+  <app-bottom-nav />
+}
