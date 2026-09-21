@@ -1,18 +1,26 @@
-import { Component, signal, computed,input, output, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, computed, input, output, inject, ChangeDetectionStrategy, ElementRef, HostListener, OnInit, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AddProductSheetComponent } from './components/add-product-modal.component'; 
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { LucideAngularModule } from 'lucide-angular';
+import { Subject, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { PantryService } from '../../core/services/pantry.service';
+import { ProductItem } from '../../core/db/app-database';
+import { environment } from '../../../environments/environment';
 
 export type StorageCategory = 'all' | 'lodowka' | 'zamrazarka' | 'spizarnia';
 
-export interface PantryProduct {
+export interface CatalogProductDto {
   id: string;
   name: string;
-  category: StorageCategory;
-  locationName: string;
-  imageUrl: string;
-  quantity: string;
-  expiryDays: number;
+  categoryName?: string;
+  category?: string;
+  defaultUnit?: string;
+  imageUrl?: string;
 }
 
 // =========================================================================
@@ -31,12 +39,10 @@ export interface PantryProduct {
             <path d="M2.25 13.5C1.8375 13.5 1.48438 13.3531 1.19062 13.0594C0.896875 12.7656 0.75 12.4125 0.75 12V2.25H0V0.75H3.75V0H8.25V0.75H12V2.25H11.25V12C11.25 12.4125 11.1031 12.7656 10.8094 13.0594C10.5156 13.3531 10.1625 13.5 9.75 13.5H2.25ZM9.75 2.25H2.25V12H9.75V2.25ZM3.75 10.5H5.25V3.75H3.75V10.5ZM6.75 10.5H8.25V3.75H6.75V10.5ZM2.25 2.25V12V2.25Z" fill="#BA1A1A"/>
           </svg>
         </div>
-
         <h3 class="delete-title">Usunąć produkt?</h3>
         <p class="delete-desc">
           Czy na pewno chcesz usunąć <strong class="text-black">"{{ productName() }}"</strong> ze swojej spiżarni?
         </p>
-
         <div class="delete-actions">
           <button type="button" class="btn-cancel" (click)="cancel.emit()">Anuluj</button>
           <button type="button" class="btn-confirm" (click)="confirm.emit()">Usuń</button>
@@ -46,81 +52,30 @@ export interface PantryProduct {
   `,
   styles: [`
     .delete-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 120;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(6px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
+      position: fixed; inset: 0; z-index: 120;
+      background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center; padding: 16px;
     }
     .delete-dialog {
-      width: 100%;
-      max-width: 320px;
-      background: #FFFFFF;
-      border-radius: 24px;
-      padding: 22px 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+      width: 100%; max-width: 320px; background: #FFFFFF; border-radius: 24px;
+      padding: 22px 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.18);
       border: 1px solid rgba(229, 229, 229, 0.9);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
     }
     .delete-icon-circle {
-      width: 48px;
-      height: 48px;
-      border-radius: 9999px;
-      background: #FFDAD6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 12px;
+      width: 48px; height: 48px; border-radius: 9999px; background: #FFDAD6;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
     }
-    .delete-title {
-      margin: 0;
-      color: #1C1B1B;
-      font-family: "Plus Jakarta Sans", sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-    }
-    .delete-desc {
-      margin: 4px 0 18px 0;
-      color: #737373;
-      font-family: "Plus Jakarta Sans", sans-serif;
-      font-size: 12px;
-      font-weight: 500;
-    }
-    .delete-actions {
-      display: flex;
-      width: 100%;
-      gap: 10px;
-    }
+    .delete-title { margin: 0; color: #1C1B1B; font-size: 16px; font-weight: 700; }
+    .delete-desc { margin: 4px 0 18px 0; color: #737373; font-size: 12px; font-weight: 500; }
+    .delete-actions { display: flex; width: 100%; gap: 10px; }
     .btn-cancel {
-      flex: 1;
-      height: 40px;
-      border-radius: 9999px;
-      border: 1px solid #E5E5E5;
-      background: #F6F3F2;
-      color: #454934;
-      font-family: "Plus Jakarta Sans", sans-serif;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
+      flex: 1; height: 40px; border-radius: 9999px; border: 1px solid #E5E5E5;
+      background: #F6F3F2; color: #454934; font-size: 12px; font-weight: 700; cursor: pointer;
     }
     .btn-confirm {
-      flex: 1;
-      height: 40px;
-      border-radius: 9999px;
-      border: none;
-      background: #BA1A1A;
-      color: #FFFFFF;
-      font-family: "Plus Jakarta Sans", sans-serif;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
+      flex: 1; height: 40px; border-radius: 9999px; border: none;
+      background: #BA1A1A; color: #FFFFFF; font-size: 12px; font-weight: 700; cursor: pointer;
     }
   `]
 })
@@ -136,66 +91,47 @@ export class ConfirmDeleteModalComponent {
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [CommonModule, AddProductSheetComponent, ConfirmDeleteModalComponent],
+  imports: [CommonModule, FormsModule, ConfirmDeleteModalComponent, LucideAngularModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.scss'
 })
-export class InventoryComponent {
+export class InventoryComponent implements OnInit {
   private router = inject(Router);
+  private http = inject(HttpClient);
+  private pantryService = inject(PantryService);
+  private elementRef = inject(ElementRef);
+  private destroyRef = inject(DestroyRef);
 
-  isAddModalOpen = signal<boolean>(false);
-  productToDelete = signal<PantryProduct | null>(null);
-
+  productToDelete = signal<ProductItem | null>(null);
   selectedCategory = signal<StorageCategory>('all');
   searchQuery = signal<string>('');
   selectedIds = signal<Set<string>>(new Set());
 
-  products = signal<PantryProduct[]>([
-    {
-      id: '1',
-      name: 'Młody Szpinak',
-      category: 'lodowka',
-      locationName: 'Lodówka',
-      imageUrl: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=400&q=80',
-      quantity: '1 szt',
-      expiryDays: 3
-    },
-    {
-      id: '2',
-      name: 'Mleko Owsiane',
-      category: 'lodowka',
-      locationName: 'Lodówka',
-      imageUrl: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=400&q=80',
-      quantity: '2 szt',
-      expiryDays: 2
-    },
-    {
-      id: '3',
-      name: 'Suszone Pomidory',
-      category: 'spizarnia',
-      locationName: 'Spiżarnia',
-      imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80',
-      quantity: '1 szt',
-      expiryDays: 14
-    },
-    {
-      id: '4',
-      name: 'Tofu Naturalne',
-      category: 'lodowka',
-      locationName: 'Lodówka',
-      imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
-      quantity: '1 szt',
-      expiryDays: 5
-    }
-  ]);
+  // Stany wyszukiwania w katalogu
+  catalogSuggestions = signal<CatalogProductDto[]>([]);
+  isSearchingCatalog = signal<boolean>(false);
+  showSuggestions = signal<boolean>(false);
+  private searchInput$ = new Subject<string>();
+
+  // =========================================================================
+  // STAN SZCZEGÓŁÓW PRODUKTU 
+  // =========================================================================
+  activeProductForDetails = signal<ProductItem | null>(null);
+  detailLocation = signal<'Lodówka' | 'Zamrażarka' | 'Spiżarnia'>('Lodówka');
+  detailQuantity = signal<number>(1);
+  detailUnit = signal<string>('szt.');
+  detailExpirationDate = signal<string>('');
+
+  products = this.pantryService.products;
 
   filteredItems = computed(() => {
     const category = this.selectedCategory();
     const query = this.searchQuery().toLowerCase().trim();
 
     return this.products().filter(item => {
-      const matchesCategory = category === 'all' || item.category === category;
+      const itemCat = (item.category || item.locationName || '').toLowerCase();
+      const matchesCategory = category === 'all' || itemCat.includes(category);
       const matchesQuery = !query || item.name.toLowerCase().includes(query);
       return matchesCategory && matchesQuery;
     });
@@ -211,36 +147,162 @@ export class InventoryComponent {
       .join(', ');
   });
 
-  openAddModal(): void {
-    this.isAddModalOpen.set(true);
+  ngOnInit(): void {
+    this.searchInput$.pipe(
+      debounceTime(250),
+      distinctUntilChanged(),
+      switchMap(term => {
+        const trimmed = term.trim();
+        if (trimmed.length < 2) {
+          this.catalogSuggestions.set([]);
+          this.isSearchingCatalog.set(false);
+          return of([]);
+        }
+
+        this.isSearchingCatalog.set(true);
+        const params = new HttpParams().set('query', trimmed);
+
+        return this.http.get<CatalogProductDto[]>(`${environment.apiBaseUrl}/catalog-products`, { params }).pipe(
+          catchError(() => of([]))
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(results => {
+      this.catalogSuggestions.set(results || []);
+      this.isSearchingCatalog.set(false);
+      this.showSuggestions.set(true);
+    });
   }
 
-  closeAddModal(): void {
-    this.isAddModalOpen.set(false);
+  onSearchInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchQuery.set(value);
+    this.searchInput$.next(value);
   }
 
-  onProductAdded(event: any): void {
-    if (event.catalogItem) {
-      let mappedCategory: StorageCategory = 'lodowka';
-      if (event.location === 'Zamrażarka') mappedCategory = 'zamrazarka';
-      if (event.location === 'Spiżarnia') mappedCategory = 'spizarnia';
+  onSelectSuggestion(product: CatalogProductDto): void {
+    const categoryName = (product.categoryName || product.category || 'Lodówka').toLowerCase();
+    let mappedCat: StorageCategory = 'lodowka';
+    if (categoryName.includes('zamraż') || categoryName.includes('freezer')) mappedCat = 'zamrazarka';
+    if (categoryName.includes('spiż') || categoryName.includes('pantry')) mappedCat = 'spizarnia';
 
-      const newProduct: PantryProduct = {
-        id: 'item-' + Date.now(),
-        name: event.catalogItem.name,
-        category: mappedCategory,
-        locationName: event.location,
-        imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
-        quantity: `${event.quantity || 1} szt`,
-        expiryDays: 5
-      };
+    this.pantryService.addProduct({
+      catalogProductId: product.id,
+      name: product.name,
+      category: mappedCat,
+      locationName: mappedCat === 'zamrazarka' ? 'Zamrażarka' : mappedCat === 'spizarnia' ? 'Spiżarnia' : 'Lodówka',
+      imageUrl: product.imageUrl,
+      quantity: 1,
+      unit: product.defaultUnit || 'szt.',
+      expiryDays: 7
+    });
 
-      this.products.update(items => [newProduct, ...items]);
+    this.resetSearch();
+  }
+
+  onAddCustomProduct(): void {
+    const customName = this.searchQuery().trim();
+    if (!customName) return;
+
+    this.pantryService.addProduct({
+      name: customName,
+      category: 'spizarnia',
+      locationName: 'Spiżarnia',
+      quantity: 1,
+      unit: 'szt.',
+      expiryDays: 7
+    });
+
+    this.resetSearch();
+  }
+
+  resetSearch(): void {
+    this.searchQuery.set('');
+    this.showSuggestions.set(false);
+    this.catalogSuggestions.set([]);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.showSuggestions.set(false);
     }
-    this.closeAddModal();
   }
 
-  askRemoveItem(item: PantryProduct, event: MouseEvent): void {
+  // =========================================================================
+  // OBSŁUGA SZCZEGÓŁÓW PRODUKTU 
+  // =========================================================================
+  openDetails(item: ProductItem): void {
+    this.activeProductForDetails.set(item);
+    
+    const loc = item.locationName === 'Zamrażarka' ? 'Zamrażarka' : item.locationName === 'Spiżarnia' ? 'Spiżarnia' : 'Lodówka';
+    this.detailLocation.set(loc);
+
+    this.detailQuantity.set(Number(item.quantity) || 1);
+    this.detailUnit.set(item.unit || 'szt.');
+
+    if (item.expirationDate) {
+      this.detailExpirationDate.set(item.expirationDate);
+    } else {
+      const d = new Date();
+      d.setDate(d.getDate() + (item.expiryDays ?? 7));
+      this.detailExpirationDate.set(d.toISOString().split('T')[0]);
+    }
+  }
+
+  closeDetails(): void {
+    this.activeProductForDetails.set(null);
+  }
+
+  changeQuantity(delta: number): void {
+    this.detailQuantity.update(q => Math.max(1, q + delta));
+  }
+
+  addDaysToExpiry(days: number): void {
+    const current = this.detailExpirationDate() ? new Date(this.detailExpirationDate()) : new Date();
+    current.setDate(current.getDate() + days);
+    this.detailExpirationDate.set(current.toISOString().split('T')[0]);
+  }
+
+  saveProductDetails(): void {
+    const item = this.activeProductForDetails();
+    if (!item) return;
+
+    this.pantryService.updateProduct(item.id, {
+      locationName: this.detailLocation(),
+      quantity: this.detailQuantity(),
+      unit: this.detailUnit(),
+      expirationDate: this.detailExpirationDate()
+    });
+
+    this.closeDetails();
+  }
+
+  // =========================================================================
+  // ZAZNACZANIE I USUWANIE
+  // =========================================================================
+  isSelected(id: string): boolean {
+    return this.selectedIds().has(id);
+  }
+
+  
+  toggleSelect(id: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    this.selectedIds.update(ids => {
+      const newSet = new Set(ids);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }
+
+  askRemoveItem(item: ProductItem, event: MouseEvent): void {
     event.stopPropagation();
     event.preventDefault();
     this.productToDelete.set(item);
@@ -253,7 +315,7 @@ export class InventoryComponent {
   confirmDelete(): void {
     const item = this.productToDelete();
     if (item) {
-      this.products.update(items => items.filter(p => p.id !== item.id));
+      this.pantryService.deleteProduct(item.id);
       this.selectedIds.update(ids => {
         const copy = new Set(ids);
         copy.delete(item.id);
@@ -263,29 +325,12 @@ export class InventoryComponent {
     }
   }
 
-  isSelected(id: string): boolean {
-    return this.selectedIds().has(id);
-  }
-
-  toggleSelect(id: string): void {
-    this.selectedIds.update(ids => {
-      const newSet = new Set(ids);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  }
-
   setCategory(category: StorageCategory): void {
     this.selectedCategory.set(category);
   }
 
-  onSearch(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.searchQuery.set(input.value);
+  openCameraScanner(): void {
+    alert('Skaner kodów kreskowych');
   }
 
   generateRecipe(): void {
