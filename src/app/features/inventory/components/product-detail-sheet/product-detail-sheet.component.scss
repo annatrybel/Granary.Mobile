@@ -1,0 +1,260 @@
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 23, 23, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 70;
+}
+
+.sheet-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border-radius: 32px 32px 0 0;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  box-sizing: border-box;
+}
+
+.sheet-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 24px 8px 24px;
+}
+
+.sheet-drag-handle {
+  width: 48px;
+  height: 5px;
+  background: #E5E5E5;
+  border-radius: 9999px;
+  margin-bottom: 12px;
+}
+
+.sheet-header-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sheet-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1C1B1B;
+  margin: 0;
+}
+
+.sheet-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: #F3F4F6;
+  border: none;
+  color: #737373;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background: #E5E7EB;
+  }
+}
+
+.sheet-content {
+  padding: 8px 24px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.product-preview-card {
+  background: #F8F7F4;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid #EAE8E3;
+}
+
+.product-preview-img-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E5;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #757962;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.location-buttons-grid {
+  display: flex;
+  gap: 8px;
+}
+
+.location-btn {
+  flex: 1;
+  padding: 12px 0;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #E5E5E5;
+  background: #F8F7F4;
+  color: #1C1B1B;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &.active {
+    background: #536500;
+    color: #FFFFFF;
+    border-color: #536500;
+  }
+}
+
+.quantity-counter {
+  flex: 1;
+  background: #F8F7F4;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px;
+  border: 1px solid #E5E5E5;
+}
+
+.counter-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  color: #1C1B1B;
+  font-weight: 700;
+  font-size: 16px;
+  border: 1px solid #E5E5E5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.counter-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1C1B1B;
+}
+
+.unit-select-box {
+  background: #F8F7F4;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border: 1px solid #E5E5E5;
+}
+
+.unit-select {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-weight: 700;
+  color: #1C1B1B;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.date-input-wrapper {
+  background: #F8F7F4;
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #E5E5E5;
+
+  &:focus-within {
+    border-color: #536500;
+  }
+}
+
+.date-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1C1B1B;
+  width: 100%;
+}
+
+.quick-days-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.quick-day-btn {
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: #F8F7F4;
+  color: #555555;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #E5E5E5;
+  cursor: pointer;
+
+  &:hover {
+    background: #EEEEEE;
+  }
+}
+
+.submit-cta-btn {
+  width: 100%;
+  background: #536500;
+  color: #FFFFFF;
+  padding: 14px 0;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 4px 12px rgba(83, 101, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background: #445300;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -1,0 +1,142 @@
+<!-- Backdrop tła -->
+<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+
+<!-- Arkusz wysuwany od dołu -->
+<div class="sheet-container animate-slide-up">
+  
+  <!-- Uchwyt i nagłówek -->
+  <div class="sheet-header">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header-row">
+      <h2 class="sheet-title">Szczegóły produktu</h2>
+      <button 
+        type="button" 
+        class="sheet-close-btn"
+        (click)="closeSheet.emit()"
+        aria-label="Zamknij">
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <!-- Treść formularza -->
+  <div class="sheet-content">
+    
+    <!-- Mini podgląd produktu -->
+    <div class="product-preview-card">
+      <div class="product-preview-img-box">
+        <img 
+          [src]="product().imageUrl || '/images/food-placeholder.webp'" 
+          [alt]="product().name" 
+          class="w-full h-full object-cover" 
+        />
+      </div>
+      <div class="flex flex-col">
+        <span class="font-bold text-neutral-900 text-base">{{ product().name }}</span>
+        <span class="text-xs text-neutral-500 font-medium">Lokalizacja: {{ product().locationName }}</span>
+      </div>
+    </div>
+
+    <!-- Miejsce przechowywania -->
+    <div class="form-group">
+      <label class="form-label">Miejsce przechowywania</label>
+      <div class="location-buttons-grid">
+        <button 
+          type="button" 
+          (click)="detailLocation.set('Lodówka')"
+          [class.active]="detailLocation() === 'Lodówka'"
+          class="location-btn">
+          <span>❄️</span>
+          <span>Lodówka</span>
+        </button>
+        <button 
+          type="button" 
+          (click)="detailLocation.set('Zamrażarka')"
+          [class.active]="detailLocation() === 'Zamrażarka'"
+          class="location-btn">
+          <span>🧊</span>
+          <span>Zamrażarka</span>
+        </button>
+        <button 
+          type="button" 
+          (click)="detailLocation.set('Spiżarnia')"
+          [class.active]="detailLocation() === 'Spiżarnia'"
+          class="location-btn">
+          <span>🚪</span>
+          <span>Spiżarnia</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sekcja ilości -->
+    <div class="form-group">
+      <label class="form-label">Ilość</label>
+      <div class="flex gap-3">
+        <div class="quantity-counter">
+          <button 
+            type="button" 
+            (click)="changeQuantity(-1)"
+            class="counter-btn"
+            aria-label="Zmniejsz ilość">
+            -
+          </button>
+          <span class="counter-value">{{ detailQuantity() }}</span>
+          <button 
+            type="button" 
+            (click)="changeQuantity(1)"
+            class="counter-btn"
+            aria-label="Zwiększ ilość">
+            +
+          </button>
+        </div>
+
+        <!-- Wybór jednostki -->
+        <div class="unit-select-box">
+          <select 
+            [ngModel]="detailUnit()" 
+            (ngModelChange)="detailUnit.set($event)"
+            class="unit-select">
+            <option value="szt.">szt.</option>
+            <option value="L">litr (L)</option>
+            <option value="kg">kg</option>
+            <option value="g">gram (g)</option>
+            <option value="op.">opakowanie</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data ważności -->
+    <div class="form-group">
+      <label class="form-label">Data ważności</label>
+      <div class="date-input-wrapper">
+        <lucide-icon name="clock" class="w-5 h-5 text-[#536500] shrink-0"></lucide-icon>
+        <input 
+          type="date" 
+          [ngModel]="detailExpirationDate()"
+          (ngModelChange)="detailExpirationDate.set($event)"
+          class="date-input" 
+        />
+      </div>
+
+      <!-- Szybkie przyciski dni -->
+      <div class="quick-days-row">
+        <button type="button" (click)="addDaysToExpiry(3)" class="quick-day-btn">+3 dni</button>
+        <button type="button" (click)="addDaysToExpiry(7)" class="quick-day-btn">+7 dni</button>
+        <button type="button" (click)="addDaysToExpiry(14)" class="quick-day-btn">+2 tyg</button>
+      </div>
+    </div>
+
+    <!-- Przycisk zapisu-->
+    <div class="pt-2">
+      <button 
+        type="button" 
+        (click)="onSave()"
+        class="submit-cta-btn">
+        Zaktualizuj w spiżarni
+      </button>
+    </div>
+
+  </div>
+
+</div>
