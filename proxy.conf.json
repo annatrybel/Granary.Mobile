@@ -14,5 +14,10 @@
     "target": "https://localhost:7290",
     "secure": false,
     "ws": true
+  },
+  "/images": {
+    "target": "https://127.0.0.1:7290",
+    "secure": false,
+    "changeOrigin": true
   }
 }

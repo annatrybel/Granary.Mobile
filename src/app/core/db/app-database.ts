@@ -3,11 +3,18 @@ import { Injectable } from '@angular/core';
 
 export interface ProductItem {
   id: string;
+  catalogProductId?: string; 
   name: string;
-  location: 'lodowka' | 'zamrazarka' | 'spizarnia';
+  category?: string;
+  categoryId?: string;       
+  locationName?: string;
+  storageLocation?: string;
+  imageUrl?: string;
   quantity: number;
-  expiryDate: string;
-  isSynced: boolean; 
+  unit?: string;
+  expiryDays?: number;
+  expirationDate?: string;
+  isSynced: boolean;
   updatedAt: number;
 }
 

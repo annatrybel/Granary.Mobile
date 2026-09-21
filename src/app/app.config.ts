@@ -5,9 +5,10 @@ import {
   importProvidersFrom 
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
+import { authInterceptor } from './core/interceptors/auth.interceptor'; // <-- DODANE
 
 import { 
   LucideAngularModule, 
@@ -20,6 +21,9 @@ import {
   Plus, 
   Trash2, 
   Clock, 
+  Camera,   
+  Check,   
+  Sparkles,
   // Formularze i logowanie:
   Refrigerator, 
   User, 
@@ -35,7 +39,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(),
+    // Rejestracja interceptora JWT:
+    provideHttpClient(
+      withInterceptors([authInterceptor])
+    ),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
@@ -51,6 +58,9 @@ export const appConfig: ApplicationConfig = {
         Plus,
         Trash2,
         Clock,
+        Camera,  
+        Check,   
+        Sparkles, 
         Refrigerator,
         User,
         Mail,
