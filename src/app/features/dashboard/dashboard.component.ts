@@ -1,86 +1,141 @@
-import { Component } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { LucideAngularModule } from 'lucide-angular';
 
-interface ExpiringItem {
-  id: number;
-  name: string;
-  category: string;
-  timeLeftText: string;
-}
-
-interface StockSection {
-  title: string;
-  count: number;
-  icon: string;
-}
-
-interface SuggestedRecipe {
-  id: number;
-  title: string;
-  ingredientsUsed: string;
-  durationAndPortions: string;
-  imageUrl: string;
-}
+import { PantryService } from '../../core/services/pantry.service';
+import { AuthService } from '../../core/services/auth.service';
+import { environment } from '../../../environments/environment';
+import { ExpiringItem, StockSection, SuggestedRecipe } from './models/dashboard.models';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, LucideAngularModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent {
-  userName: string = 'ANNA';
+export class DashboardComponent implements OnInit {
+  private http = inject(HttpClient);
+  private pantryService = inject(PantryService);
+  private authService = inject(AuthService);
 
-  expiringItems: ExpiringItem[] = [
-    {
-      id: 1,
-      name: 'Mleko owsiane',
-      category: 'Lodówka',
-      timeLeftText: 'Zostało 24h'
-    },
-    {
-      id: 2,
-      name: 'Świeży szpinak',
-      category: 'Lodówka',
-      timeLeftText: 'Zostało 48h'
-    },
-    {
-      id: 3,
-      name: 'Pomidorki koktajlowe',
-      category: 'Lodówka',
-      timeLeftText: 'Zostało 2 dni'
+  userName = signal<string>('UŻYTKOWNIKU');
+
+  private products = this.pantryService.products;
+
+  expiringItems = computed<ExpiringItem[]>(() => {
+    return this.products()
+      .filter(item => (item.expiryDays ?? 99) <= 4)
+      .sort((a, b) => (a.expiryDays ?? 0) - (b.expiryDays ?? 0))
+      .slice(0, 5)
+      .map(item => {
+        const days = item.expiryDays ?? 0;
+        let text = `Zostało ${days} dni`;
+        if (days <= 0) text = 'Dzisiaj!';
+        else if (days === 1) text = 'Zostało 24h';
+        else if (days === 2) text = 'Zostało 48h';
+
+        const locName = item.locationName || 'Lodówka';
+        const catName = item.categoryName || 'Ogólne';
+
+        return {
+          id: item.id,
+          name: item.name,
+          categoryName: catName,
+          categoryIcon: this.getCategoryIcon(catName, item.name),
+          locationName: locName,
+          locationIcon: this.getLocationIcon(locName, item.storageLocation),
+          timeLeftText: text,
+          daysLeft: days
+        };
+      });
+  });
+
+  private getCategoryIcon(categoryName: string, productName: string): string {
+    const cat = `${categoryName} ${productName}`.toLowerCase();
+
+    if (cat.includes('nabia') || cat.includes('dairy') || cat.includes('mlek') || cat.includes('ser')) {
+      return 'icons/category-dairy.svg';
     }
-  ];
+    if (cat.includes('pieczyw') || cat.includes('bakery') || cat.includes('chleb') || cat.includes('bułk')) {
+      return 'icons/category-bakery.svg';
+    }
+    if (cat.includes('warz') || cat.includes('owoc') || cat.includes('pomidor') || cat.includes('szpinak') || cat.includes('veggie')) {
+      return 'icons/category-veggies.svg';
+    }
+    if (cat.includes('mięs') || cat.includes('meat') || cat.includes('wędlin') || cat.includes('kurczak')) {
+      return 'icons/category-meat.svg';
+    }
+    if (cat.includes('sypk') || cat.includes('mąk') || cat.includes('ryż') || cat.includes('makaron')) {
+      return 'icons/category-pantry.svg';
+    }
 
-  stockSections: StockSection[] = [
-    { title: 'Lodówka', count: 34, icon: 'icons/fridge-unified.svg' },
-    { title: 'Spiżarnia', count: 42, icon: 'icons/pantry-shelf.svg' },
-    { title: 'Zamrażarka', count: 9, icon: 'icons/freezer-snowflake.svg' }
-  ];
+    return 'icons/warning-drop.svg';
+  }
 
-  recipes: SuggestedRecipe[] = [
+  private getLocationIcon(locationName: string, storageLocation?: string): string {
+    const loc = `${locationName} ${storageLocation}`.toLowerCase();
+
+    if (loc.includes('zamraż') || loc.includes('freezer')) {
+      return 'icons/freezer-snowflake.svg';
+    }
+    if (loc.includes('spiż') || loc.includes('pantry')) {
+      return 'icons/pantry-shelf.svg';
+    }
+    return 'icons/fridge-small.svg'; 
+  }
+
+  stockSections = computed<StockSection[]>(() => {
+    const all = this.products();
+
+    const isFridge = (p: any) => `${p.locationName} ${p.storageLocation} ${p.category}`.toLowerCase().includes('lodów') || `${p.locationName}`.toLowerCase().includes('fridge');
+    const isPantry = (p: any) => `${p.locationName} ${p.storageLocation} ${p.category}`.toLowerCase().includes('spiż') || `${p.locationName}`.toLowerCase().includes('pantry');
+    const isFreezer = (p: any) => `${p.locationName} ${p.storageLocation} ${p.category}`.toLowerCase().includes('zamraż') || `${p.locationName}`.toLowerCase().includes('freezer');
+
+    return [
+      { title: 'Lodówka', count: all.filter(isFridge).length, icon: 'icons/fridge-small.svg', type: 'fridge' },
+      { title: 'Spiżarnia', count: all.filter(isPantry).length, icon: 'icons/pantry-shelf.svg', type: 'pantry' },
+      { title: 'Zamrażarka', count: all.filter(isFreezer).length, icon: 'icons/freezer-snowflake.svg', type: 'freezer' }
+    ];
+  });
+
+  recipes = signal<SuggestedRecipe[]>([
     {
       id: 1,
       title: 'Kremowy makaron ze szpinakiem',
-      ingredientsUsed: 'Wykorzystasz: Szpinak i Mleko',
+      ingredientsUsed: 'Wykorzystasz zapasy z lodówki',
       durationAndPortions: '15 min • 2 porcje',
-      imageUrl: 'https://images.unsplash.com/photo-1621996346565-e3d5d628169b?auto=format&fit=crop&w=160&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1621996346565-e3d5d628169b?auto=format&fit=crop&w=300&q=80'
     },
     {
       id: 2,
-      title: 'Omlet z pomidorkami i ziołami',
-      ingredientsUsed: 'Wykorzystasz: Mleko i Pomidorki',
-      durationAndPortions: '10 min • 1 porcja',
-      imageUrl: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=160&q=80'
-    },
-    {
-      id: 3,
-      title: 'Sałatka ze świeżym szpinakiem',
-      ingredientsUsed: 'Wykorzystasz: Szpinak i Pomidorki',
-      durationAndPortions: '5 min • 2 porcje',
-      imageUrl: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=160&q=80'
+      title: 'Zapiekanka warzywna z serem',
+      ingredientsUsed: 'Szybkie czyszczenie lodówki',
+      durationAndPortions: '25 min • 3 porcje',
+      imageUrl: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80'
     }
-  ];
+  ]);
+
+  ngOnInit(): void {
+    this.fetchUserProfile();
+  }
+
+  private fetchUserProfile(): void {
+    if (!this.authService.isAuthenticated()) return;
+
+    this.http.get<any>(`${environment.apiBaseUrl}/authentication/me`).subscribe({
+      next: (user) => {
+        const displayName = user.name || user.userName || user.email?.split('@')[0];
+        if (displayName) {
+          this.userName.set(displayName.toUpperCase());
+        }
+      },
+      error: () => {
+        this.userName.set('W KUCHNI');
+      }
+    });
+  }
 }

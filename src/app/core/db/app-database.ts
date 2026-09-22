@@ -6,7 +6,8 @@ export interface ProductItem {
   catalogProductId?: string; 
   name: string;
   category?: string;
-  categoryId?: string;       
+  categoryId?: string; 
+  categoryName?: string;       
   locationName?: string;
   storageLocation?: string;
   imageUrl?: string;

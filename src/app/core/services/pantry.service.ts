@@ -27,20 +27,37 @@ export class PantryService {
       this.http.get<any[]>(this.apiUrl).subscribe({
         next: async (serverItems) => {
           if (Array.isArray(serverItems)) {
-            const mapped: ProductItem[] = serverItems.map(item => ({
-              id: item.id,
-              name: item.productName || item.name || 'Produkt',
-              category: (item.storageLocation || 'spizarnia').toLowerCase(),
-              locationName: item.storageLocation || 'Spiżarnia',
-              imageUrl: item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
-              quantity: item.quantity || 1, 
-              unit: item.unit || 'szt',
-              expiryDays: item.expirationDate 
-                ? Math.max(0, Math.ceil((new Date(item.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) 
-                : 7,
-              isSynced: true,
-              updatedAt: Date.now()
-            }));
+            const mapped: ProductItem[] = serverItems.map(item => {
+              const locStr = (item.storageLocation || '').toLowerCase();
+              let polishLoc = 'Lodówka';
+              let cat = 'lodowka';
+
+              if (locStr.includes('freezer') || locStr.includes('zamraż')) {
+                polishLoc = 'Zamrażarka';
+                cat = 'zamrazarka';
+              } else if (locStr.includes('pantry') || locStr.includes('spiż')) {
+                polishLoc = 'Spiżarnia';
+                cat = 'spizarnia';
+              }
+
+              return {
+                id: item.id,
+                catalogProductId: item.productId,
+                name: item.productName || item.name || 'Produkt',
+                category: cat,
+                categoryName: item.categoryName || 'Inne',
+                locationName: polishLoc,        
+                storageLocation: item.storageLocation, 
+                imageUrl: item.imageUrl,
+                quantity: item.quantity || 1,
+                unit: item.unit || 'szt.',
+                expiryDays: item.expirationDate 
+                  ? Math.max(0, Math.ceil((new Date(item.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) 
+                  : 7,
+                isSynced: true,
+                updatedAt: Date.now()
+              };
+            });
 
             await this.db.products.clear();
             await this.db.products.bulkPut(mapped);
