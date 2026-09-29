@@ -1,0 +1,170 @@
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" (click)="closeSheet.emit()"></div>
+
+<div class="sheet-container animate-slide-up">
+  
+  <div class="pt-3 pb-1 flex justify-center">
+    <div class="w-10 h-1 bg-neutral-300 rounded-full"></div>
+  </div>
+
+  <div class="px-6 pb-3 pt-1 flex items-start justify-between border-b border-neutral-100">
+    <div>
+      <h2 class="text-xl font-bold tracking-tight text-neutral-900">Filtry i sortowanie</h2>
+      <p class="text-xs text-neutral-500 mt-0.5">Dopasuj przepisy do zawartości Twojej kuchni</p>
+    </div>
+    <button 
+      type="button" 
+      class="bg-neutral-100 p-2 rounded-full text-neutral-600 hover:bg-neutral-200 transition-colors flex items-center justify-center shrink-0" 
+      (click)="closeSheet.emit()"
+      aria-label="Zamknij">
+      ✕
+    </button>
+  </div>
+
+  <!-- Przewijana zawartość filtrów -->
+  <div class="px-6 py-4 overflow-y-auto no-scrollbar space-y-5 flex-1 pb-24">
+    
+    <!-- 1. Dostępność w magazynie -->
+    <section>
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-semibold tracking-tight text-neutral-900">Dostępność w magazynie</h3>
+        <span class="bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded text-[10px] font-medium">Główny filtr</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1 bg-neutral-100 p-1 rounded-xl border border-neutral-200/80">
+        <button 
+          type="button" 
+          [class.active-segment]="availability() === 'ready'"
+          [class.inactive-segment]="availability() !== 'ready'"
+          (click)="availability.set('ready')">
+          100% z magazynu
+        </button>
+        <button 
+          type="button" 
+          [class.active-segment]="availability() === 'missing2'"
+          [class.inactive-segment]="availability() !== 'missing2'"
+          (click)="availability.set('missing2')">
+          Brakuje ≤ 2
+        </button>
+        <button 
+          type="button" 
+          [class.active-segment]="availability() === 'all'"
+          [class.inactive-segment]="availability() !== 'all'"
+          (click)="availability.set('all')">
+          Wszystkie
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. Maksymalny czas przygotowania -->
+    <section>
+      <h3 class="text-sm font-semibold tracking-tight text-neutral-900 mb-2">Maksymalny czas</h3>
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <button 
+          type="button" 
+          class="pill-filter-btn" 
+          [class.active]="maxTime() === 15" 
+          (click)="maxTime.set(maxTime() === 15 ? null : 15)">
+          do 15 min
+        </button>
+        <button 
+          type="button" 
+          class="pill-filter-btn" 
+          [class.active]="maxTime() === 30" 
+          (click)="maxTime.set(maxTime() === 30 ? null : 30)">
+          do 30 min
+        </button>
+        <button 
+          type="button" 
+          class="pill-filter-btn" 
+          [class.active]="maxTime() === 45" 
+          (click)="maxTime.set(maxTime() === 45 ? null : 45)">
+          do 45 min
+        </button>
+        <button 
+          type="button" 
+          class="pill-filter-btn" 
+          [class.active]="maxTime() === null" 
+          (click)="maxTime.set(null)">
+          Dowolny
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. Sortowanie -->
+    <section>
+      <h3 class="text-sm font-semibold tracking-tight text-neutral-900 mb-2">Sortuj według</h3>
+      <div class="grid grid-cols-2 gap-2.5">
+        <button 
+          type="button" 
+          class="sort-card-btn"
+          [class.active]="sortBy() === 'match'"
+          (click)="sortBy.set('match')">
+          <span class="truncate">Dopasowanie spiżarni</span>
+          @if (sortBy() === 'match') { <span>✓</span> }
+        </button>
+
+        <button 
+          type="button" 
+          class="sort-card-btn"
+          [class.active]="sortBy() === 'time'"
+          (click)="sortBy.set('time')">
+          <span class="truncate">Najkrótszy czas</span>
+          @if (sortBy() === 'time') { <span>✓</span> }
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. Diety i posiłki -->
+    <section class="space-y-3 pt-0.5">
+      <h3 class="text-sm font-semibold tracking-tight text-neutral-900">Diety i posiłki</h3>
+      
+      <div>
+        <div class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Posiłek</div>
+        <div class="flex flex-wrap gap-2">
+          @for (m of ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska']; track m) {
+            <button 
+              type="button" 
+              class="pill-filter-btn"
+              [class.active]="mealType() === m"
+              (click)="setMealType(m)">
+              {{ m }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div>
+        <div class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mt-3 mb-1.5">Preferencje i diety</div>
+        <div class="flex flex-wrap gap-2">
+          @for (d of ['Bez glutenu', 'Bez laktozy', 'Wegańskie', 'Wegetariańskie']; track d) {
+            <button 
+              type="button" 
+              class="pill-filter-btn"
+              [class.active]="diet() === d"
+              (click)="setDiet(d)">
+              {{ d }}
+            </button>
+          }
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Dolny pasek akcji -->
+  <div class="sticky bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-neutral-200 p-4 flex items-center justify-between gap-4 z-50">
+    <button 
+      type="button" 
+      class="text-neutral-500 hover:text-neutral-900 font-medium text-xs px-2 py-2 cursor-pointer transition-colors" 
+      (click)="onReset()">
+      Wyczyść filtry
+    </button>
+    <button 
+      type="button" 
+      class="flex-1 bg-[#536500] hover:bg-[#435200] active:scale-95 text-white py-3 px-5 rounded-full font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+      (click)="onApply()">
+      <span>Pokaż przepisy</span>
+      <span>→</span>
+    </button>
+  </div>
+
+</div>

@@ -1,8 +1,8 @@
-import { 
-  ApplicationConfig, 
-  provideBrowserGlobalErrorListeners, 
-  isDevMode, 
-  importProvidersFrom 
+import {
+  ApplicationConfig,
+  provideBrowserGlobalErrorListeners,
+  isDevMode,
+  importProvidersFrom
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -10,29 +10,30 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor'; // <-- DODANE
 
-import { 
-  LucideAngularModule, 
+import {
+  LucideAngularModule,
   // Główne menu i magazyn:
-  Home, 
-  Package, 
-  BookOpen, 
-  ShoppingBasket, 
-  Search, 
-  Plus, 
-  Trash2, 
-  Clock, 
-  Camera,   
-  Check,   
+  Home,
+  Package,
+  BookOpen,
+  ShoppingBasket,
+  Search,
+  Plus,
+  Trash2,
+  Clock,
+  Camera,  
+  Check,  
   Sparkles,
+  SlidersHorizontal,
   // Formularze i logowanie:
-  Refrigerator, 
-  User, 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  LogIn, 
-  UserPlus 
+  Refrigerator,
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  LogIn,
+  UserPlus
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -59,8 +60,9 @@ export const appConfig: ApplicationConfig = {
         Trash2,
         Clock,
         Camera,  
-        Check,   
-        Sparkles, 
+        Check,  
+        Sparkles,
+        SlidersHorizontal,
         Refrigerator,
         User,
         Mail,
