@@ -1,0 +1,33 @@
+.recipe-tags-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.tag-pill {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background-color: #EAE7E7;
+  color: #1C1B1B;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &:hover { background-color: #DFDCDB; }
+
+  &.active {
+    background-color: #536500;
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(83, 101, 0, 0.25);
+  }
+
+  &:active { transform: scale(0.96); }
+}

@@ -1,109 +1,26 @@
 <main class="recipes-page">
   <div class="recipes-container">
 
-    <!-- 1. OWALNA WYSZUKIWARKA PRZEPISÓW -->
-    <section class="figma-search-section">
-      <div class="figma-input-wrapper">
-        <div class="search-icon-box">
-          <lucide-icon name="search" class="w-4.5 h-4.5 text-[#757962]"></lucide-icon>
-        </div>
+    <app-recipe-search-bar 
+      [searchQuery]="searchQuery()"
+      (queryChange)="searchQuery.set($event)"
+      (openFilters)="isFilterSheetOpen.set(true)" />
 
-        <input 
-          type="text" 
-          class="figma-text-input" 
-          placeholder="Szukaj dania lub składnika..." 
-          [value]="searchQuery()"
-          (input)="onSearchInput($event)"
-        />
+    <app-recipe-tags-bar 
+      [tags]="tags"
+      [selectedTag]="selectedTag()"
+      (selectTag)="selectedTag.set($event)" />
 
-        @if (searchQuery()) {
-          <button 
-            type="button" 
-            class="clear-btn" 
-            (click)="clearSearch()"
-            aria-label="Wyczyść wyszukiwanie">
-            ✕
-          </button>
-        }
+    <app-recipe-favorites-carousel 
+      [favorites]="favoriteRecipes()"
+      (addCustom)="onAddCustomRecipe()"
+      (seeAll)="selectedTag.set('all')"
+      (recipeClick)="openRecipeDetail($event)"
+      (toggleFav)="toggleFavorite($event)" />
 
-        <button 
-          type="button" 
-          class="inline-filter-btn" 
-          (click)="openFilterSheet()" 
-          title="Otwórz filtry i sortowanie">
-          <lucide-icon name="sliders-horizontal" class="w-4 h-4 text-[#536500]"></lucide-icon>
-        </button>
-      </div>
-    </section>
-
-    <!-- 2. PASEK PIGUŁEK SZYBKICH TAGÓW -->
-    <div class="recipe-tags-scroll">
-      @for (tag of tags; track tag.id) {
-        <button 
-          type="button"
-          class="tag-pill" 
-          [class.active]="selectedTag() === tag.id" 
-          (click)="selectTag(tag.id)">
-          {{ tag.name }}
-        </button>
-      }
-    </div>
-
-    <!-- 3. SEKCJA "TWOJE I ULUBIONE" -->
-    <section class="favorites-section">
-      <div class="favorites-header">
-        <div class="flex items-center gap-2">          
-          <h2 class="favorites-title">Twoje i ulubione</h2>
-        </div>
-
-        <button type="button" class="favorites-link" (click)="selectedTag.set('all')">
-          Zobacz wszystkie
-        </button>
-      </div>
-
-      <div class="favorites-scroll">
-        <!-- KAFELEK: "Dodaj przepis" -->
-        <button type="button" class="btn-add-recipe-dashed" (click)="onAddCustomRecipe()">
-          <div class="add-circle-btn">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 8H0V6H6V0H8V6H14V8H8V14H6V8Z" fill="white"/>
-            </svg>
-          </div>
-          <span class="add-recipe-label">Dodaj przepis</span>
-        </button>
-
-        <!-- KAFELKI ULUBIONYCH -->
-        @for (fav of favoriteRecipes(); track fav.recipeId) {
-          <article 
-            class="favorite-recipe-card" 
-            [style.backgroundImage]="'url(' + (fav.imageUrl || '/images/food-placeholder.webp') + ')'"
-            (click)="openRecipeDetail(fav.recipeId)">
-            
-            <div class="fav-gradient-overlay"></div>
-
-            <button 
-              type="button" 
-              class="fav-heart-btn-32" 
-              (click)="toggleFavorite(fav.recipeId, $event)" 
-              title="Usuń z ulubionych">
-              <svg width="16" height="15" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 18.35L8.55 17.05C6.86667 15.5333 5.475 14.225 4.375 13.125C3.275 12.025 2.4 11.0375 1.75 10.1625C1.1 9.2875 0.645833 8.48333 0.3875 7.75C0.129167 7.01667 0 6.26667 0 5.5C0 3.93333 0.525 2.625 1.575 1.575C2.625 0.525 3.93333 0 5.5 0C6.36667 0 7.19167 0.183333 7.975 0.55C8.75833 0.916667 9.43333 1.43333 10 2.1C10.5667 1.43333 11.2417 0.916667 12.025 0.55C12.8083 0.183333 13.6333 0 14.5 0C16.0667 0 17.375 0.525 18.425 1.575C19.475 2.625 20 3.93333 20 5.5C20 6.26667 19.8708 7.01667 19.6125 7.75C19.3542 8.48333 18.9 9.2875 18.25 10.1625C17.6 11.0375 16.725 12.025 15.625 13.125C14.525 14.225 13.1333 15.5333 11.45 17.05L10 18.35Z" fill="#BA1A1A"/>
-              </svg>
-            </button>
-
-            <div class="fav-card-bottom">
-              <span class="fav-card-time">⏱️ {{ fav.prepTimeMinutes }} min</span>
-              <h3 class="fav-card-title">{{ fav.title }}</h3>
-            </div>
-          </article>
-        }
-      </div>
-    </section>
-
-    <!-- 4. GŁÓWNA LISTA PRZEPISÓW ("ZRÓB Z TEGO, CO MASZ") -->
-    <div class="recipes-list">
-      <div class="flex items-center gap-2 mt-4 mb-1">
-        <lucide-icon name="sparkles" [size]="22" color="#8429C8" class="shrink-0"></lucide-icon>
+    <section class="recipes-main-section">
+      <div class="flex items-center gap-2 mt-4 mb-2">
+        <lucide-icon name="sparkles" class="w-5 h-5 text-[#8429C8] shrink-0"></lucide-icon>
         <h2 class="favorites-title">Zrób z tego, co masz</h2>
       </div>
 
@@ -112,120 +29,41 @@
           Analizuję Twoją spiżarnię i dopasowuję przepisy...
         </div>
       } @else if (errorMessage()) {
-        <div class="error-box">
-          {{ errorMessage() }}
-        </div>
+        <div class="error-box">{{ errorMessage() }}</div>
       } @else {
-        @for (recipe of filteredRecipes(); track recipe.recipeId) {
-          
-          <article class="recipe-card-stitch" (click)="openRecipeDetail(recipe.recipeId, recipe)">
-            <!-- Zdjęcie potrawy -->
-            <div class="card-image-box">
-              <img 
-                [src]="recipe.imageUrl || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=600&q=80'" 
-                (error)="$any($event.target).src = 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=600&q=80'"
-                [alt]="recipe.title"
-                class="card-img" 
-              />
-              
-              <div class="card-image-badges">
-                <span class="badge-pill">👥 {{ recipe.servings }} porcje</span>
-              </div>
-
-              <button 
-                type="button" 
-                class="card-heart-btn-40" 
-                (click)="toggleFavorite(recipe.recipeId, $event)" 
-                title="Zapisz w ulubionych">
-                <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 18.35L8.55 17.05C6.86667 15.5333 5.475 14.225 4.375 13.125C3.275 12.025 2.4 11.0375 1.75 10.1625C1.1 9.2875 0.645833 8.48333 0.3875 7.75C0.129167 7.01667 0 6.26667 0 5.5C0 3.93333 0.525 2.625 1.575 1.575C2.625 0.525 3.93333 0 5.5 0C6.36667 0 7.19167 0.183333 7.975 0.55C8.75833 0.916667 9.43333 1.43333 10 2.1C10.5667 1.43333 11.2417 0.916667 12.025 0.55C12.8083 0.183333 13.6333 0 14.5 0C16.0667 0 17.375 0.525 18.425 1.575C19.475 2.625 20 3.93333 20 5.5C20 6.26667 19.8708 7.01667 19.6125 7.75C19.3542 8.48333 18.9 9.2875 18.25 10.1625C17.6 11.0375 16.725 12.025 15.625 13.125C14.525 14.225 13.1333 15.5333 11.45 17.05L10 18.35ZM10 15.65C11.6 14.2167 12.9167 12.9875 13.95 11.9625C14.9833 10.9375 15.8 10.0458 16.4 9.2875C17 8.52917 17.4167 7.85417 17.65 7.2625C17.8833 6.67083 18 6.08333 18 5.5C18 4.5 17.6667 3.66667 17 3C16.3333 2.33333 15.5 2 14.5 2C13.7167 2 12.9917 2.22083 12.325 2.6625C11.6583 3.10417 11.2 3.66667 10.95 4.35H9.05C8.8 3.66667 8.34167 3.10417 7.675 2.6625C7.00833 2.22083 6.28333 2 5.5 2C4.5 2 3.66667 2.33333 3 3C2.33333 3.66667 2 4.5 2 5.5C2 6.08333 2.11667 6.67083 2.35 7.2625C2.58333 7.85417 3 8.52917 3.6 9.2875C4.2 10.0458 5.01667 10.9375 6.05 11.9625C7.08333 12.9875 8.4 14.2167 10 15.65Z" 
-                    [attr.fill]="isFavorite(recipe.recipeId) ? '#BA1A1A' : '#757962'"/>
-                </svg>
-              </button>
-
-              <div class="match-badge" [class.full-match]="recipe.canBeCookedNow">
-                {{ recipe.matchPercentage }}% ze spiżarni
-              </div>
+        <div class="recipes-list">
+          @for (recipe of filteredRecipes(); track recipe.recipeId) {
+            <app-recipe-card 
+              [recipe]="recipe"
+              [isFavorite]="recipe.isFavorite"
+              (cardClick)="openRecipeDetail(recipe.recipeId, recipe)"
+              (toggleFav)="toggleFavorite(recipe.recipeId)" 
+              (addMissing)="addMissingToShoppingList(recipe)" />
+          } @empty {
+            <div class="empty-state">
+              Brak przepisów spełniających wybrane kryteria wyszukiwania.
             </div>
-
-            <!-- Treść karty -->
-            <div class="card-body">
-              
-              <h3 class="recipe-title">{{ recipe.title }}</h3>
-              
-              <div class="recipe-meta-row">
-                <div class="meta-item">
-                  <lucide-icon name="clock" class="w-[15px] h-[15px] text-[#454934] shrink-0"></lucide-icon>
-                  <span class="meta-text">{{ recipe.prepTimeMinutes }} min</span>
-                </div>
-
-                <div class="meta-item">
-                  <svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
-                    <path d="M2.25 15V8.1375C1.6125 7.9625 1.07812 7.6125 0.646875 7.0875C0.215625 6.5625 0 5.95 0 5.25V0H1.5V5.25H2.25V0H3.75V5.25H4.5V0H6V5.25C6 5.95 5.78438 6.5625 5.35313 7.0875C4.92188 7.6125 4.3875 7.9625 3.75 8.1375V15H2.25ZM9.75 15V9H7.5V3.75C7.5 2.7125 7.86563 1.82812 8.59688 1.09687C9.32812 0.365625 10.2125 0 11.25 0V15H9.75Z" fill="#454934"/>
-                  </svg>
-                  <span class="meta-text">Prosty</span>
-                </div>
-              </div>
-
-              @if (!recipe.canBeCookedNow && recipe.missingIngredients && recipe.missingIngredients.length > 0) {
-                <div class="missing-section">
-                  
-                  <!-- SZARE TŁO TYLKO DLA TEKSTU I IKONKI (Figma: #F0EDED, radius: 8px, padding: 12px) -->
-                  <div class="missing-alert-box">
-                    <svg class="shrink-0" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M6.66667 10C6.85556 10 7.01389 9.93611 7.14167 9.80833C7.26944 9.68056 7.33333 9.52222 7.33333 9.33333C7.33333 9.14444 7.26944 8.98611 7.14167 8.85833C7.01389 8.73056 6.85556 8.66667 6.66667 8.66667C6.47778 8.66667 6.31944 8.73056 6.19167 8.85833C6.06389 8.98611 6 9.14444 6 9.33333C6 9.52222 6.06389 9.68056 6.19167 9.80833C6.31944 9.93611 6.47778 10 6.66667 10ZM6 7.33333H7.33333V3.33333H6V7.33333ZM6.66667 13.3333C5.74444 13.3333 4.87778 13.1583 4.06667 12.8083C3.25556 12.4583 2.55 11.9833 1.95 11.3833C1.35 10.7833 0.875 10.0778 0.525 9.26667C0.175 8.45555 0 7.58889 0 6.66667C0 5.74444 0.175 4.87778 0.525 4.06667C0.875 3.25556 1.35 2.55 1.95 1.95C2.55 1.35 3.25556 0.875 4.06667 0.525C4.87778 0.175 5.74444 0 6.66667 0C7.58889 0 8.45555 0.175 9.26667 0.525C10.0778 0.875 10.7833 1.35 11.3833 1.95C11.9833 2.55 12.4583 3.25556 12.8083 4.06667C13.1583 4.87778 13.3333 5.74444 13.3333 6.66667C13.3333 7.58889 13.1583 8.45555 12.8083 9.26667C12.4583 10.0778 11.9833 10.7833 11.3833 11.3833C10.7833 11.9833 10.0778 12.4583 9.26667 12.8083C8.45555 13.1583 7.58889 13.3333 6.66667 13.3333ZM6.66667 12C8.15556 12 9.41667 11.4833 10.45 10.45C11.4833 9.41667 12 8.15556 12 6.66667C12 5.17778 11.4833 3.91667 10.45 2.88333C9.41667 1.85 8.15556 1.33333 6.66667 1.33333C5.17778 1.33333 3.91667 1.85 2.88333 2.88333C1.85 3.91667 1.33333 5.17778 1.33333 6.66667C1.33333 8.15556 1.85 9.41667 2.88333 10.45C3.91667 11.4833 5.17778 12 6.66667 12Z" fill="#BA1A1A"/>
-                    </svg>
-
-                    <span class="missing-text-figma">
-                      Brakuje: 
-                      @for (m of recipe.missingIngredients; track m.productId; let last = $last) {
-                        {{ m.productName }}{{ last ? '' : ', ' }}
-                      }
-                    </span>
-                  </div>
-
-                  <button 
-                    type="button" 
-                    class="btn-add-missing-figma" 
-                    (click)="addMissingToShoppingList(recipe, $event)">
-                    <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M10 8V5H7V3H10V0H12V3H15V5H12V8H10ZM6 21C5.45 21 4.97917 20.8042 4.5875 20.4125C4.19583 20.0208 4 19.55 4 19C4 18.45 4.19583 17.9792 4.5875 17.5875C4.97917 17.1958 5.45 17 6 17C6.55 17 7.02083 17.1958 7.4125 17.5875C7.80417 17.9792 8 18.45 8 19C8 19.55 7.80417 20.0208 7.4125 20.4125C7.02083 20.8042 6.55 21 6 21ZM16 21C15.45 21 14.9792 20.8042 14.5875 20.4125C14.1958 20.0208 14 19.55 14 19C14 18.45 14.1958 17.9792 14.5875 17.5875C14.9792 17.1958 15.45 17 16 17C16.55 17 17.0208 17.1958 17.4125 17.5875C17.8042 17.9792 18 18.45 18 19C18 19.55 17.8042 20.0208 17.4125 20.4125C17.0208 20.8042 16.55 21 16 21ZM0 3V1H3.275L7.525 10H14.525L18.425 3H20.7L16.3 10.95C16.1167 11.2833 15.8708 11.5417 15.5625 11.725C15.2542 11.9083 14.9167 12 14.55 12H7.1L6 14H18V16H6C5.25 16 4.67917 15.675 4.2875 15.025C3.89583 14.375 3.88333 13.7167 4.25 13.05L5.6 10.6L2 3H0Z" fill="white"/>
-                    </svg>
-                    <span>Dodaj braki do listy</span>
-                  </button>
-
-                </div>
-              }
-
-            </div>
-
-          </article>
-        } @empty {
-          <div class="empty-state">
-            Brak przepisów spełniających wybrane kryteria wyszukiwania.
-          </div>
-        }
+          }
+        </div>
       }
-
-    </div>
+    </section>
 
   </div>
 
-  <!-- MODALE -->
- @if (activeRecipeDetail(); as detail) {
+  @if (activeRecipeDetail(); as detail) {
     <app-recipe-detail-sheet 
       [recipe]="detail" 
-      [isFavorite]="isFavorite(detail.id)"
+      [isFavorite]="detail.isFavorite"
       (toggleFavorite)="toggleFavorite(detail.id)"
-      (closeSheet)="closeRecipeDetail()" />
+      (closeSheet)="activeRecipeDetail.set(null)" />
   }
 
   @if (isFilterSheetOpen()) {
     <app-recipe-filter-sheet
       [filters]="activeFilters()"
       [filteredCount]="filteredRecipes().length"
-      (closeSheet)="closeFilterSheet()"
-      (apply)="onApplyFilters($event)"
-      (reset)="onResetFilters()" />
+      (closeSheet)="isFilterSheetOpen.set(false)"
+      (apply)="activeFilters.set($event)"
+      (reset)="activeFilters.set({ availability: 'all', maxTime: null, sortBy: 'match', mealType: null, diet: null })" />
   }
 </main>

@@ -1,0 +1,44 @@
+<section class="favorites-section">
+  <div class="favorites-header">
+    <h2 class="favorites-title">Twoje i ulubione</h2>
+    <button type="button" class="favorites-link" (click)="seeAll.emit()">
+      Zobacz wszystkie
+    </button>
+  </div>
+
+  <div class="favorites-scroll">
+    <button type="button" class="btn-add-recipe-dashed" (click)="addCustom.emit()">
+      <div class="add-circle-btn">
+        <lucide-icon name="plus" class="w-5 h-5 text-white"></lucide-icon>
+      </div>
+      <span class="add-recipe-label">Dodaj przepis</span>
+    </button>
+
+    @for (fav of favorites(); track fav.recipeId) {
+      <article class="favorite-recipe-card" (click)="recipeClick.emit(fav.recipeId)">
+        <img 
+          [src]="fav.imageUrl || fallbackSvg" 
+          (error)="onImgError($event)"
+          [alt]="fav.title"
+          class="fav-card-image"
+          loading="lazy" 
+        />
+        
+        <div class="fav-gradient-overlay"></div>
+
+        <button 
+          type="button" 
+          class="fav-heart-btn-32" 
+          (click)="onHeartClick(fav.recipeId, $event)" 
+          title="Usuń z ulubionych">
+          <lucide-icon name="heart" class="w-4 h-4 text-[#BA1A1A] fill-[#BA1A1A]"></lucide-icon>
+        </button>
+
+        <div class="fav-card-bottom">
+          <span class="fav-card-time">⏱️ {{ fav.prepTimeMinutes }} min</span>
+          <h3 class="fav-card-title">{{ fav.title }}</h3>
+        </div>
+      </article>
+    }
+  </div>
+</section>

@@ -1,0 +1,73 @@
+@if (recipe(); as r) {
+  <article class="recipe-card-stitch" (click)="cardClick.emit()">
+    <div class="card-image-box">
+      <img 
+        [src]="r.imageUrl || fallbackSvg" 
+        (error)="onImgError($event)"
+        [alt]="r.title"
+        class="card-img" 
+        loading="lazy"
+      />
+      
+      <div class="card-image-badges">
+        <span class="badge-pill">👥 {{ r.servings }} porcje</span>
+      </div>
+
+      <button 
+        type="button" 
+        class="card-heart-btn-40" 
+        (click)="onHeartClick(r.recipeId, $event)" 
+        title="Zapisz w ulubionych">
+        <lucide-icon 
+          name="heart" 
+          class="w-5 h-5 transition-colors"
+          [class.text-[#BA1A1A]]="isFavorite()"
+          [class.fill-[#BA1A1A]]="isFavorite()"
+          [class.text-[#757962]]="!isFavorite()">
+        </lucide-icon>
+      </button>
+
+      <div class="match-badge" [class.full-match]="r.canBeCookedNow">
+        {{ r.matchPercentage }}% ze spiżarni
+      </div>
+    </div>
+
+    <div class="card-body">
+      <h3 class="recipe-title">{{ r.title }}</h3>
+      
+      <div class="recipe-meta-row">
+        <div class="meta-item">
+          <lucide-icon name="clock" class="w-4 h-4 text-[#454934] shrink-0"></lucide-icon>
+          <span class="meta-text">{{ r.prepTimeMinutes }} min</span>
+        </div>
+
+        <div class="meta-item">
+          <lucide-icon name="utensils" class="w-3.5 h-3.5 text-[#454934] shrink-0"></lucide-icon>
+          <span class="meta-text">Prosty</span>
+        </div>
+      </div>
+
+      @if (!r.canBeCookedNow && r.missingIngredients.length > 0) {
+        <div class="missing-section">
+          <div class="missing-alert-box">
+            <lucide-icon name="alert-circle" class="w-4 h-4 text-[#BA1A1A] shrink-0"></lucide-icon>
+            <span class="missing-text-figma">
+              Brakuje: 
+              @for (m of r.missingIngredients; track m.productId; let last = $last) {
+                {{ m.productName }}{{ last ? '' : ', ' }}
+              }
+            </span>
+          </div>
+
+          <button 
+            type="button" 
+            class="btn-add-missing-figma" 
+            (click)="$event.stopPropagation(); addMissing.emit()">
+            <lucide-icon name="shopping-basket" class="w-5 h-5 text-white shrink-0"></lucide-icon>
+            <span>Dodaj braki do listy</span>
+          </button>
+        </div>
+      }
+    </div>
+  </article>
+}

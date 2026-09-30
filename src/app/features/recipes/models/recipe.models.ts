@@ -17,6 +17,7 @@ export interface RecipeMatchDto {
   totalIngredientsCount: number;
   expiringIngredientsSaved: number;
   canBeCookedNow: boolean;
+  isFavorite: boolean; 
   usedIngredientsSummary?: string;
   durationAndPortions?: string;
   missingIngredients: MissingIngredientDto[];
@@ -39,7 +40,21 @@ export interface RecipeDetailDto {
   imageUrl?: string;
   prepTimeMinutes: number;
   servings: number;
+  isFavorite: boolean;    
+  likesCount: number;       
+  dislikesCount: number;   
+  userVote?: boolean | null; 
   ingredients: RecipeIngredientDto[];
+}
+
+export interface VoteRecipeRequest {
+  isLike: boolean;
+}
+
+export interface VoteResultDto {
+  likesCount: number;
+  dislikesCount: number;
+  userVote: boolean | null;
 }
 
 export interface RecipeTag {
