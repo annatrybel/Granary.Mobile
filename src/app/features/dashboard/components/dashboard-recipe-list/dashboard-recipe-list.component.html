@@ -1,0 +1,34 @@
+<section class="recipes-section">
+  <div class="recipes-heading-container">
+    <h2 class="recipes-title">Gotuj z wygasających produktów</h2>
+    <p class="recipes-subtitle">Pomysły na wykorzystanie zapasów z lodówki</p>
+  </div>
+
+  <div class="recipes-list">
+    @for (recipe of recipes(); track recipe.id) {
+      <article class="recipe-card" [routerLink]="['/przepisy']">
+        <div class="recipe-thumb-container">
+          <img 
+            [src]="recipe.imageUrl || fallbackSvg" 
+            (error)="onImgError($event)"
+            [alt]="recipe.title" 
+            class="recipe-thumb"
+            loading="lazy"
+          />
+        </div>
+
+        <div class="recipe-info">
+          <div class="recipe-ingredient-badge">
+            <span>{{ recipe.ingredientsUsed }}</span>
+          </div>
+          <h3 class="recipe-name">{{ recipe.title }}</h3>
+          <p class="recipe-meta">{{ recipe.durationAndPortions }}</p>
+        </div>
+
+        <div class="recipe-arrow-btn" aria-hidden="true">
+          <lucide-icon name="chevron-right" class="w-4 h-4 text-[#536500]"></lucide-icon>
+        </div>
+      </article>
+    }
+  </div>
+</section>

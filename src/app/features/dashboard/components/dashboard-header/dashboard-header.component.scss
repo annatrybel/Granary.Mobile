@@ -1,0 +1,60 @@
+.dashboard-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  width: 100%;
+
+  .welcome-block {
+    display: flex;
+    flex-direction: column;
+
+    .welcome-subtitle {
+      color: #737373;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .welcome-title {
+      margin: 0;
+      color: #171717;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 24px;
+      letter-spacing: -0.3px;
+    }
+  }
+
+  .quick-expiring-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .title-with-icon {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+      .expiring-label {
+        color: #171717;
+        font-size: 12px;
+        font-weight: 600;
+      }
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      border: 1px solid #FCD34D;
+      background: #FEF3C7;
+      color: #78350F;
+      font-size: 10px;
+      font-weight: 700;
+    }
+  }
+}

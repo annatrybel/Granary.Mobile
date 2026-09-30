@@ -12,21 +12,6 @@ export interface ExpiringItem {
 export interface StockSection {
   title: 'Lodówka' | 'Spiżarnia' | 'Zamrażarka';
   count: number;
-  icon: string;
-  type?: 'fridge' | 'pantry' | 'freezer';
-}
-
-export interface SuggestedRecipe {
-  id: string | number;
-  title: string;
-  ingredientsUsed: string;
-  durationAndPortions: string;
-  imageUrl: string;
-}
-
-export interface StockSection {
-  title: 'Lodówka' | 'Spiżarnia' | 'Zamrażarka';
-  count: number;
   icon: string;                         
   type?: 'fridge' | 'pantry' | 'freezer'; 
 }

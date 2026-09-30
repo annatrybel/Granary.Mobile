@@ -1,0 +1,16 @@
+<section class="stock-section">
+  <h2 class="stock-heading">Stan zapasów</h2>
+
+  <div class="stock-grid">
+    @for (stock of stockSections(); track stock.title) {
+      <article class="stock-card" [routerLink]="['/magazyn']">
+        <div class="stock-icon-wrapper">
+          <img [src]="stock.icon" [alt]="stock.title" class="stock-icon" />
+        </div>
+
+        <span class="stock-label">{{ stock.title }}</span>
+        <span class="stock-count">{{ stock.count }} szt.</span>
+      </article>
+    }
+  </div>
+</section>

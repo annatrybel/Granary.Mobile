@@ -1,18 +1,27 @@
 import { Component, signal, computed, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { LucideAngularModule } from 'lucide-angular';
 
 import { PantryService } from '../../core/services/pantry.service';
 import { AuthService } from '../../core/services/auth.service';
 import { environment } from '../../../environments/environment';
 import { ExpiringItem, StockSection, SuggestedRecipe } from './models/dashboard.models';
 
+import { DashboardHeaderComponent } from './components/dashboard-header/dashboard-header.component';
+import { DashboardExpiringCarouselComponent } from './components/dashboard-expiring-carousel/dashboard-expiring-carousel.component';
+import { DashboardStockGridComponent } from './components/dashboard-stock-grid/dashboard-stock-grid.component';
+import { DashboardRecipeListComponent } from './components/dashboard-recipe-list/dashboard-recipe-list.component';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [
+    CommonModule,
+    DashboardHeaderComponent,
+    DashboardExpiringCarouselComponent,
+    DashboardStockGridComponent,
+    DashboardRecipeListComponent
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -23,7 +32,6 @@ export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
 
   userName = signal<string>('UŻYTKOWNIKU');
-
   private products = this.pantryService.products;
 
   expiringItems = computed<ExpiringItem[]>(() => {
@@ -53,40 +61,6 @@ export class DashboardComponent implements OnInit {
         };
       });
   });
-
-  private getCategoryIcon(categoryName: string, productName: string): string {
-    const cat = `${categoryName} ${productName}`.toLowerCase();
-
-    if (cat.includes('nabia') || cat.includes('dairy') || cat.includes('mlek') || cat.includes('ser')) {
-      return 'icons/category-dairy.svg';
-    }
-    if (cat.includes('pieczyw') || cat.includes('bakery') || cat.includes('chleb') || cat.includes('bułk')) {
-      return 'icons/category-bakery.svg';
-    }
-    if (cat.includes('warz') || cat.includes('owoc') || cat.includes('pomidor') || cat.includes('szpinak') || cat.includes('veggie')) {
-      return 'icons/category-veggies.svg';
-    }
-    if (cat.includes('mięs') || cat.includes('meat') || cat.includes('wędlin') || cat.includes('kurczak')) {
-      return 'icons/category-meat.svg';
-    }
-    if (cat.includes('sypk') || cat.includes('mąk') || cat.includes('ryż') || cat.includes('makaron')) {
-      return 'icons/category-pantry.svg';
-    }
-
-    return 'icons/warning-drop.svg';
-  }
-
-  private getLocationIcon(locationName: string, storageLocation?: string): string {
-    const loc = `${locationName} ${storageLocation}`.toLowerCase();
-
-    if (loc.includes('zamraż') || loc.includes('freezer')) {
-      return 'icons/freezer-snowflake.svg';
-    }
-    if (loc.includes('spiż') || loc.includes('pantry')) {
-      return 'icons/pantry-shelf.svg';
-    }
-    return 'icons/fridge-small.svg'; 
-  }
 
   stockSections = computed<StockSection[]>(() => {
     const all = this.products();
@@ -137,5 +111,39 @@ export class DashboardComponent implements OnInit {
         this.userName.set('W KUCHNI');
       }
     });
+  }
+
+  private getCategoryIcon(categoryName: string, productName: string): string {
+    const cat = `${categoryName} ${productName}`.toLowerCase();
+
+    if (cat.includes('nabia') || cat.includes('dairy') || cat.includes('mlek') || cat.includes('ser')) {
+      return 'icons/category-dairy.svg';
+    }
+    if (cat.includes('pieczyw') || cat.includes('bakery') || cat.includes('chleb') || cat.includes('bułk')) {
+      return 'icons/category-bakery.svg';
+    }
+    if (cat.includes('warz') || cat.includes('owoc') || cat.includes('pomidor') || cat.includes('szpinak') || cat.includes('veggie')) {
+      return 'icons/category-veggies.svg';
+    }
+    if (cat.includes('mięs') || cat.includes('meat') || cat.includes('wędlin') || cat.includes('kurczak')) {
+      return 'icons/category-meat.svg';
+    }
+    if (cat.includes('sypk') || cat.includes('mąk') || cat.includes('ryż') || cat.includes('makaron')) {
+      return 'icons/category-pantry.svg';
+    }
+
+    return 'icons/warning-drop.svg';
+  }
+
+  private getLocationIcon(locationName: string, storageLocation?: string): string {
+    const loc = `${locationName} ${storageLocation}`.toLowerCase();
+
+    if (loc.includes('zamraż') || loc.includes('freezer')) {
+      return 'icons/freezer-snowflake.svg';
+    }
+    if (loc.includes('spiż') || loc.includes('pantry')) {
+      return 'icons/pantry-shelf.svg';
+    }
+    return 'icons/fridge-small.svg'; 
   }
 }

@@ -151,34 +151,35 @@ export class RecipesComponent implements OnInit {
   openRecipeDetail(recipeId: string, summary?: RecipeMatchDto): void {
     if (!recipeId) return;
 
-   this.activeRecipeDetail.set({
-    id: recipeId,
-    title: summary?.title || 'Wczytywanie...',
-    description: summary?.description || '',
-    instructions: '',
-    imageUrl: summary?.imageUrl,
-    prepTimeMinutes: summary?.prepTimeMinutes || 15,
-    servings: summary?.servings || 2,
-    isFavorite: summary?.isFavorite ?? false,
-    likesCount: 0,
-    dislikesCount: 0,
-    userVote: null,
-    ingredients: []
-  });
-this.cdr.markForCheck();
+    this.activeRecipeDetail.set({
+      id: recipeId,
+      title: summary?.title || 'Wczytywanie...',
+      description: summary?.description || '',
+      instructions: '',
+      imageUrl: summary?.imageUrl,
+      prepTimeMinutes: summary?.prepTimeMinutes || 15,
+      servings: summary?.servings || 2,
+      isFavorite: summary?.isFavorite ?? false,
+      likesCount: 0,
+      dislikesCount: 0,
+      userVote: null,
+      ingredients: []
+    });
 
-  this.recipeService.getById(recipeId).subscribe({
-    next: (res: any) => {
-      const detail: RecipeDetailDto = res?.data ?? res;
-      this.activeRecipeDetail.set(detail);
-      this.cdr.markForCheck();
-    },
-    error: (err) => {
-      console.error('Błąd pobierania szczegółów przepisu:', err);
-      this.cdr.markForCheck();
-    }
-  });
-}
+    this.cdr.markForCheck();
+
+    this.recipeService.getById(recipeId).subscribe({
+      next: (res: any) => {
+        const detail: RecipeDetailDto = res?.data ?? res;
+        this.activeRecipeDetail.set(detail);
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Błąd pobierania szczegółów:', err);
+        this.cdr.markForCheck();
+      }
+    });
+  }
 
   onAddCustomRecipe(): void {
     alert('Tworzenie własnego przepisu – wkrótce!');

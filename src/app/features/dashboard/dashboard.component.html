@@ -1,106 +1,18 @@
-<div class="dashboard-page">
+<main class="dashboard-page">
   <div class="dashboard-container">
 
-    <!-- GÓRNY PASEK: POWITANIE + PODSUMOWANIE -->
-    <header class="dashboard-top-bar">
-      <div class="welcome-block">
-        <span class="welcome-subtitle">Witaj z powrotem, {{ userName() }}</span>
-        <h1 class="welcome-title">Podsumowanie Twojej kuchni</h1>
-      </div>
+    <app-dashboard-header 
+      [userName]="userName()" 
+      [expiringCount]="expiringItems().length" />
 
-      <div class="quick-expiring-indicator">
-        <div class="title-with-icon">
-          <img src="icons/hourglass.svg" class="hourglass-icon" alt="" />
-          <span class="expiring-label">Warto zużyć w pierwszej kolejności</span>
-        </div>
-        <span class="pill-badge">{{ expiringItems().length }} produkty</span>
-      </div>
-    </header>
+    <app-dashboard-expiring-carousel 
+      [items]="expiringItems()" />
 
-    <!-- 1. KAFELKI WYGASAJĄCYCH PRODUKTÓW -->
-    <section class="expiring-carousel-section">
-      <div class="expiring-scroll">
-        @for (item of expiringItems(); track item.id) {
-          <article class="expiring-card" [routerLink]="['/magazyn']">
-            
-            <div class="card-header-row">
-              <div class="warning-circle">
-                <img [src]="item.categoryIcon" [alt]="item.categoryName" class="category-icon" />
-              </div>
+    <app-dashboard-stock-grid 
+      [stockSections]="stockSections()" />
 
-              <div class="time-badge">
-                <span>{{ item.timeLeftText }}</span>
-              </div>
-            </div>
-
-            <div class="card-content-block">
-              <span class="product-title">{{ item.name }}</span>
-              
-              <div class="category-row">
-                <span class="fridge-icon-wrapper">
-                  <img [src]="item.locationIcon" [alt]="item.locationName" />
-                </span>
-                <span class="category-name">{{ item.locationName }}</span>
-              </div>
-            </div>
-
-          </article>
-        } @empty {
-          <div class="no-expiring-box">
-            <span class="text-sm font-semibold text-neutral-800">Wszystko świeże! 🎉</span>
-            <span class="text-xs text-neutral-500">Żaden produkt nie wygasa w najbliższym czasie.</span>
-          </div>
-        }
-      </div>
-    </section>
-
-    <!-- 2. STAN ZAPASÓW -->
-    <section class="stock-section">
-      <h2 class="stock-heading">Stan zapasów</h2>
-
-      <div class="stock-grid">
-        @for (stock of stockSections(); track stock.title) {
-          <article class="stock-card" [routerLink]="['/magazyn']">
-            <div class="stock-icon-wrapper">
-              <img [src]="stock.icon" [alt]="stock.title" class="stock-icon" />
-            </div>
-
-            <span class="stock-label">{{ stock.title }}</span>
-            <span class="stock-count">{{ stock.count }} szt.</span>
-          </article>
-        }
-      </div>
-    </section>
-
-    <!-- 3. GOTUJ Z WYGASAJĄCYCH PRODUKTÓW -->
-    <section class="recipes-section">
-      <div class="recipes-heading-container">
-        <h2 class="recipes-title">Gotuj z wygasających produktów</h2>
-        <p class="recipes-subtitle">Pomysły na wykorzystanie zapasów z lodówki</p>
-      </div>
-
-      <div class="recipes-list">
-        @for (recipe of recipes(); track recipe.id) {
-          <article class="recipe-card" [routerLink]="['/przepisy']">
-            <div class="recipe-thumb-container">
-              <img [src]="recipe.imageUrl" [alt]="recipe.title" class="recipe-thumb" />
-            </div>
-
-            <div class="recipe-info">
-              <div class="recipe-ingredient-badge">
-                <span>{{ recipe.ingredientsUsed }}</span>
-              </div>
-              <h3 class="recipe-name">{{ recipe.title }}</h3>
-              <p class="recipe-meta">{{ recipe.durationAndPortions }}</p>
-            </div>
-
-            <div class="recipe-arrow-btn" aria-hidden="true">
-              <img src="icons/arrow-right.svg" alt="" />
-            </div>
-          </article>
-        }
-      </div>
-    </section>
+    <app-dashboard-recipe-list 
+      [recipes]="recipes()" />
 
   </div>
-</div>
+</main>
