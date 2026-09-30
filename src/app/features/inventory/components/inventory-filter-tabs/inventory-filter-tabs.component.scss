@@ -1,0 +1,31 @@
+.filter-wrapper {
+  padding: 16px 20px 0 20px;
+}
+
+.filter-pill-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.tab-btn {
+  padding: 8px 18px;
+  border-radius: 9999px;
+  border: 1px solid #E5E5E5;
+  background: #FFFFFF;
+  color: #737373;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &.active {
+    background: #536500;
+    color: #FFFFFF;
+    border-color: #536500;
+  }
+}

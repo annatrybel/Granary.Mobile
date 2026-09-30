@@ -1,162 +1,35 @@
 <main class="inventory-page">
   <div class="inventory-container">
     
-    <!-- 1. PRZEŁĄCZNIK KATEGORII -->
-    <nav class="filter-wrapper" aria-label="Kategorie magazynu">
-      <div class="filter-pill-container">
-        <button 
-          type="button" 
-          class="tab-btn" 
-          [class.active]="selectedCategory() === 'all'" 
-          (click)="setCategory('all')">
-          Wszystko
-        </button>
-        <button 
-          type="button" 
-          class="tab-btn" 
-          [class.active]="selectedCategory() === 'lodowka'" 
-          (click)="setCategory('lodowka')">
-          Lodówka
-        </button>
-        <button 
-          type="button" 
-          class="tab-btn" 
-          [class.active]="selectedCategory() === 'zamrazarka'" 
-          (click)="setCategory('zamrazarka')">
-          Zamrażarka
-        </button>
-        <button 
-          type="button" 
-          class="tab-btn" 
-          [class.active]="selectedCategory() === 'spizarnia'" 
-          (click)="setCategory('spizarnia')">
-          Spiżarnia
-        </button>
-      </div>
-    </nav>
+    <app-inventory-filter-tabs 
+      [selectedCategory]="selectedCategory()" 
+      (selectCategory)="setCategory($event)" />
 
-    <!-- 2. WYSZUKIWARKA Z APARATEM WEWNĄTRZ + DROPDOWN -->
-    <section class="figma-search-section">
-      <div class="figma-input-wrapper">
-        <div class="search-icon-box">
-          <lucide-icon name="search" class="w-4.5 h-4.5 text-[#757962]"></lucide-icon>
-        </div>
-
-        <input 
-          type="text" 
-          class="figma-text-input" 
-          placeholder="Szukaj lub dodaj produkt..." 
-          [value]="searchQuery()"
-          (input)="onSearchInput($event)"
-          (focus)="showSuggestions.set(catalogSuggestions().length > 0)"
-        />
-
-        @if (searchQuery()) {
-          <button 
-            type="button" 
-            class="clear-btn" 
-            (click)="searchQuery.set(''); showSuggestions.set(false)"
-            aria-label="Wyczyść">
-            ✕
-          </button>
-        }
-
+    <div class="px-5">
+      <app-catalog-search-bar 
+        placeholder="Szukaj lub dodaj produkt..."
+        (selectProduct)="onSelectSuggestion($event)"
+        (createCustom)="onAddCustomProduct($event)">
+        
         <button 
+          search-actions
           type="button" 
           class="inline-camera-btn" 
           (click)="openCameraScanner()" 
           title="Skanuj kod kreskowy">
           <lucide-icon name="camera" class="w-5 h-5 text-[#536500]"></lucide-icon>
         </button>
-      </div>
+      </app-catalog-search-bar>
+    </div>
 
-      <!-- AUTOCOMPLETE DROPDOWN -->
-      @if (showSuggestions() && searchQuery().trim().length >= 2) {
-        <div class="suggestions-dropdown animate-in fade-in">
-          @if (isSearchingCatalog()) {
-            <div class="dropdown-status flex items-center justify-center gap-2">
-              <span class="spinner-dot"></span>
-              <span>Przeszukuję katalog produktów...</span>
-            </div>
-          } @else if (catalogSuggestions().length > 0) {
-            <div class="dropdown-header">Podpowiedzi z bazy:</div>
-            <ul class="suggestions-list">
-              @for (prod of catalogSuggestions(); track prod.id) {
-                <li class="suggestion-item" (click)="onSelectSuggestion(prod)">
-                  <div class="item-info">
-                    <span class="item-name">{{ prod.name }}</span>
-                    <span class="item-cat">{{ prod.categoryName || prod.category || 'Katalog ogólny' }}</span>
-                  </div>
-                  <span class="btn-add-badge">+ Dodaj</span>
-                </li>
-              }
-            </ul>
-          } @else {
-            <div class="not-found-container" (click)="onAddCustomProduct()">
-              <div class="not-found-content">
-                <div class="not-found-icon">
-                  <lucide-icon name="plus" class="w-4 h-4 text-[#536500]"></lucide-icon>
-                </div>
-                <div class="not-found-texts">
-                  <span class="not-found-title">Nie znaleziono w katalogu</span>
-                  <span class="not-found-subtitle">
-                    Chcesz dodać <strong>„{{ searchQuery() }}”</strong> jako swój produkt?
-                  </span>
-                </div>
-              </div>
-              <button type="button" class="btn-add-custom">Dodaj do spiżarni</button>
-            </div>
-          }
-        </div>
-      }
-    </section>
-
-    <!-- 3. KAFELKI PRODUKTÓW W SPIŻARNI -->
     <section class="product-grid">
       @for (item of filteredItems(); track item.id) {
-        <article 
-          class="product-card" 
-          [class.selected]="isSelected(item.id)"
-          (click)="openDetails(item)">
-          
-          <div class="card-media" [style.backgroundImage]="'url(' + (item.imageUrl || '/images/food-placeholder.webp') + ')'">
-            <!-- CHECKBOX -->
-            <div 
-              class="figma-circle-selector" 
-              [class.is-selected]="isSelected(item.id)"
-              (click)="toggleSelect(item.id, $event)">
-              @if (isSelected(item.id)) {
-                <lucide-icon name="check" class="w-3 h-3 text-white"></lucide-icon>
-              }
-            </div>
-
-            <!-- DNI WAŻNOŚCI -->
-            <div 
-              class="expiry-badge" 
-              [class.urgent]="(item.expiryDays ?? 0) <= 3" 
-              [class.safe]="(item.expiryDays ?? 0) > 3">
-              <lucide-icon name="clock" class="w-3 h-3"></lucide-icon>
-              <span>{{ item.expiryDays ?? 0 }} dni</span>
-            </div>
-          </div>
-
-          <div class="card-details">
-            <h3 class="product-title">{{ item.name }}</h3>
-            <span class="product-location">{{ item.locationName }}</span>
-
-            <div class="quantity-pill">
-              <span class="quantity-text">{{ item.quantity }} {{ item.unit || 'szt.' }}</span>
-              <button 
-                type="button" 
-                class="delete-btn" 
-                (click)="askRemoveItem(item, $event)" 
-                title="Usuń ze spiżarni">
-                <lucide-icon name="trash-2" class="w-3.5 h-3.5 text-[#BA1A1A]"></lucide-icon>
-              </button>
-            </div>
-          </div>
-
-        </article>
+        <app-inventory-card 
+          [item]="item"
+          [isSelected]="isSelected(item.id)"
+          (cardClick)="openDetails($event)"
+          (toggleSelect)="toggleSelect(item.id)"
+          (deleteClick)="askRemoveItem(item)" />
       } @empty {
         <div class="empty-state">
           Brak produktów w tej sekcji. Wpisz w wyszukiwarce powyżej co najmniej 2 znaki, aby znaleźć produkt w katalogu lub dodać własny.
@@ -166,27 +39,17 @@
 
   </div>
 
-  <!-- 4. PŁYWAJĄCY DOLNY PASEK GENEROWANIA PRZEPISU -->
   @if (selectedCount() > 0) {
-    <aside class="figma-recipe-bar">
-      <div class="bar-left-side">
-        <div class="selection-count-badge">{{ selectedCount() }}</div>
-        <div class="selection-text-group">
-          <span class="selection-title">Wybrane produkty</span>
-          <span class="selection-names">{{ selectedNames() }}</span>
-        </div>
-      </div>
-
-      <button (click)="generateRecipe()" class="figma-action-btn" title="Generuj przepis">
-        <lucide-icon name="sparkles" class="w-4 h-4 text-white"></lucide-icon>
-      </button>
-    </aside>
+    <app-inventory-recipe-bar 
+      [count]="selectedCount()"
+      [names]="selectedNames()"
+      (generate)="generateRecipe()" />
   }
 
-  <!-- 5. KOMPONENTY MODALNE -->
   @if (productToDelete(); as item) {
     <app-confirm-delete-modal
       [productName]="item.name"
+      contextText="ze spiżarni"
       (cancel)="cancelDelete()"
       (confirm)="confirmDelete()" />
   }

@@ -1,54 +1,48 @@
-import { Component, signal, computed, inject, ElementRef, HostListener, OnInit, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { LucideAngularModule } from 'lucide-angular';
-import { Subject, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { PantryService } from '../../core/services/pantry.service';
 import { ProductItem } from '../../core/db/app-database';
-import { environment } from '../../../environments/environment';
+import { StorageCategory, ProductDetailUpdatePayload, CatalogProductDto } from './models/inventory.models';
 
-import { StorageCategory, CatalogProductDto, ProductDetailUpdatePayload } from './models/inventory.models';
 import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { CatalogSearchBarComponent } from '../../shared/components/catalog-search-bar/catalog-search-bar.component';
+
+import { InventoryFilterTabsComponent } from './components/inventory-filter-tabs/inventory-filter-tabs.component';
+import { InventoryCardComponent } from './components/inventory-card/inventory-card.component';
+import { InventoryRecipeBarComponent } from './components/inventory-recipe-bar/inventory-recipe-bar.component';
 import { ProductDetailSheetComponent } from './components/product-detail-sheet/product-detail-sheet.component';
 
 @Component({
   selector: 'app-inventory',
   standalone: true,
   imports: [
-    CommonModule, 
-    LucideAngularModule, 
-    ConfirmDeleteModalComponent, 
+    CommonModule,
+    LucideAngularModule,
+    ConfirmDeleteModalComponent,
+    CatalogSearchBarComponent,
+    InventoryFilterTabsComponent,
+    InventoryCardComponent,
+    InventoryRecipeBarComponent,
     ProductDetailSheetComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.scss'
 })
-export class InventoryComponent implements OnInit {
+export class InventoryComponent {
   private router = inject(Router);
-  private http = inject(HttpClient);
   private pantryService = inject(PantryService);
-  private elementRef = inject(ElementRef);
-  private destroyRef = inject(DestroyRef);
 
-  // Stany strony
-  productToDelete = signal<ProductItem | null>(null);
-  activeProductForDetails = signal<ProductItem | null>(null);
   selectedCategory = signal<StorageCategory>('all');
   searchQuery = signal<string>('');
   selectedIds = signal<Set<string>>(new Set());
 
-  // Autocomplete katalogu
-  catalogSuggestions = signal<CatalogProductDto[]>([]);
-  isSearchingCatalog = signal<boolean>(false);
-  showSuggestions = signal<boolean>(false);
-  private searchInput$ = new Subject<string>();
+  productToDelete = signal<ProductItem | null>(null);
+  activeProductForDetails = signal<ProductItem | null>(null);
 
-  // Reaktywny magazyn
   products = this.pantryService.products;
 
   filteredItems = computed(() => {
@@ -73,37 +67,8 @@ export class InventoryComponent implements OnInit {
       .join(', ');
   });
 
-  ngOnInit(): void {
-    this.searchInput$.pipe(
-      debounceTime(250),
-      distinctUntilChanged(),
-      switchMap(term => {
-        const trimmed = term.trim();
-        if (trimmed.length < 2) {
-          this.catalogSuggestions.set([]);
-          this.isSearchingCatalog.set(false);
-          return of([]);
-        }
-
-        this.isSearchingCatalog.set(true);
-        const params = new HttpParams().set('query', trimmed);
-
-        return this.http.get<CatalogProductDto[]>(`${environment.apiBaseUrl}/catalog-products`, { params }).pipe(
-          catchError(() => of([]))
-        );
-      }),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(results => {
-      this.catalogSuggestions.set(results || []);
-      this.isSearchingCatalog.set(false);
-      this.showSuggestions.set(true);
-    });
-  }
-
-  onSearchInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.searchQuery.set(value);
-    this.searchInput$.next(value);
+  setCategory(category: StorageCategory): void {
+    this.selectedCategory.set(category);
   }
 
   onSelectSuggestion(product: CatalogProductDto): void {
@@ -122,12 +87,10 @@ export class InventoryComponent implements OnInit {
       unit: product.defaultUnit || 'szt.',
       expiryDays: 7
     });
-
-    this.resetSearch();
   }
 
-  onAddCustomProduct(): void {
-    const customName = this.searchQuery().trim();
+  onAddCustomProduct(name?: string): void {
+    const customName = (name || this.searchQuery()).trim();
     if (!customName) return;
 
     this.pantryService.addProduct({
@@ -138,24 +101,23 @@ export class InventoryComponent implements OnInit {
       unit: 'szt.',
       expiryDays: 7
     });
-
-    this.resetSearch();
   }
 
-  resetSearch(): void {
-    this.searchQuery.set('');
-    this.showSuggestions.set(false);
-    this.catalogSuggestions.set([]);
+  isSelected(id: string): boolean {
+    return this.selectedIds().has(id);
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (!this.elementRef.nativeElement.contains(event.target)) {
-      this.showSuggestions.set(false);
-    }
+  toggleSelect(id: string, event?: Event): void {
+    event?.stopPropagation();
+    event?.preventDefault();
+    this.selectedIds.update(ids => {
+      const next = new Set(ids);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
 
-  // Obsługa szczegółów produktu
   openDetails(item: ProductItem): void {
     this.activeProductForDetails.set(item);
   }
@@ -172,28 +134,9 @@ export class InventoryComponent implements OnInit {
     this.closeDetails();
   }
 
-  // Zaznaczanie (kółko checkboxa)
-  isSelected(id: string): boolean {
-    return this.selectedIds().has(id);
-  }
-
-  toggleSelect(id: string, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
-    this.selectedIds.update(ids => {
-      const newSet = new Set(ids);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-      return newSet;
-    });
-  }
-
-  // Usuwanie
-  askRemoveItem(item: ProductItem, event: MouseEvent): void {
-    event.stopPropagation();
-    event.preventDefault();
+  askRemoveItem(item: ProductItem, event?: Event): void {
+    event?.stopPropagation();
+    event?.preventDefault();
     this.productToDelete.set(item);
   }
 
@@ -212,10 +155,6 @@ export class InventoryComponent implements OnInit {
       });
       this.productToDelete.set(null);
     }
-  }
-
-  setCategory(category: StorageCategory): void {
-    this.selectedCategory.set(category);
   }
 
   openCameraScanner(): void {

@@ -1,0 +1,131 @@
+.product-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(229, 229, 229, 0.8);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: transform 0.15s, border-color 0.15s;
+
+  &.selected {
+    border-color: #536500;
+    box-shadow: 0 0 0 1px #536500;
+  }
+
+  &:active { transform: scale(0.98); }
+}
+
+.card-media {
+  height: 120px;
+  position: relative;
+  overflow: hidden;
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  .card-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+}
+
+.figma-circle-selector {
+  position: relative;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1.5px solid #D1D5DB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &.is-selected {
+    background: #536500;
+    border-color: #536500;
+  }
+}
+
+.expiry-badge {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+
+  &.urgent {
+    background: rgba(186, 26, 26, 0.9);
+    color: #FFFFFF;
+  }
+
+  &.safe {
+    background: rgba(255, 255, 255, 0.9);
+    color: #454934;
+  }
+}
+
+.card-details {
+  padding: 10px 12px 12px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1C1B1B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-location {
+  font-size: 11px;
+  color: #737373;
+  margin: 2px 0 8px 0;
+}
+
+.quantity-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #F6F3F2;
+  border-radius: 9999px;
+  padding: 3px 6px 3px 10px;
+}
+
+.quantity-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #454934;
+}
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+
+  &:hover {
+    background: rgba(186, 26, 26, 0.1);
+  }
+}

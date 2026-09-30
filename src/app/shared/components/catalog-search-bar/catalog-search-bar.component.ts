@@ -1,4 +1,14 @@
-import { Component, input, output, inject, signal, HostListener, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { 
+  Component, 
+  input, 
+  output, 
+  inject, 
+  signal, 
+  computed, 
+  HostListener, 
+  DestroyRef, 
+  ChangeDetectionStrategy 
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { LucideAngularModule } from 'lucide-angular';
@@ -28,7 +38,6 @@ export class CatalogSearchBarComponent {
   private http = inject(HttpClient);
   private destroyRef = inject(DestroyRef);
 
-  // Konfigurowalny placeholder (przydatne, gdy w magazynie chcesz inny tekst)
   placeholder = input<string>('Szukaj lub wpisz własny produkt...');
 
   selectProduct = output<CatalogProductDto>();
@@ -38,6 +47,10 @@ export class CatalogSearchBarComponent {
   catalogSuggestions = signal<CatalogProductDto[]>([]);
   isSearching = signal<boolean>(false);
   showSuggestions = signal<boolean>(false);
+
+  hasQuery = computed(() => this.searchQuery().trim().length > 0);
+  hasMinQuery = computed(() => this.searchQuery().trim().length >= 2);
+
   private searchInput$ = new Subject<string>();
 
   constructor() {
@@ -77,6 +90,12 @@ export class CatalogSearchBarComponent {
     const val = (event.target as HTMLInputElement).value;
     this.searchQuery.set(val);
     this.searchInput$.next(val);
+  }
+
+  onFocus(): void {
+    if (this.catalogSuggestions().length > 0) {
+      this.showSuggestions.set(true);
+    }
   }
 
   selectCatalog(prod: CatalogProductDto): void {

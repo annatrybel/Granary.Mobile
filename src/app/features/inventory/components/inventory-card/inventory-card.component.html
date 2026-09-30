@@ -1,0 +1,49 @@
+<article 
+  class="product-card" 
+  [class.selected]="isSelected()"
+  (click)="cardClick.emit(item())">
+  
+  <div class="card-media">
+    <img 
+      [src]="item().imageUrl || '/images/food-placeholder.webp'" 
+      (error)="$any($event.target).src = '/images/food-placeholder.webp'"
+      [alt]="item().name" 
+      class="card-image"
+      loading="lazy"
+    />
+
+    <div 
+      class="figma-circle-selector" 
+      [class.is-selected]="isSelected()"
+      (click)="onSelect($event)">
+      @if (isSelected()) {
+        <lucide-icon name="check" class="w-3 h-3 text-white"></lucide-icon>
+      }
+    </div>
+
+    <div 
+      class="expiry-badge" 
+      [class.urgent]="(item().expiryDays ?? 0) <= 3" 
+      [class.safe]="(item().expiryDays ?? 0) > 3">
+      <lucide-icon name="clock" class="w-3 h-3"></lucide-icon>
+      <span>{{ item().expiryDays ?? 0 }} dni</span>
+    </div>
+  </div>
+
+  <div class="card-details">
+    <h3 class="product-title">{{ item().name }}</h3>
+    <span class="product-location">{{ item().locationName }}</span>
+
+    <div class="quantity-pill">
+      <span class="quantity-text">{{ item().quantity }} {{ item().unit || 'szt.' }}</span>
+      <button 
+        type="button" 
+        class="delete-btn" 
+        (click)="onDelete($event)" 
+        title="Usuń ze spiżarni">
+        <lucide-icon name="trash-2" class="w-3.5 h-3.5 text-[#BA1A1A]"></lucide-icon>
+      </button>
+    </div>
+  </div>
+
+</article>
