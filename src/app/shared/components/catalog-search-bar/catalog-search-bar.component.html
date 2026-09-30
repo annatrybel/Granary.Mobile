@@ -1,0 +1,50 @@
+<div class="search-section-wrapper">
+  <div class="search-input-wrapper">
+    <lucide-icon name="search" class="w-4 h-4 text-[#A3A3A3] shrink-0 mr-2"></lucide-icon>
+    <input 
+      type="text" 
+      class="search-text-field"
+      [placeholder]="placeholder()"
+      [value]="searchQuery()"
+      (input)="onInput($event)"
+      (focus)="showSuggestions.set(catalogSuggestions().length > 0)"
+    />
+    @if (searchQuery().trim()) {
+      <button type="button" class="btn-clear-search" (click)="resetSearch()" title="Wyczyść">✕</button>
+    }
+  </div>
+
+  @if (showSuggestions() && searchQuery().trim().length >= 2) {
+    <div class="suggestions-dropdown animate-in fade-in">
+      @if (isSearching()) {
+        <div class="dropdown-status">Przeszukuję katalog...</div>
+      } @else if (catalogSuggestions().length > 0) {
+        <div class="dropdown-header">Podpowiedzi z bazy produktów:</div>
+        <ul class="suggestions-list">
+          @for (prod of catalogSuggestions(); track prod.id) {
+            <li class="suggestion-item" (click)="selectCatalog(prod)">
+              <div class="item-info">
+                <span class="item-name">{{ prod.name }}</span>
+                <span class="item-cat">{{ prod.categoryName || prod.category || 'Katalog ogólny' }}</span>
+              </div>
+              <span class="btn-add-badge">+ Dodaj</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="not-found-container" (click)="addCustom()">
+          <div class="not-found-content">
+            <div class="not-found-icon">
+              <lucide-icon name="plus" class="w-4 h-4 text-[#536500]"></lucide-icon>
+            </div>
+            <div class="not-found-texts">
+              <span class="not-found-title">Nie znaleziono w katalogu</span>
+              <span class="not-found-subtitle">Dodać <strong>„{{ searchQuery() }}”</strong>?</span>
+            </div>
+          </div>
+          <button type="button" class="btn-add-custom">Dodaj do listy</button>
+        </div>
+      }
+    </div>
+  }
+</div>
