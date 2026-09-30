@@ -25,6 +25,8 @@ import {
   Check,  
   Sparkles,
   SlidersHorizontal,
+  Minus,        
+  MoreVertical,
   // Formularze i logowanie:
   Refrigerator,
   User,
@@ -63,6 +65,8 @@ export const appConfig: ApplicationConfig = {
         Check,  
         Sparkles,
         SlidersHorizontal,
+        Minus,
+        MoreVertical,
         Refrigerator,
         User,
         Mail,

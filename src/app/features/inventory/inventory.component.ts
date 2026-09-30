@@ -12,7 +12,7 @@ import { ProductItem } from '../../core/db/app-database';
 import { environment } from '../../../environments/environment';
 
 import { StorageCategory, CatalogProductDto, ProductDetailUpdatePayload } from './models/inventory.models';
-import { ConfirmDeleteModalComponent } from './components/confirm-delete-modal/confirm-delete-modal.component';
+import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { ProductDetailSheetComponent } from './components/product-detail-sheet/product-detail-sheet.component';
 
 @Component({

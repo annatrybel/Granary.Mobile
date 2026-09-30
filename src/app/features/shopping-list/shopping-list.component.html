@@ -1,118 +1,257 @@
-<main class="pt-20 pb-36 min-h-screen bg-surface">
-  <div class="flex flex-col w-full gap-5 px-6 py-2">
-    
-    <div class="grid grid-cols-2 gap-3">
-      <!-- Do kupienia -->
-      <div class="p-3.5 bg-white rounded-2xl shadow-[0_4px_16px_0_rgba(26,26,26,0.05)] flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-[#536500]/10 text-[#536500] flex items-center justify-center font-bold text-lg shrink-0">
-          🛒
-        </div>
-        <div class="flex flex-col">
-          <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Do kupienia</span>
-          <span class="text-lg font-extrabold text-[#1C1B1B] leading-tight">{{ pendingCount() }} szt.</span>
-        </div>
-      </div>
+<main class="shopping-page">
+  <div class="shopping-container">
 
-      <!-- Kupione -->
-      <div class="p-3.5 bg-white rounded-2xl shadow-[0_4px_16px_0_rgba(26,26,26,0.05)] flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-[#7209B7]/10 text-[#7209B7] flex items-center justify-center font-bold text-lg shrink-0">
-          ✅
-        </div>
-        <div class="flex flex-col">
-          <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Kupione</span>
-          <span class="text-lg font-extrabold text-[#7209B7] leading-tight">{{ completedCount() }} szt.</span>
-        </div>
-      </div>
-    </div>
+    <section class="lists-bar">
+      @for (list of userLists(); track list.id) {
+        <button 
+          type="button" 
+          class="btn-list-tab"
+          [class.active]="currentList()?.id === list.id"
+          (click)="switchList(list)">
+          @if (currentList()?.id === list.id) {
+            <lucide-icon name="shopping-basket" class="w-3.5 h-3.5 text-white shrink-0"></lucide-icon>
+          }
+          <span>{{ list.name }}</span>
+        </button>
+      }
 
-    <!-- 2. NAGŁÓWEK SEKCJI -->
-    <div class="flex justify-between items-center px-1">
-      <div class="flex items-center gap-2">
-        <span class="font-['Plus_Jakarta_Sans'] text-lg font-bold text-[#1C1B1B]">
-          Moja lista
-        </span>
-        @if (completedCount() > 0) {
-          <button (click)="clearCompleted()" class="text-xs font-semibold text-[#ba1a1a] hover:underline cursor-pointer ml-1">
-            Wyczyść kupione
-          </button>
+      <button type="button" class="btn-new-list" (click)="openNewListModal()">
+        <lucide-icon name="plus" class="w-3 h-3 text-[#525252] shrink-0"></lucide-icon>
+        <span>Nowa lista</span>
+      </button>
+    </section>
+
+    <section class="search-section-wrapper">
+      <div class="search-input-wrapper">
+        <lucide-icon name="search" class="w-4 h-4 text-[#A3A3A3] shrink-0 mr-2"></lucide-icon>
+
+        <input 
+          type="text" 
+          class="search-text-field"
+          placeholder="Szukaj lub wpisz własny produkt..."
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+          (focus)="showSuggestions.set(catalogSuggestions().length > 0)"
+        />
+
+        @if (searchQuery().trim()) {
+          <button type="button" class="btn-clear-search" (click)="resetSearch()" title="Wyczyść">✕</button>
         }
       </div>
 
-      <button 
-        (click)="toggleAdding()" 
-        class="px-3.5 py-2 bg-[#536500] text-white rounded-full font-bold text-xs tracking-wide shadow-sm active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer hover:bg-[#445300]"
-      >
-        <span class="text-base font-extrabold leading-none">+</span>
-        <span>Dodaj</span>
-      </button>
-    </div>
-
-    <!-- 3. ROZWIJANY FORMULARZ WPISYWANIA -->
-    @if (isAdding()) {
-      <div class="p-3 bg-white rounded-2xl shadow-md border-2 border-[#536500] flex flex-col gap-2.5 animate-in fade-in duration-200">
-        <div class="flex items-center gap-2">
-          <input 
-            type="text" 
-            placeholder="Wpisz nazwę produktu..." 
-            class="flex-1 bg-[#F6F3F2] px-4 py-2.5 rounded-xl border-none outline-none font-['Plus_Jakarta_Sans'] text-sm text-[#1C1B1B]"
-            [value]="newItemName()"
-            (input)="onInput($event)"
-            (keyup.enter)="addItem()"
-            autofocus
-          />
-          <button 
-            (click)="addItem()" 
-            class="px-4 py-2.5 rounded-xl bg-[#536500] text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform cursor-pointer shrink-0"
-          >
-            Dodaj
-          </button>
+      @if (showSuggestions() && searchQuery().trim().length >= 2) {
+        <div class="suggestions-dropdown animate-in fade-in">
+          @if (isSearchingCatalog()) {
+            <div class="dropdown-status">Przeszukuję katalog produktów...</div>
+          } @else if (catalogSuggestions().length > 0) {
+            <div class="dropdown-header">Podpowiedzi z bazy produktów:</div>
+            <ul class="suggestions-list">
+              @for (prod of catalogSuggestions(); track prod.id) {
+                <li class="suggestion-item" (click)="onSelectCatalogSuggestion(prod)">
+                  <div class="item-info">
+                    <span class="item-name">{{ prod.name }}</span>
+                    <span class="item-cat">{{ prod.categoryName || prod.category || 'Katalog ogólny' }}</span>
+                  </div>
+                  <span class="btn-add-badge">+ Dodaj</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="not-found-container" (click)="onAddCustomProduct()">
+              <div class="not-found-content">
+                <div class="not-found-icon">
+                  <lucide-icon name="plus" class="w-4 h-4 text-[#536500]"></lucide-icon>
+                </div>
+                <div class="not-found-texts">
+                  <span class="not-found-title">Nie znaleziono w katalogu</span>
+                  <span class="not-found-subtitle">Dodać <strong>„{{ searchQuery() }}”</strong> do listy?</span>
+                </div>
+              </div>
+              <button type="button" class="btn-add-custom">Dodaj do listy</button>
+            </div>
+          }
         </div>
-        
-        <div class="flex justify-end">
-          <button (click)="toggleAdding()" class="text-xs font-semibold text-gray-500 hover:text-gray-800 px-2 py-0.5 cursor-pointer">
+      }
+    </section>
+
+    @if (suggestions().length > 0) {
+      <section class="suggestions-section">
+        <h2 class="section-title">Sugerowane do uzupełnienia</h2>
+
+        <div class="suggestions-scroll">
+          @for (sug of suggestions(); track sug.id) {
+            <article class="suggestion-card">
+              <div class="sug-header-row">
+                <span class="badge-time-left">{{ sug.timeLeftText }}</span>
+              </div>
+
+              <div class="sug-content-block">
+                <span class="sug-product-title">{{ sug.name }}</span>
+                <span class="sug-location-text">{{ sug.categoryName }} • {{ sug.quantityDesc }}</span>
+              </div>
+
+              <button type="button" class="btn-add-to-list" (click)="addSuggestionToList(sug)">
+                <lucide-icon name="plus" class="w-3.5 h-3.5 text-[#536500]"></lucide-icon>
+                <span>Dodaj do listy</span>
+              </button>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="items-section">
+      <div class="items-header">
+        <div class="flex items-center gap-2">
+          <h2 class="items-title">Artykuły do kupienia</h2>
+          <span class="items-count-badge">{{ totalCount() }} pozycje</span>
+        </div>
+
+        <div class="options-menu-wrapper relative">
+          <button 
+            type="button" 
+            class="btn-more-options" 
+            (click)="toggleOptionsMenu($event)" 
+            title="Więcej opcji">
+            <lucide-icon name="more-vertical" class="w-4 h-4 text-[#737373]"></lucide-icon>
+          </button>
+
+          @if (isOptionsMenuOpen()) {
+            <div class="figma-options-popup animate-in fade-in" (click)="$event.stopPropagation()">
+              <button type="button" class="option-row-item" (click)="shareList()">
+                <div class="option-icon-box bg-[#F5F5F5]">
+                  <lucide-icon name="share-2" class="w-4 h-4 text-[#404040]"></lucide-icon>
+                </div>
+                <div class="option-text-group">
+                  <span class="option-label-title text-[#171717]">Wyślij listę</span>
+                  <span class="option-label-desc">SMS lub WhatsApp</span>
+                </div>
+              </button>
+
+              <button type="button" class="option-row-item" (click)="clearBoughtItems()">
+                <div class="option-icon-box bg-[#F5F5F5]">
+                  <lucide-icon name="check-check" class="w-4 h-4 text-[#404040]"></lucide-icon>
+                </div>
+                <div class="option-text-group">
+                  <span class="option-label-title text-[#171717]">Wyczyść kupione</span>
+                  <span class="option-label-desc">Usuń odznaczone z listy</span>
+                </div>
+              </button>
+
+              <button type="button" class="option-row-item" (click)="deleteCurrentList()">
+                <div class="option-icon-box bg-[rgba(255,228,230,0.70)]">
+                  <lucide-icon name="trash-2" class="w-4 h-4 text-[#BE123C]"></lucide-icon>
+                </div>
+                <div class="option-text-group">
+                  <span class="option-label-title text-[#BE123C]">Usuń tę listę</span>
+                  <span class="option-label-desc text-[rgba(244,63,94,0.80)]">Skasuj całą listę</span>
+                </div>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="items-list">
+        @if (isLoading()) {
+          <div class="py-8 text-center text-xs text-neutral-400 animate-pulse">
+            Wczytywanie listy zakupów...
+          </div>
+        } @else {
+          @for (item of items(); track item.id) {
+            <article class="shopping-card" [class.is-checked]="item.isChecked" (click)="toggleCheck(item.id)">
+              <div class="card-left-group">
+                <div class="custom-circle-checkbox" [class.checked]="item.isChecked">
+                  @if (item.isChecked) {
+                    <lucide-icon name="check" class="w-3.5 h-3.5 text-white"></lucide-icon>
+                  }
+                </div>
+
+                <div class="item-text-column">
+                  <span class="item-name-title" [class.line-through]="item.isChecked">{{ item.name }}</span>
+                  <span class="category-badge-pill">{{ item.categoryName }}</span>
+                </div>
+              </div>
+
+              <div class="card-right-group" (click)="$event.stopPropagation()">
+                <div class="quantity-stepper-pill">
+                  <button type="button" class="stepper-action-btn" (click)="changeQuantity(item.id, -1)" aria-label="Zmniejsz">
+                    <lucide-icon name="minus" class="w-2.5 h-2.5 text-[#404040]"></lucide-icon>
+                  </button>
+                  <span class="stepper-value-text">{{ item.quantity }} {{ item.unit }}</span>
+                  <button type="button" class="stepper-action-btn" (click)="changeQuantity(item.id, 1)" aria-label="Zwiększ">
+                    <lucide-icon name="plus" class="w-2.5 h-2.5 text-[#404040]"></lucide-icon>
+                  </button>
+                </div>
+
+                <button 
+                  type="button" 
+                  class="btn-delete-item" 
+                  (click)="askRemoveItem(item, $event)" 
+                  title="Usuń pozycję">
+                  <lucide-icon name="trash-2" class="w-3.5 h-3.5 text-[#A3A3A3] hover:text-[#BA1A1A]"></lucide-icon>
+                </button>
+              </div>
+            </article>
+          } @empty {
+            <div class="empty-state">
+              Twoja lista zakupów jest pusta. Wpisz produkt u góry lub dodaj z sugerowanych!
+            </div>
+          }
+        }
+      </div>
+    </section>
+
+  </div>
+
+  @if (checkedCount() > 0) {
+    <aside class="floating-checkout-container animate-slide-up">
+      <button type="button" class="btn-checkout-pantry" (click)="moveBoughtToPantry()">
+        <lucide-icon name="package" class="w-4.5 h-4.5 text-white shrink-0"></lucide-icon>
+        <span>Schowaj zakupy do magazynu ({{ checkedCount() }})</span>
+      </button>
+
+      <p class="checkout-hint-text">
+        Produkty automatycznie trafią na właściwe półki w Twoim magazynie.
+      </p>
+    </aside>
+  }
+
+  @if (isNewListModalOpen()) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4" (click)="closeNewListModal()">
+      <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95" (click)="$event.stopPropagation()">
+        <div class="flex flex-col gap-1">
+          <h3 class="text-lg font-bold text-neutral-900">Nowa lista zakupów</h3>
+          <p class="text-xs text-neutral-500 font-medium">Wpisz nazwę nowej listy, np. Biedronka, Grill, Impreza.</p>
+        </div>
+
+        <input 
+          type="text" 
+          class="w-full h-12 bg-neutral-100 border border-neutral-200 rounded-2xl px-4 text-sm font-medium text-neutral-900 outline-none focus:border-[#536500]"
+          placeholder="np. Tygodniowe zakupy"
+          [ngModel]="newListName()"
+          (ngModelChange)="newListName.set($event)"
+          (keydown.enter)="confirmCreateList()"
+          autofocus
+        />
+
+        <div class="flex items-center gap-2 pt-1">
+          <button type="button" class="flex-1 h-11 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold transition-all" (click)="closeNewListModal()">
             Anuluj
+          </button>
+          <button type="button" class="flex-1 h-11 rounded-full bg-[#536500] hover:bg-[#435200] text-white text-xs font-bold shadow-md transition-all disabled:opacity-50" [disabled]="!newListName().trim()" (click)="confirmCreateList()">
+            Stwórz i otwórz
           </button>
         </div>
       </div>
-    }
-
-    <!-- 4. LISTA PRODUKTÓW DO KUPIENIA -->
-    <div class="flex flex-col gap-2.5">
-      @for (item of items(); track item.id) {
-        <div 
-          class="shopping-card group transition-all duration-200" 
-          [class.completed]="item.completed"
-        >
-          <!-- Lewa strona: Custom Checkbox + Nazwa -->
-          <div class="flex items-center gap-3.5 flex-1 cursor-pointer" (click)="toggleItem(item.id)">
-            <div class="custom-checkbox" [class.checked]="item.completed">
-              @if (item.completed) {
-                <span class="material-symbols-outlined text-sm font-bold">check</span>
-              }
-            </div>
-            <div class="flex flex-col">
-              <span class="item-title font-['Plus_Jakarta_Sans'] text-base font-semibold text-[#1C1B1B]">
-                {{ item.name }}
-              </span>
-              @if (item.quantity) {
-                <span class="text-xs text-gray-500 font-medium">{{ item.quantity }}</span>
-              }
-            </div>
-          </div>
-
-          <!-- Prawa strona: Przycisk usuwania -->
-          <button (click)="removeItem(item.id)" class="text-gray-400 hover:text-[#ba1a1a] p-1.5 rounded-full transition-colors cursor-pointer" title="Usuń z listy">
-            <span class="material-symbols-outlined text-lg">delete</span>
-          </button>
-        </div>
-      } @empty {
-        <div class="text-center py-12 bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center gap-2">
-          <span class="text-3xl">🛒</span>
-          <span class="font-bold text-sm text-[#1C1B1B]">Lista jest pusta</span>
-          <span class="text-xs text-gray-500">Kliknij "+ Dodaj" powyżej, aby dodać pierwsze produkty.</span>
-        </div>
-      }
     </div>
+  }
 
-  </div>
+  @if (itemToDelete(); as item) {
+    <app-confirm-delete-modal
+      [productName]="item.name"
+      contextText="z listy zakupów"
+      (cancel)="cancelDelete()"
+      (confirm)="confirmDelete()" />
+  }
 </main>
