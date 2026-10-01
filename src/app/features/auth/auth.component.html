@@ -1,10 +1,10 @@
-<div class="bg-[#FAF9F5] text-neutral-900 font-sans antialiased min-h-screen w-full flex flex-col justify-between pt-safe pb-safe px-4 py-6 selection:bg-[#536500]/10 selection:text-[#536500]">
+<main class="bg-[#FAF9F5] text-neutral-900 font-sans antialiased min-h-screen w-full flex flex-col justify-between pt-safe pb-safe px-4 py-6 selection:bg-[#536500]/10 selection:text-[#536500]">
   
   <div class="w-full max-w-md mx-auto flex flex-col gap-4 my-auto">
     
     <!-- 1. NAGŁÓWEK -->
-    <div class="text-center pt-2">
-      <div class="w-14 h-14 rounded-2xl bg-[#536500]/10 text-[#536500] flex items-center justify-center mx-auto shadow-2xs">
+    <header class="text-center pt-2">
+      <div class="w-14 h-14 rounded-2xl bg-[#536500]/10 text-[#536500] flex items-center justify-center mx-auto shadow-xs">
         <lucide-icon name="refrigerator" class="w-7 h-7 text-[#536500]"></lucide-icon>
       </div>
       <h1 class="text-2xl font-extrabold text-neutral-900 tracking-tight text-center mt-3">
@@ -13,7 +13,7 @@
       <p class="text-xs text-neutral-500 font-medium text-center mt-1">
         Twoja domowa spiżarnia i kuchnia w pełnej harmonii
       </p>
-    </div>
+    </header>
 
     <!-- 2. PRZEŁĄCZNIK: LOGOWANIE / REJESTRACJA -->
     <div class="bg-neutral-200/60 p-1 rounded-full flex items-center max-w-[320px] w-full mx-auto">
@@ -23,7 +23,7 @@
         [class.bg-white]="mode() === 'login'"
         [class.text-neutral-900]="mode() === 'login'"
         [class.font-bold]="mode() === 'login'"
-        [class.shadow-2xs]="mode() === 'login'"
+        [class.shadow-xs]="mode() === 'login'"
         [class.text-neutral-600]="mode() !== 'login'"
         class="flex-1 py-2 rounded-full text-xs text-center transition-all cursor-pointer">
         Zaloguj się
@@ -35,19 +35,25 @@
         [class.bg-white]="mode() === 'register'"
         [class.text-neutral-900]="mode() === 'register'"
         [class.font-bold]="mode() === 'register'"
-        [class.shadow-2xs]="mode() === 'register'"
+        [class.shadow-xs]="mode() === 'register'"
         [class.text-neutral-600]="mode() !== 'register'"
         class="flex-1 py-2 rounded-full text-xs text-center transition-all cursor-pointer">
         Utwórz konto
       </button>
     </div>
 
-    <!-- 3. GŁÓWNA KARTA FORMULARZA -->
+    <!-- 3. KARTA FORMULARZA -->
     <div class="bg-white/95 backdrop-blur-xl border border-neutral-200/90 rounded-[28px] p-5 shadow-[0_8px_30px_rgba(83,101,0,0.05)] flex flex-col gap-4">
       
+      @if (errorMessage()) {
+        <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
+          <lucide-icon name="alert-circle" class="w-4 h-4 text-rose-600 shrink-0"></lucide-icon>
+          <span class="flex-1 leading-snug">{{ errorMessage() }}</span>
+        </div>
+      }
+
       <form class="flex flex-col gap-4" (ngSubmit)="onSubmit()">
         
-        <!-- Pole: Imię (widoczne tylko w trybie Rejestracji) -->
         @if (mode() === 'register') {
           <div class="flex flex-col gap-1.5 animate-in fade-in duration-200">
             <label class="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
@@ -108,13 +114,12 @@
               (click)="togglePasswordVisibility()"
               aria-label="Pokaż lub ukryj hasło" 
               class="text-neutral-400 hover:text-neutral-700 p-1 flex items-center justify-center transition-colors cursor-pointer">
-              <!-- Ikona oka (Eye / EyeOff) z Lucide -->
               <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" class="w-4 h-4"></lucide-icon>
             </button>
           </div>
         </div>
 
-        <!-- Opcje pomocnicze: Zapamiętaj mnie / Zapomniałem hasła -->
+        <!-- Opcje pomocnicze -->
         <div class="flex items-center justify-between pt-0.5">
           <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-neutral-600 select-none">
             <input 
@@ -128,13 +133,13 @@
           </label>
 
           @if (mode() === 'login') {
-            <a href="javascript:void(0)" class="text-xs font-bold text-[#536500] hover:underline">
+            <a href="javascript:void(0)" (click)="openForgotPassword()" class="text-xs font-bold text-[#536500] hover:underline cursor-pointer">
               Nie pamiętasz hasła?
             </a>
           }
         </div>
 
-        <!-- Główny przycisk zatwierdzający -->
+        <!-- Przycisk logowania / rejestracji -->
         <button 
           type="submit" 
           [disabled]="isLoading()"
@@ -152,14 +157,14 @@
         </button>
       </form>
 
-      <!-- Rozdzielacz logowania społecznościowego -->
+      <!-- Rozdzielacz -->
       <div class="flex items-center gap-3 my-1">
         <div class="h-px bg-neutral-200 flex-1"></div>
         <span class="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">lub kontynuuj przez</span>
         <div class="h-px bg-neutral-200 flex-1"></div>
       </div>
 
-      <!-- Przycisk logowania Google -->
+      <!-- Przycisk Google -->
       <button 
         type="button" 
         (click)="loginWithGoogle()"
@@ -170,14 +175,20 @@
 
     </div>
 
-    <!-- 4. NOTA O PRYWATNOŚCI W STOPCE -->
-    <div class="text-center pt-1 pb-2">
+    <!-- 4. STOPKA Z POLITYKĄ PRYWATNOŚCI -->
+    <footer class="text-center pt-1 pb-2">
       <p class="text-center text-[11px] text-neutral-400 font-medium leading-relaxed max-w-xs mx-auto">
         Logując się, zyskujesz bezpieczny dostęp do swojego konta domowego. Przeczytaj naszą 
         <a routerLink="/polityka-prywatnosci" class="text-[#536500] underline font-bold">Politykę prywatności</a>.
       </p>
-    </div>
+    </footer>
 
   </div>
 
-</div>
+<!-- Modal resetu hasła -->
+ @if (isForgotPasswordOpen()) {
+  <app-forgot-password-modal 
+    [initialEmail]="email()" 
+    (closeModal)="closeForgotPassword()" />
+}
+</main>

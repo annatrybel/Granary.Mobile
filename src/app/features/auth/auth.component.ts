@@ -1,16 +1,24 @@
-// src/app/features/auth/auth.component.ts
-import { Component, signal, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LucideAngularModule } from 'lucide-angular';
+
 import { AuthService } from '../../core/services/auth.service';
+import { AuthMode } from './models/auth.models';
+import { ForgotPasswordModalComponent } from './components/forgot-password-modal/forgot-password-modal.component';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, LucideAngularModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterLink, 
+    LucideAngularModule,
+    ForgotPasswordModalComponent 
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss'
@@ -19,16 +27,18 @@ export class AuthComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
 
-  // Stany formularza
-  mode = signal<'login' | 'register'>('login');
+  mode = signal<AuthMode>('login');
   showPassword = signal<boolean>(false);
   rememberMe = signal<boolean>(true);
-  
-  // Pola
+
   name = signal<string>('');
-  email = signal<string>('anna.kowalska@email.com');
+  email = signal<string>('');
   password = signal<string>('');
+
+  isForgotPasswordOpen = signal<boolean>(false);
+
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
 
@@ -43,10 +53,11 @@ export class AuthComponent implements OnInit {
     const errorFromUrl = this.route.snapshot.queryParamMap.get('error');
     if (errorFromUrl) {
       this.errorMessage.set(decodeURIComponent(errorFromUrl));
+      this.cdr.markForCheck();
     }
   }
 
-  setMode(newMode: 'login' | 'register'): void {
+  setMode(newMode: AuthMode): void {
     this.mode.set(newMode);
     this.errorMessage.set(null);
   }
@@ -69,13 +80,13 @@ export class AuthComponent implements OnInit {
           this.isLoading.set(false);
           this.router.navigate(['/pulpit']);
         },
-        error: (err: HttpErrorResponse) => { 
+        error: (err: HttpErrorResponse) => {
           this.isLoading.set(false);
           const msg = err.error?.message || err.error?.detail || 'Błędny adres e-mail lub hasło.';
           this.errorMessage.set(msg);
+          this.cdr.markForCheck();
         }
       });
-
     } else {
       // REJESTRACJA
       this.authService.register({
@@ -95,6 +106,7 @@ export class AuthComponent implements OnInit {
             error: () => {
               this.isLoading.set(false);
               this.setMode('login');
+              this.cdr.markForCheck();
             }
           });
         },
@@ -102,6 +114,7 @@ export class AuthComponent implements OnInit {
           this.isLoading.set(false);
           const msg = err.error?.message || err.error?.errors?.[0]?.description || 'Rejestracja nie powiodła się.';
           this.errorMessage.set(msg);
+          this.cdr.markForCheck();
         }
       });
     }
@@ -109,5 +122,13 @@ export class AuthComponent implements OnInit {
 
   loginWithGoogle(): void {
     window.location.href = '/api/authentication/external-login?provider=Google';
+  }
+
+  openForgotPassword(): void {
+    this.isForgotPasswordOpen.set(true);
+  }
+
+  closeForgotPassword(): void {
+    this.isForgotPasswordOpen.set(false);
   }
 }

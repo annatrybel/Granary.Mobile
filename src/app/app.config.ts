@@ -14,6 +14,7 @@ import {
   LucideAngularModule,
   // Główne menu i magazyn:
   Home,
+  KeyRound,
   Heart,
   Star,
   ArrowLeft,
@@ -42,7 +43,11 @@ import {
   Eye,
   EyeOff,
   LogIn,
-  UserPlus
+  UserPlus,
+  X,
+  Send,
+  Info,
+  CheckCircle
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -61,6 +66,7 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(
       LucideAngularModule.pick({
         Home,
+        KeyRound,
         Heart,
         Star,
         ArrowLeft,
@@ -88,7 +94,11 @@ export const appConfig: ApplicationConfig = {
         Eye,
         EyeOff,
         LogIn,
-        UserPlus
+        UserPlus,
+        X,
+        Send,
+        Info,
+        CheckCircle
       })
     )
   ],
