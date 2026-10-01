@@ -1,0 +1,112 @@
+<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+
+<div class="sheet-container animate-slide-up" (click)="$event.stopPropagation()">
+ 
+  <div class="sheet-drag-handle"></div>
+
+  <div class="sheet-header-row">
+    <h2 class="sheet-title">Zaproś do spiżarni</h2>
+
+    <button 
+      type="button" 
+      class="btn-close-round" 
+      (click)="closeSheet.emit()"
+      aria-label="Zamknij">
+      <lucide-icon name="x" class="w-3.5 h-3.5 text-[#404040]"></lucide-icon>
+    </button>
+  </div>
+
+  <p class="sheet-subtitle">
+    Wspólnie zarządzajcie produktami i listą zakupów
+  </p>
+
+  <div class="invite-link-card">
+    <div class="link-label-row">
+      <lucide-icon name="link-2" class="w-3.5 h-3.5 text-[#536500]"></lucide-icon>
+      <span class="link-label-title">Link zaproszenia</span>
+    </div>
+
+    <div class="link-input-pill">
+      <span class="mono-url-text">{{ inviteUrl }}</span>
+
+      <button type="button" class="btn-copy-link" (click)="copyLink()">
+        <lucide-icon [name]="isCopied() ? 'check' : 'copy'" class="w-3 h-3 text-white"></lucide-icon>
+        <span>{{ isCopied() ? 'Skopiowano' : 'Kopiuj' }}</span>
+      </button>
+    </div>
+
+    <p class="link-hint-text">
+      Każdy, kto otworzy link, zyska natychmiastowy dostęp do Twoich zapasów.
+    </p>
+  </div>
+
+<div class="qr-card">
+  <div class="qr-frame">
+    @if (qrCodeUrl()) {
+      <img [src]="qrCodeUrl()" alt="Kod QR zaproszenia" class="w-[128px] h-[128px] object-contain rounded-lg" />
+    } @else {
+      <div class="w-[128px] h-[128px] bg-neutral-100 animate-pulse rounded-lg"></div>
+    }
+  </div>
+
+  <span class="qr-caption">Lub daj zeskanować kod QR drugim telefonem</span>
+</div>
+
+  <div class="members-section">
+    <div class="members-header-row">
+      <span class="members-title">AKTUALNI CZŁONKOWIE ({{ members().length }})</span>
+      <span class="members-status-text">Zsynchronizowano</span>
+    </div>
+
+    <div class="members-list">
+      @for (member of members(); track member.id) {
+        <div class="member-row">
+          <div class="member-left">
+            <div class="member-avatar">
+              <span>{{ member.initials }}</span>
+            </div>
+            
+            <div class="member-texts">
+              <span class="member-name">{{ member.name }}</span>
+              <span class="member-email">{{ member.email }}</span>
+            </div>
+          </div>
+
+          <div class="member-right">
+            @if (member.isOwner) {
+              <div class="owner-pill">
+                <span>Ty (Właściciel)</span>
+              </div>
+            } @else {
+              <button 
+                type="button" 
+                class="btn-remove-member" 
+                (click)="askRemoveMember(member)" 
+                title="Usuń ze spiżarni">
+                <lucide-icon name="minus-circle" class="w-4 h-4 text-[#A3A3A3] hover:text-[#BA1A1A]"></lucide-icon>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="pt-2 pb-safe">
+    <button type="button" class="btn-share-all" (click)="shareViaApps()">
+      <lucide-icon name="share-2" class="w-3.5 h-3.5 text-white"></lucide-icon>
+      <span>Udostępnij przez inne aplikacje...</span>
+    </button>
+  </div>
+
+</div>
+
+@if (memberToRemove(); as member) {
+  <div class="relative z-[120]">
+    <app-confirm-delete-modal
+      [productName]="member.name"
+      contextText="z gospodarstwa domowego"
+      (cancel)="cancelRemoveMember()"
+      (confirm)="confirmRemoveMember()" />
+  </div>
+}

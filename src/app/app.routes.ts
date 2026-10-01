@@ -4,6 +4,7 @@ import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { InventoryComponent } from './features/inventory/inventory.component';
 import { RecipesComponent } from './features/recipes/recipes.component';
 import { ShoppingListComponent } from './features/shopping-list/shopping-list.component';
+import { ProfileComponent } from './features/profile/profile.component';
 
 export const routes: Routes = [
   {
@@ -40,6 +41,11 @@ export const routes: Routes = [
   {
     path: 'zakupy',
     component: ShoppingListComponent
+  },
+
+  {
+    path: 'profil',
+    component: ProfileComponent
   },
 
   {

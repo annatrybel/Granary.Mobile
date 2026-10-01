@@ -1,31 +1,32 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, RouterLink } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-header',
   standalone: true,
+  imports: [RouterLink], 
   template: `
     <header class="fixed top-0 w-full z-50 bg-[#FCF9F8] pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
       <div class="h-16 px-6 sm:px-8 flex items-center justify-between">
         
-        <!-- Lewa strona: Logo + DYNAMICZNY TYTUŁ ZAKŁADKI -->
+        <!-- Lewa strona: Logo + Dynamiczny tytuł -->
         <div class="flex items-center gap-3">
           <img 
             src="icons/logo.svg" 
             alt="Smart Pantry Logo" 
             class="w-[40px] h-[40px] aspect-square shrink-0 object-contain"
           />
-          <!-- Dedykowany dynamiczny tytuł -->
           <span class="text-[#1C1B1B] font-['Plus_Jakarta_Sans'] text-[24px] font-bold leading-[32px]">
             {{ pageTitle() }}
           </span>
         </div>
 
-        <!-- Prawa strona: Przycisk profilu użytkownika -->
+        <!-- Prawa strona: Przycisk profilu użytkownika z nawigacją -->
         <button 
+          [routerLink]="['/profil']"
           class="w-[40px] h-[40px] shrink-0 transition-transform active:scale-95 focus:outline-none cursor-pointer" 
-          aria-label="Profil"
+          aria-label="Profil użytkownika"
         >
           <img src="icons/user.svg" alt="Profil" class="w-[40px] h-[40px] block" />
         </button>
@@ -46,7 +47,8 @@ export class HeaderComponent {
     '/zakupy': 'Lista Zakupów',
     '/skanuj': 'Skaner AI',
     '/dodaj-recznie': 'Dodaj Produkt',
-    '/generuj-przepis': 'Generuj Przepis'
+    '/generuj-przepis': 'Generuj Przepis',
+    '/profil': 'Profil' 
   };
 
   constructor() {

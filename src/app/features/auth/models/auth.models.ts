@@ -16,3 +16,21 @@ export interface AuthResponseDto {
   refreshToken?: string;
   email?: string;
 }
+
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+export interface ResetPasswordDto {
+  email: string;
+  token: string;
+  newPassword: string;
+}
+
+export interface AuthSubmitPayload {
+  mode: AuthMode;
+  email: string;
+  password: string;
+  name?: string;
+  rememberMe: boolean;
+}

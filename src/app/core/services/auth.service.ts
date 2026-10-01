@@ -8,13 +8,16 @@ export type {
   LoginDto, 
   RegisterDto, 
   AuthResponseDto,
-  AuthMode 
+  AuthMode,
+  ResetPasswordDto,
+  ForgotPasswordDto
 } from '../../features/auth/models/auth.models';
 
 import { 
   LoginDto, 
   RegisterDto, 
-  AuthResponseDto 
+  AuthResponseDto,
+  ResetPasswordDto
 } from '../../features/auth/models/auth.models';
 
 @Injectable({
@@ -22,10 +25,14 @@ import {
 })
 export class AuthService {
   private http = inject(HttpClient);
+  
   private readonly tokenKey = 'granary_token';
+  private readonly userKey = 'granary_user';
 
   readonly token = signal<string | null>(localStorage.getItem(this.tokenKey));
   readonly isAuthenticated = computed<boolean>(() => !!this.token());
+
+  readonly currentUser = signal<any | null>(this.getStoredUser());
 
   getToken(): string | null {
     return this.token();
@@ -34,6 +41,24 @@ export class AuthService {
   setToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);
     this.token.set(token);
+  }
+
+  saveCurrentUser(user: any): void {
+    try {
+      localStorage.setItem(this.userKey, JSON.stringify(user));
+      this.currentUser.set(user);
+    } catch (e) {
+      console.error('Błąd zapisu profilu w localStorage:', e);
+    }
+  }
+
+  private getStoredUser(): any | null {
+    try {
+      const data = localStorage.getItem(this.userKey);
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
   }
 
   login(credentials: LoginDto): Observable<AuthResponseDto> {
@@ -46,17 +71,22 @@ export class AuthService {
     );
   }
 
-  requestPasswordReset(email: string): Observable<any> {
-    return this.http.post(`${environment.apiBaseUrl}/authentication/forgot-password`, { email });
-  }
-
-  /** Rejestracja nowego użytkownika */
   register(dto: RegisterDto): Observable<any> {
     return this.http.post(`${environment.apiBaseUrl}/authentication/register`, dto);
   }
 
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/authentication/forgot-password`, { email });
+  }
+
+  resetPassword(dto: ResetPasswordDto): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/authentication/reset-password`, dto);
+  }
+
   logout(): void {
     localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
     this.token.set(null);
+    this.currentUser.set(null);
   }
 }

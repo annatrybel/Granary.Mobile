@@ -14,14 +14,23 @@ import { BottomNavComponent } from './layout/bottom-nav.component';
 export class App {
   private router = inject(Router);
 
-  showNavigation = signal<boolean>(false);
+  showNavigation = signal<boolean>(true);
+
+  private readonly hiddenRoutes = ['/auth', '/login', '/profil'];
 
   constructor() {
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
-      const currentUrl = event.urlAfterRedirects || event.url;
-      this.showNavigation.set(!currentUrl.includes('/auth'));
+      this.updateNavigationVisibility(event.urlAfterRedirects || event.url);
     });
+
+    this.updateNavigationVisibility(this.router.url);
+  }
+
+  private updateNavigationVisibility(url: string): void {
+    const cleanUrl = url.split('?')[0];
+    const shouldHide = this.hiddenRoutes.some(route => cleanUrl.startsWith(route));
+    this.showNavigation.set(!shouldHide);
   }
 }

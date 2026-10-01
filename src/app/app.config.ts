@@ -20,7 +20,12 @@ import {
   ArrowLeft,
   Users,
   Flame,
+  Bell,
   AlertCircle,
+  HelpCircle,
+  Ruler,
+  Globe,
+  Moon,
   Utensils,
   Package,
   BookOpen,
@@ -40,6 +45,7 @@ import {
   User,
   Mail,
   Lock,
+  LogOut,
   Eye,
   EyeOff,
   LogIn,
@@ -47,7 +53,12 @@ import {
   X,
   Send,
   Info,
-  CheckCircle
+  CheckCircle,
+  ChevronRight ,
+  Link2, 
+  Copy, 
+  Share2,
+   MinusCircle
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -72,8 +83,13 @@ export const appConfig: ApplicationConfig = {
         ArrowLeft,
         Users,
         Flame,
+        Bell,
         Utensils,
         AlertCircle,
+        HelpCircle,
+        Ruler,
+        Globe,
+        Moon,
         Package,
         BookOpen,
         ShoppingBasket,
@@ -94,11 +110,17 @@ export const appConfig: ApplicationConfig = {
         Eye,
         EyeOff,
         LogIn,
+        LogOut,
         UserPlus,
         X,
         Send,
         Info,
-        CheckCircle
+        CheckCircle,
+        ChevronRight,
+        Link2, 
+        Copy, 
+        Share2,
+        MinusCircle
       })
     )
   ],

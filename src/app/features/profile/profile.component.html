@@ -1,0 +1,205 @@
+<main class="profile-page">
+  
+  <nav class="profile-navbar">
+    <button type="button" class="btn-back" (click)="goBack()" aria-label="Wróć">
+      <lucide-icon name="arrow-left" class="w-4.5 h-4.5 text-[#404040]"></lucide-icon>
+    </button>
+    
+    <h1 class="navbar-title">Ustawienia profilu</h1>
+    
+    <div class="w-10 h-10"></div>
+  </nav>
+
+  <div class="profile-container">
+
+    <section class="user-hero-card">
+      <div class="avatar-wrapper">
+        <img 
+          [src]="avatarUrl() || fallbackAvatar" 
+          (error)="onImgError($event)" 
+          [alt]="name()" 
+          class="avatar-img"
+          loading="lazy"
+        />
+
+        <label class="btn-avatar-camera" title="Zmień zdjęcie">
+          <lucide-icon name="camera" class="w-3.5 h-3.5 text-white"></lucide-icon>
+          <input 
+            type="file" 
+            accept="image/*" 
+            class="hidden" 
+            (change)="onAvatarFileChange($event)" 
+          />
+        </label>
+      </div>
+
+      <div class="user-info">
+        @if (isLoading()) {
+          <div class="h-7 w-48 bg-neutral-200/80 animate-pulse rounded-full my-1"></div>
+          <div class="h-4 w-36 bg-neutral-200/60 animate-pulse rounded-full"></div>
+        } @else {
+          <h2 class="user-name">{{ name() }}</h2>
+          <span class="user-email">{{ email() }}</span>
+        }
+      </div>
+    </section>
+
+    <section class="settings-card">
+      <span class="section-label">SPIŻARNIA I DOM</span>
+
+<div class="setting-row cursor-pointer" (click)="openHouseholdSheet()">
+  <div class="row-left">
+    <div class="icon-circle">
+      <lucide-icon name="users" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+    </div>
+    <span class="row-title">Gospodarstwo domowe</span>
+  </div>
+
+  <div class="row-right">
+    @if (householdMembers().length > 0) {
+      <div class="avatar-initials-stack">
+        @for (member of householdMembers(); track member.initials; let i = $index) {
+          <div class="initials-bubble" [style.background-color]="member.colorBg" [style.z-index]="10 - i">
+            <span>{{ member.initials }}</span>
+          </div>
+        }
+      </div>
+      <span class="row-subtitle">Połączone {{ householdMembers().length }} osoby</span>
+    } @else {
+      <span class="row-subtitle">0 osób połączonych</span>
+    }
+
+    <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
+  </div>
+</div>
+
+      <div class="setting-row">
+        <div class="row-left">
+          <div class="icon-circle">
+            <lucide-icon name="bell" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+          </div>
+          <span class="row-title">Powiadomienia o dacie ważności</span>
+        </div>
+
+        <div class="row-right">
+          <button 
+            type="button" 
+            class="figma-toggle-switch" 
+            [class.active]="expiryNotifications()"
+            (click)="toggleExpiryNotifications()"
+            role="switch"
+            [attr.aria-checked]="expiryNotifications()">
+            <div class="toggle-knob"></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="setting-row cursor-pointer" routerLink="/preferencje-diety">
+        <div class="row-left">
+          <div class="icon-circle">
+            <lucide-icon name="utensils" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+          </div>
+          <span class="row-title">Preferencje diety</span>
+        </div>
+
+        <div class="row-right">
+          <span class="badge-pill">{{ dietPreference() }}</span>
+          <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-card">
+      <span class="section-label">APLIKACJA</span>
+
+      <div class="setting-row">
+        <div class="row-left">
+          <div class="icon-circle">
+            <lucide-icon name="moon" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+          </div>
+          <span class="row-title">Ciemny motyw</span>
+        </div>
+
+        <div class="row-right">
+          <button 
+            type="button" 
+            class="figma-toggle-switch" 
+            [class.active]="darkMode()"
+            (click)="toggleDarkMode()"
+            role="switch"
+            [attr.aria-checked]="darkMode()">
+            <div class="toggle-knob"></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="setting-row cursor-pointer" routerLink="/jezyk">
+        <div class="row-left">
+          <div class="icon-circle">
+            <lucide-icon name="globe" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+          </div>
+          <span class="row-title">Język / Language</span>
+        </div>
+
+        <div class="row-right">
+          <span class="badge-pill">{{ language() }}</span>
+          <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
+        </div>
+      </div>
+
+      <div class="setting-row cursor-pointer" routerLink="/jednostki">
+        <div class="row-left">
+          <div class="icon-circle">
+            <lucide-icon name="ruler" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+          </div>
+          <span class="row-title">Jednostki miar</span>
+        </div>
+
+        <div class="row-right">
+          <span class="badge-pill">{{ unitSystem() }}</span>
+          <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-card">
+      <span class="section-label">POMOC I KONTO</span>
+
+      <div class="setting-row cursor-pointer" routerLink="/pomoc">
+        <div class="row-left">
+          <div class="icon-circle">
+            <lucide-icon name="help-circle" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+          </div>
+          <span class="row-title">Pomoc i FAQ</span>
+        </div>
+
+        <div class="row-right">
+          <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
+        </div>
+      </div>
+
+      <div class="setting-row cursor-pointer" routerLink="/polityka-prywatnosci">
+        <div class="row-left">
+          <div class="icon-circle">
+            <lucide-icon name="lock" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+          </div>
+          <span class="row-title">Polityka prywatności</span>
+        </div>
+
+        <div class="row-right">
+          <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
+        </div>
+      </div>
+    </section>
+
+    <button type="button" class="btn-logout" (click)="logout()">
+      <lucide-icon name="log-out" class="w-4 h-4 text-[#9F1239]"></lucide-icon>
+      <span>Wyloguj się</span>
+    </button>
+
+  </div>
+
+  @if (isHouseholdSheetOpen()) {
+    <app-household-invite-sheet (closeSheet)="closeHouseholdSheet()" />
+  }
+</main>

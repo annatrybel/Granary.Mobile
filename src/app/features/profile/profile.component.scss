@@ -1,0 +1,301 @@
+.profile-page {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #FAF9F5;
+  padding-top: 68px;
+  padding-bottom: 120px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.profile-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  padding: 0 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(229, 229, 229, 0.60);
+  background: rgba(250, 249, 245, 0.90);
+  backdrop-filter: blur(6px);
+  z-index: 50;
+  max-width: 480px;
+  margin: 0 auto;
+
+  .btn-back {
+    display: flex;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover { background: rgba(0, 0, 0, 0.05); }
+    &:active { transform: scale(0.92); }
+  }
+
+  .navbar-title {
+    margin: 0;
+    color: #171717;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 24px;
+  }
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.user-hero-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0 8px 0;
+  gap: 12px;
+
+  .avatar-wrapper {
+    position: relative;
+    width: 88px;
+    height: 88px;
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 9999px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border: 3px solid #FFFFFF;
+    }
+
+    .btn-avatar-camera {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px;
+      background: #536500;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 2px solid #FFFFFF;
+      transition: transform 0.15s ease, background-color 0.15s ease;
+
+      &:hover { background: #435200; }
+      &:active { transform: scale(0.92); }
+    }
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+
+    .user-name {
+      margin: 0;
+      color: #171717;
+      text-align: center;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 32px;
+      letter-spacing: -0.6px;
+    }
+
+    .user-email {
+      color: #737373;
+      text-align: center;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+    }
+  }
+}
+
+.settings-card {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  border-radius: 24px;
+  border: 1px solid rgba(229, 229, 229, 0.90);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.03);
+  backdrop-filter: blur(12px);
+  box-sizing: border-box;
+
+  .section-label {
+    color: #A3A3A3;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 15px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 0;
+
+  .row-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .icon-circle {
+      display: flex;
+      width: 40px;
+      height: 40px;
+      justify-content: center;
+      align-items: center;
+      border-radius: 9999px;
+      background: rgba(83, 101, 0, 0.10);
+      flex-shrink: 0;
+    }
+
+    .row-title {
+      color: #171717;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 20px;
+    }
+  }
+
+  .row-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .row-subtitle {
+      color: #737373;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+    }
+  }
+}
+
+.avatar-initials-stack {
+  display: flex;
+  align-items: center;
+
+  .initials-bubble {
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: -6px;
+    box-shadow: 0 0 0 2px #FFFFFF;
+    color: #FFFFFF;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 13.5px;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+}
+
+.badge-pill {
+  display: flex;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  border: 1px solid #E5E5E5;
+  background: #F5F5F5;
+  color: #262626;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.figma-toggle-switch {
+  display: flex;
+  width: 42.5px;
+  height: 24px;
+  padding: 2px;
+  align-items: center;
+  border-radius: 9999px;
+  background: #D4D4D4;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s ease;
+
+  .toggle-knob {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateX(0);
+  }
+
+  &.active {
+    background: #536500;
+
+    .toggle-knob {
+      transform: translateX(18.5px);
+    }
+  }
+}
+
+.btn-logout {
+  display: flex;
+  height: 48px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border-radius: 9999px;
+  border: 1px solid #FECDD3;
+  background: rgba(255, 241, 242, 0.80);
+  color: #9F1239;
+  text-align: center;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+
+  &:hover { background: rgba(255, 228, 230, 0.95); }
+  &:active { transform: scale(0.98); }
+}
