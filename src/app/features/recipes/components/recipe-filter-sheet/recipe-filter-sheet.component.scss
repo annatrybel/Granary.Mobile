@@ -1,18 +1,95 @@
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 23, 23, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 70;
+}
+
 .sheet-container {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  max-width: 480px;
+  max-width: 600px;
   margin: 0 auto;
   background: #FFFFFF;
   border-radius: 32px 32px 0 0;
-  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.2);
-  z-index: 50;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+  z-index: 80;
   display: flex;
   flex-direction: column;
-  max-height: 88vh;
-  border-top: 1px solid #E5E5E5;
+  max-height: 85vh;
+  box-sizing: border-box;
+}
+
+.sheet-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 24px 8px 24px;
+}
+
+.sheet-drag-handle {
+  width: 48px;
+  height: 5px;
+  background: #E5E5E5;
+  border-radius: 9999px;
+  margin-bottom: 12px;
+}
+
+.sheet-header-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sheet-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1C1B1B;
+  margin: 0;
+}
+
+.sheet-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: #F3F4F6;
+  border: none;
+  color: #737373;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background: #E5E7EB;
+  }
+}
+
+.sheet-content {
+  padding: 8px 24px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #757962;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .active-segment {
@@ -81,11 +158,52 @@
   }
 }
 
+.sheet-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.reset-link-btn {
+  background: transparent;
+  border: none;
+  color: #737373;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 8px 4px;
+  transition: color 0.15s;
+
+  &:hover {
+    color: #1C1B1B;
+  }
+}
+
+.submit-cta-btn {
+  flex: 1;
+  background: #536500;
+  color: #FFFFFF;
+  padding: 14px 0;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 4px 12px rgba(83, 101, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background: #445300;
+  }
+}
+
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
 
 .animate-slide-up {
-  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

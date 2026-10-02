@@ -1,20 +1,21 @@
 .sheet-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
-  z-index: 100;
+  z-index: 90;
 }
 
 .sheet-fullscreen-wrapper {
   position: fixed;
   inset: 0;
-  top: 0;
-  z-index: 110;
+  z-index: 100;
   background: #FCF9F8;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  -webkit-overflow-scrolling: touch;
 }
 
 .hero-image {
@@ -37,8 +38,8 @@
   position: absolute;
   inset-x: 0;
   top: 0;
-  height: 80px;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent);
+  height: 96px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.65), transparent);
   z-index: 1;
 }
 
@@ -46,8 +47,8 @@
   position: absolute;
   inset-x: 0;
   bottom: 0;
-  height: 80px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  height: 96px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
   z-index: 1;
 }
 
@@ -71,12 +72,14 @@
   align-items: center;
   border-radius: 9999px;
   background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
   border: none;
   cursor: pointer;
-  transition: transform 0.15s;
+  transition: transform 0.15s ease, background 0.2s ease;
 
-  &:active { transform: scale(0.92); }
+  &:active { 
+    transform: scale(0.92); 
+  }
 }
 
 .detail-card-content {
@@ -89,14 +92,14 @@
   box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .recipe-detail-title {
   color: #1C1B1B;
   font-size: 24px;
-  font-weight: 700;
-  line-height: 30px; 
+  font-weight: 800;
+  line-height: 32px;
   margin: 0;
 }
 
@@ -104,74 +107,29 @@
   display: inline-flex;
   padding: 6px 12px;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   border-radius: 9999px;
   background: #F6F3F2;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid transparent;
 
   .text-meta {
     color: #262626;
     font-size: 12px;
     font-weight: 600;
   }
-}
 
-.youtube-rating-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0;
-  border-top: 1px solid rgba(229, 229, 229, 0.6);
-  border-bottom: 1px solid rgba(229, 229, 229, 0.6);
-
-  .rating-label {
-    color: #404040;
-    font-size: 13px;
-    font-weight: 600;
+  &.pill-meta-btn {
+    border-color: rgba(83, 101, 0, 0.15);
   }
-}
 
-.youtube-vote-pill {
-  display: inline-flex;
-  align-items: center;
-  background: #F3F4F6;
-  border-radius: 9999px;
-  padding: 3px 6px;
-  border: 1px solid #E5E7EB;
-
-  .vote-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 9999px;
-    border: none;
-    background: transparent;
-    color: #525252;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 700;
-    transition: all 0.15s ease;
-
-    &:hover { background: rgba(0, 0, 0, 0.05); color: #171717; }
-    &:active { transform: scale(0.92); }
-
-    &.like-btn.active {
-      background: rgba(83, 101, 0, 0.12);
+  &.pill-meta-active {
+    background: rgba(83, 101, 0, 0.12);
+    border-color: rgba(83, 101, 0, 0.3);
+    
+    .text-meta {
       color: #536500;
     }
-
-    &.dislike-btn.active {
-      background: rgba(186, 26, 26, 0.12);
-      color: #BA1A1A;
-    }
-  }
-
-  .vote-divider {
-    width: 1px;
-    height: 18px;
-    background: #D1D5DB;
-    margin: 0 2px;
   }
 }
 
@@ -183,79 +141,109 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .status-badge-owned {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   background: rgba(83, 101, 0, 0.1);
   color: #536500;
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: 9999px;
 }
 
 .status-badge-missing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   background: #FEE2E2;
   color: #DC2626;
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: 9999px;
 }
 
-.timeline-steps {
+.timeline-container {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  margin-left: 4px;
+}
+
+.timeline-vertical-line {
+  position: absolute;
+  left: 15px;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: #E5E2E1;
+  z-index: 1;
 }
 
 .timeline-step-item {
+  position: relative;
+  z-index: 2;
   display: flex;
-  gap: 14px;
+  gap: 16px;
   align-items: flex-start;
 }
 
-.step-number {
-  width: 28px;
-  height: 28px;
+.step-badge {
+  width: 32px;
+  height: 32px;
   border-radius: 9999px;
-  background: rgba(83, 101, 0, 0.1);
+  border: 1px solid rgba(83, 101, 0, 0.20);
+  background: rgba(83, 101, 0, 0.10);
   color: #536500;
   font-weight: 800;
-  font-size: 12px;
+  font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
+.step-content {
+  padding-top: 4px;
+}
+
 .step-text {
-  font-size: 13.5px;
+  font-size: 14px;
   color: #1C1B1B;
-  line-height: 20px;
-  margin: 4px 0 0 0;
+  line-height: 22px;
+  margin: 0;
 }
 
 .cook-btn {
   width: 100%;
-  max-width: 360px;
-  margin: 0 auto;
-  height: 48px;
+  max-width: 400px;
+  height: 50px;
   border-radius: 9999px;
   background: #536500;
   color: #FFFFFF;
   border: none;
   font-size: 14px;
   font-weight: 700;
-  box-shadow: 0 8px 24px rgba(83, 101, 0, 0.3);
+  box-shadow: 0 8px 20px rgba(83, 101, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.15s;
+  transition: transform 0.15s ease, background 0.2s ease;
 
-  &:hover { background: #435200; }
-  &:active { transform: scale(0.97); }
+  &:hover { 
+    background: #435200; 
+  }
+  
+  &:active { 
+    transform: scale(0.97); 
+  }
 }
 
 @keyframes slideUp {
@@ -263,6 +251,15 @@
   to { transform: translateY(0); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .animate-slide-up {
-  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
 }

@@ -13,7 +13,7 @@
 
     <app-recipe-favorites-carousel 
       [favorites]="favoriteRecipes()"
-      (addCustom)="onAddCustomRecipe()"
+      (addCustom)="onOpenAddRecipe()"
       (seeAll)="selectedTag.set('all')"
       (recipeClick)="openRecipeDetail($event)"
       (toggleFav)="toggleFavorite($event)" />
@@ -65,5 +65,11 @@
       (closeSheet)="isFilterSheetOpen.set(false)"
       (apply)="activeFilters.set($event)"
       (reset)="activeFilters.set({ availability: 'all', maxTime: null, sortBy: 'match', mealType: null, diet: null })" />
+  }
+
+  @if (isAddRecipeOpen()) {
+  <app-add-recipe-sheet 
+    (closeSheet)="onCloseAddRecipe()"
+    (save)="onSaveCustomRecipe($event)" />
   }
 </main>

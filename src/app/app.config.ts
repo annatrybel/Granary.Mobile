@@ -58,7 +58,14 @@ import {
   Link2, 
   Copy, 
   Share2,
-   MinusCircle
+  MinusCircle,
+  PlusCircle,
+  ListOrdered,
+  Image,
+  ThumbsUp,
+  ThumbsDown, 
+  CheckCircle2,
+  XCircle
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -120,7 +127,14 @@ export const appConfig: ApplicationConfig = {
         Link2, 
         Copy, 
         Share2,
-        MinusCircle
+        MinusCircle,
+        PlusCircle,
+        ListOrdered,
+        Image,
+        ThumbsUp,
+        ThumbsDown, 
+        CheckCircle2,
+        XCircle
       })
     )
   ],

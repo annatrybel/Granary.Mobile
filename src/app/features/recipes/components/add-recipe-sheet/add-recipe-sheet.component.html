@@ -1,0 +1,243 @@
+<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+
+<div class="sheet-anchor-wrapper" (click)="closeSheet.emit()">
+  <div class="sheet-card animate-slide-up" (click)="$event.stopPropagation()">
+    
+    <div class="sheet-drag-handle"></div>
+
+    <header class="sheet-header">
+      <div class="flex flex-col">
+        <span class="badge-cookbook">Książka kucharska</span>
+        <h2 class="sheet-title">Dodaj własny przepis</h2>
+        <p class="sheet-subtitle">Zapisz domową recepturę, aby łatwo gotować z zapasów</p>
+      </div>
+
+      <button 
+        type="button" 
+        class="btn-close-round" 
+        (click)="closeSheet.emit()"
+        aria-label="Zamknij formularz">
+        <lucide-icon name="x" class="w-4 h-4 text-neutral-600"></lucide-icon>
+      </button>
+    </header>
+
+    <div class="sheet-scroll-body">
+      <form id="addRecipeForm" class="sheet-form-content" (ngSubmit)="onSubmit()">
+
+        <section class="form-section">
+          <div class="photo-upload-box">
+            @if (imageUrl()) {
+              <div class="relative w-full h-32 rounded-xl overflow-hidden mb-1">
+                <img [src]="imageUrl()!" alt="Podgląd dania" class="w-full h-full object-cover" />
+                <button 
+                  type="button" 
+                  (click)="imageUrl.set(null)" 
+                  class="absolute top-2 right-2 bg-black/60 text-white rounded-full p-2 hover:bg-black/80 transition-colors">
+                  <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            } @else {
+              <button 
+                type="button" 
+                class="btn-ai-generate" 
+                (click)="generateAiImage()">
+                <lucide-icon name="sparkles" class="w-4 h-4 text-[#536500]"></lucide-icon>
+                <span>Wygeneruj zdjęcie potrawy przez AI</span>
+              </button>
+
+              <label class="btn-upload-file">
+                <lucide-icon name="image" class="w-4 h-4"></lucide-icon>
+                <span>lub wgraj własne zdjęcie z telefonu</span>
+                <input type="file" accept="image/*" class="hidden" (change)="onImageFileChange($event)" />
+              </label>
+            }
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="recipe-title">
+              <span>Nazwa dania</span>
+              <span class="text-[#536500]">*</span>
+            </label>
+            <input 
+              id="recipe-title"
+              type="text" 
+              class="text-input-field" 
+              placeholder="np. Szarlotka z jabłkami i cynamonem" 
+              [ngModel]="title()" 
+              (ngModelChange)="title.set($event)"
+              name="title"
+              required
+              autofocus
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="stepper-card">
+              <button type="button" class="stepper-btn" (click)="changeServings(-1)" aria-label="Zmniejsz porcje">
+                <lucide-icon name="minus" class="w-4 h-4"></lucide-icon>
+              </button>
+              <div class="flex flex-col items-center">
+                <span class="stepper-label">Porcje</span>
+                <span class="stepper-val">{{ servings() }} {{ servings() === 1 ? 'porcja' : 'porcje' }}</span>
+              </div>
+              <button type="button" class="stepper-btn" (click)="changeServings(1)" aria-label="Zwiększ porcje">
+                <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+              </button>
+            </div>
+
+            <div class="stepper-card">
+              <button type="button" class="stepper-btn" (click)="changeTime(-5)" aria-label="Zmniejsz czas">
+                <lucide-icon name="minus" class="w-4 h-4"></lucide-icon>
+              </button>
+              <div class="flex flex-col items-center">
+                <span class="stepper-label">Czas</span>
+                <span class="stepper-val">{{ prepTimeMinutes() }} min</span>
+              </div>
+              <button type="button" class="stepper-btn" (click)="changeTime(5)" aria-label="Zwiększ czas">
+                <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="input-label">Kategoria posiłku</label>
+            <div class="categories-scroll no-scrollbar">
+              @for (cat of categories; track cat) {
+                <button 
+                  type="button" 
+                  class="category-chip" 
+                  [class.active]="selectedCategory() === cat"
+                  (click)="selectedCategory.set(cat)">
+                  @if (selectedCategory() === cat) {
+                    <lucide-icon name="check" class="w-3.5 h-3.5 text-white"></lucide-icon>
+                  }
+                  <span>{{ cat }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section pt-3 border-t border-neutral-200/80">
+          <div class="flex items-center justify-between">
+            <h3 class="section-heading">
+              <lucide-icon name="shopping-bag" class="w-4 h-4 text-[#536500]"></lucide-icon>
+              <span>Składniki</span>
+            </h3>
+            <span class="text-xs text-neutral-500 font-medium">Co będzie potrzebne?</span>
+          </div>
+
+          <div class="flex flex-col gap-2.5">
+            @for (ing of ingredients(); track $index) {
+              <div class="ingredient-edit-row">
+                <input 
+                  type="text" 
+                  class="ing-name-input" 
+                  placeholder="np. Mąka pszenna" 
+                  [ngModel]="ing.name" 
+                  (ngModelChange)="updateIngredientName($index, $event)"
+                  [name]="'ing_name_' + $index"
+                />
+
+                <input 
+                  type="number" 
+                  class="ing-amount-input" 
+                  step="0.5" 
+                  min="0.1" 
+                  [ngModel]="ing.amount" 
+                  (ngModelChange)="updateIngredientAmount($index, $event)"
+                  [name]="'ing_amount_' + $index"
+                />
+
+                <select 
+                  class="ing-unit-select" 
+                  [ngModel]="ing.unit" 
+                  (ngModelChange)="updateIngredientUnit($index, $event)"
+                  [name]="'ing_unit_' + $index">
+                  @for (u of availableUnits; track u) {
+                    <option [value]="u">{{ u }}</option>
+                  }
+                </select>
+
+                <button 
+                  type="button" 
+                  class="btn-delete-row" 
+                  (click)="removeIngredient($index)"
+                  aria-label="Usuń składnik">
+                  <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            }
+
+            <button 
+              type="button" 
+              class="btn-add-line" 
+              (click)="addIngredient()">
+              <lucide-icon name="plus-circle" class="w-4.5 h-4.5"></lucide-icon>
+              <span>Dodaj kolejny składnik</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="form-section pt-3 border-t border-neutral-200/80">
+          <div class="flex items-center justify-between">
+            <h3 class="section-heading">
+              <lucide-icon name="list-ordered" class="w-4 h-4 text-[#536500]"></lucide-icon>
+              <span>Kroki przygotowania</span>
+            </h3>
+            <span class="text-xs text-neutral-400 font-medium">Instrukcja gotowania</span>
+          </div>
+
+          <div class="flex flex-col gap-2.5">
+            @for (step of steps(); track $index) {
+              <div class="step-card">
+                <div class="step-badge">{{ $index + 1 }}</div>
+                <div class="flex-1 min-w-0">
+                  <textarea 
+                    class="step-textarea" 
+                    rows="2" 
+                    placeholder="Opisz ten krok przygotowania..."
+                    [ngModel]="step" 
+                    (ngModelChange)="updateStep($index, $event)"
+                    [name]="'step_' + $index">
+                  </textarea>
+                </div>
+                <button 
+                  type="button" 
+                  class="btn-delete-row mt-1" 
+                  (click)="removeStep($index)">
+                  <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            }
+
+            <button 
+              type="button" 
+              class="btn-add-line" 
+              (click)="addStep()">
+              <lucide-icon name="plus-circle" class="w-4.5 h-4.5"></lucide-icon>
+              <span>Dodaj kolejny krok</span>
+            </button>
+          </div>
+        </section>
+
+      </form>
+    </div>
+
+    <footer class="sheet-sticky-footer">
+      <button 
+        type="submit" 
+        form="addRecipeForm"
+        [disabled]="!title().trim()" 
+        class="btn-submit-recipe">
+        <lucide-icon name="book-open" class="w-4 h-4"></lucide-icon>
+        <span>Zapisz w Moich Przepisach</span>
+      </button>
+
+      <p class="footer-note">
+        Przepis pojawi się od razu w Twojej bibliotece w zakładce „Twoje i ulubione”.
+      </p>
+    </footer>
+
+  </div>
+</div>

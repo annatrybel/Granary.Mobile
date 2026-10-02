@@ -40,6 +40,7 @@ export interface RecipeDetailDto {
   imageUrl?: string;
   prepTimeMinutes: number;
   servings: number;
+  calories?: number | null;
   isFavorite: boolean;    
   likesCount: number;       
   dislikesCount: number;   
@@ -65,7 +66,22 @@ export interface RecipeTag {
 export interface RecipeFilters {
   availability: 'all' | 'ready' | 'missing2'; 
   maxTime: number | null; 
-  sortBy: 'match' | 'time';
+  sortBy: 'match' | 'time' | 'calories' | 'rating';
   mealType: string | null; 
   diet: string | null;
+}
+
+export interface CreateRecipeIngredientPayload {
+  name: string;
+  quantity: string;
+}
+
+export interface CreateCustomRecipePayload {
+  title: string;
+  category: string;
+  servings: number;
+  prepTimeMinutes: number;
+  imageUrl?: string;
+  ingredients: CreateRecipeIngredientPayload[];
+  steps: string[];
 }

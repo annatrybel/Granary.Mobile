@@ -1,19 +1,20 @@
-<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+<div class="sheet-backdrop animate-fade-in" (click)="closeSheet.emit()"></div>
 
 @if (recipe(); as r) {
-  <div class="sheet-fullscreen-wrapper animate-slide-up">
+  <main class="sheet-fullscreen-wrapper animate-slide-up">
     
     <div class="hero-image">
       <img 
         [src]="r.imageUrl || fallbackSvg" 
-        (error)="onImgError($event)"
+        (error)="$any($event.target).onerror = null; $any($event.target).src = fallbackSvg"
         [alt]="r.title" 
         class="hero-img-tag"
+        loading="lazy"
       />
       <div class="hero-gradient-top"></div>
       <div class="hero-gradient-bottom"></div>
 
-      <div class="hero-nav-bar pt-safe">
+      <header class="hero-nav-bar pt-safe">
         <button 
           type="button" 
           class="nav-btn-figma" 
@@ -35,10 +36,10 @@
             [class.text-white]="!isFavorite()">
           </lucide-icon>
         </button>
-      </div>
+      </header>
     </div>
 
-    <div class="detail-card-content">
+    <section class="detail-card-content">
       
       <div class="flex flex-col gap-2">
         <h1 class="recipe-detail-title">{{ r.title }}</h1>
@@ -53,88 +54,105 @@
             <lucide-icon name="users" class="w-3.5 h-3.5 text-[#536500] shrink-0"></lucide-icon>
             <span class="text-meta">{{ r.servings }} porcje</span>
           </div>
-        </div>
-      </div>
 
-      <div class="youtube-rating-section">
-        <span class="rating-label">Czy ten przepis Ci smakował?</span>
-        
-        <div class="youtube-vote-pill">
-          <button 
-            type="button" 
-            class="vote-btn like-btn" 
-            [class.active]="userVote() === true"
-            (click)="onVote(true)">
-            <lucide-icon name="thumbs-up" class="w-4 h-4" [class.fill-current]="userVote() === true"></lucide-icon>
-            <span class="vote-count">{{ likesCount() }}</span>
-          </button>
-
-          <div class="vote-divider"></div>
+          @if (caloriesCount(); as kcal) {
+            <div class="pill-meta">
+              <lucide-icon name="flame" class="w-3.5 h-3.5 text-[#536500] shrink-0"></lucide-icon>
+              <span class="text-meta">{{ kcal }} kcal</span>
+            </div>
+          }
 
           <button 
             type="button" 
-            class="vote-btn dislike-btn" 
-            [class.active]="userVote() === false"
-            (click)="onVote(false)">
-            <lucide-icon name="thumbs-down" class="w-4 h-4" [class.fill-current]="userVote() === false"></lucide-icon>
+            class="pill-meta pill-meta-btn cursor-pointer transition-all active:scale-95"
+            [class.pill-meta-active]="isLiked()"
+            (click)="toggleLike()"
+            aria-label="Polub przepis">
+            <lucide-icon 
+              name="thumbs-up" 
+              class="w-3.5 h-3.5 text-[#536500] shrink-0 transition-transform"
+              [class.fill-current]="isLiked()">
+            </lucide-icon>
+            <span class="text-meta">{{ likesCount() }}</span>
           </button>
         </div>
       </div>
 
-      <div class="flex flex-col gap-3 mt-2">
-        <h2 class="text-xl font-bold text-neutral-900">Składniki</h2>
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-neutral-900">Składniki</h2>
+          @if (r.ingredients && r.ingredients.length > 0) {
+            <span class="text-xs font-semibold text-neutral-500">
+              {{ r.ingredients.length }} pozycji
+            </span>
+          }
+        </div>
         
         <div class="flex flex-col gap-2.5">
-          @for (ing of (r.ingredients || []); track (ing.productId || $index)) {
-            <div class="ingredient-row">
-              <div class="flex flex-col">
-                <span class="font-semibold text-sm text-neutral-900">{{ ing.productName }}</span>
-                <span class="text-xs text-neutral-500 font-medium">{{ ing.quantity }} {{ ing.unit }}</span>
-              </div>
+          @if (r.ingredients && r.ingredients.length > 0) {
+            @for (ing of r.ingredients; track $index) {
+              <div class="ingredient-row">
+                <div class="flex flex-col">
+                  <span class="font-semibold text-sm text-neutral-900">{{ ing.productName }}</span>
+                  <span class="text-xs text-neutral-500 font-medium">{{ ing.quantity }} {{ ing.unit }}</span>
+                </div>
 
-              @if (ing.isOwnedInPantry) {
-                <div class="status-badge-owned">
-                  <span>✓ W magazynie</span>
-                </div>
-              } @else {
-                <div class="status-badge-missing">
-                  <span>✕ Brakuje</span>
-                </div>
-              }
-            </div>
-          } @empty {
-            <div class="py-4 text-center text-xs text-neutral-400">
-              Wczytywanie listy składników...
+                @if (ing.isOwnedInPantry) {
+                  <div class="status-badge-owned">
+                    <lucide-icon name="check-circle-2" class="w-3.5 h-3.5"></lucide-icon>
+                    <span>W magazynie</span>
+                  </div>
+                } @else {
+                  <div class="status-badge-missing">
+                    <lucide-icon name="x-circle" class="w-3.5 h-3.5"></lucide-icon>
+                    <span>Brakuje</span>
+                  </div>
+                }
+              </div>
+            }
+          } @else {
+            <div class="py-6 text-center text-xs text-neutral-400">
+              Wczytywanie listy składników ze spiżarni...
             </div>
           }
         </div>
       </div>
 
-      <!-- Sposób przygotowania -->
-      <div class="flex flex-col gap-3 mt-2">
+      <div class="flex flex-col gap-4 mt-2">
         <h2 class="text-xl font-bold text-neutral-900">Sposób przygotowania</h2>
         
-        <div class="timeline-steps">
-          @for (step of instructionSteps(); track $index) {
-            <div class="timeline-step-item">
-              <div class="step-number">{{ $index + 1 }}</div>
-              <p class="step-text">{{ step }}</p>
-            </div>
-          } @empty {
-            <p class="text-sm text-neutral-600 leading-relaxed whitespace-pre-line">
-              {{ r.instructions || 'Wczytywanie instrukcji...' }}
+        <div class="timeline-container">
+          <div class="timeline-vertical-line"></div>
+          
+          @if (instructionSteps().length > 0) {
+            @for (step of instructionSteps(); track $index) {
+              <div class="timeline-step-item">
+                <div class="step-badge">{{ $index + 1 }}</div>
+                <div class="step-content">
+                  <p class="step-text">{{ step }}</p>
+                </div>
+              </div>
+            }
+          } @else if (r.instructions) {
+            <p class="text-sm text-neutral-700 leading-relaxed whitespace-pre-line p-2">
+              {{ r.instructions }}
+            </p>
+          } @else {
+            <p class="py-4 text-center text-xs text-neutral-400">
+              Wczytywanie instrukcji...
             </p>
           }
         </div>
       </div>
 
-      <div class="pt-2 pb-12 flex justify-center">
+      <div class="pt-4 pb-safe flex justify-center w-full">
         <button type="button" class="cook-btn" (click)="cookRecipe()">
           <lucide-icon name="utensils" class="w-5 h-5 text-white mr-2"></lucide-icon>
           <span>Ugotowane! Odlicz z magazynu</span>
         </button>
       </div>
 
-    </div>
-  </div>
+    </section>
+
+  </main>
 }

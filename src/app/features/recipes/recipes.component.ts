@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 
 import { RecipeService } from '../../core/services/recipe.service';
-import { RecipeMatchDto, RecipeDetailDto, RecipeTag, RecipeFilters } from './models/recipe.models';
+import { RecipeMatchDto, RecipeDetailDto, RecipeIngredientDto, RecipeTag, RecipeFilters, CreateCustomRecipePayload } from './models/recipe.models';
 
 import { RecipeSearchBarComponent } from './components/recipe-search-bar/recipe-search-bar.component';
 import { RecipeTagsBarComponent } from './components/recipe-tags-bar/recipe-tags-bar.component';
@@ -12,6 +12,7 @@ import { RecipeFavoritesCarouselComponent } from './components/recipe-favorites-
 import { RecipeCardComponent } from './components/recipe-card/recipe-card.component';
 import { RecipeDetailSheetComponent } from './components/recipe-detail-sheet/recipe-detail-sheet.component';
 import { RecipeFilterSheetComponent } from './components/recipe-filter-sheet/recipe-filter-sheet.component';
+import { AddRecipeSheetComponent } from './components/add-recipe-sheet/add-recipe-sheet.component';
 
 @Component({
   selector: 'app-recipes',
@@ -24,7 +25,8 @@ import { RecipeFilterSheetComponent } from './components/recipe-filter-sheet/rec
     RecipeFavoritesCarouselComponent,
     RecipeCardComponent,
     RecipeDetailSheetComponent,
-    RecipeFilterSheetComponent
+    RecipeFilterSheetComponent,
+    AddRecipeSheetComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipes.component.html',
@@ -44,6 +46,7 @@ export class RecipesComponent implements OnInit {
   recipes = signal<RecipeMatchDto[]>([]);
   activeRecipeDetail = signal<RecipeDetailDto | null>(null);
   isFilterSheetOpen = signal<boolean>(false);
+  isAddRecipeOpen = signal<boolean>(false);
 
   activeFilters = signal<RecipeFilters>({
     availability: 'all',
@@ -151,14 +154,16 @@ export class RecipesComponent implements OnInit {
   openRecipeDetail(recipeId: string, summary?: RecipeMatchDto): void {
     if (!recipeId) return;
 
+    // 1. Wstępny stan (0 ms opóźnienia)
     this.activeRecipeDetail.set({
       id: recipeId,
       title: summary?.title || 'Wczytywanie...',
-      description: summary?.description || '',
+      description: '',
       instructions: '',
       imageUrl: summary?.imageUrl,
       prepTimeMinutes: summary?.prepTimeMinutes || 15,
       servings: summary?.servings || 2,
+      calories: (summary as any)?.calories ?? (summary as any)?.caloriesKcal ?? null,
       isFavorite: summary?.isFavorite ?? false,
       likesCount: 0,
       dislikesCount: 0,
@@ -166,16 +171,42 @@ export class RecipesComponent implements OnInit {
       ingredients: []
     });
 
-    this.cdr.markForCheck();
-
     this.recipeService.getById(recipeId).subscribe({
       next: (res: any) => {
-        const detail: RecipeDetailDto = res?.data ?? res;
-        this.activeRecipeDetail.set(detail);
+        const raw = res?.data ?? res?.result ?? res?.value ?? res;
+        if (!raw) return;
+
+        const rawIngredients = raw.ingredients ?? raw.Ingredients ?? [];
+
+        this.activeRecipeDetail.set({
+          id: raw.id ?? raw.Id ?? recipeId,
+          title: raw.title ?? raw.Title ?? summary?.title ?? '',
+          description: '',
+          instructions: raw.instructions ?? raw.Instructions ?? '',
+          imageUrl: raw.imageUrl ?? raw.ImageUrl ?? summary?.imageUrl,
+          prepTimeMinutes: raw.prepTimeMinutes ?? raw.PrepTimeMinutes ?? summary?.prepTimeMinutes ?? 15,
+          servings: raw.servings ?? raw.Servings ?? summary?.servings ?? 2,
+          calories: raw.calories ?? raw.Calories ?? raw.caloriesKcal ?? (summary as any)?.calories ?? null,
+          isFavorite: raw.isFavorite ?? raw.IsFavorite ?? summary?.isFavorite ?? false,
+          likesCount: raw.likesCount ?? raw.LikesCount ?? 0,
+          dislikesCount: raw.dislikesCount ?? raw.DislikesCount ?? 0,
+          userVote: raw.userVote ?? raw.UserVote ?? null,
+          ingredients: Array.isArray(rawIngredients)
+            ? rawIngredients.map((i: any) => ({
+              productId: i.productId ?? i.ProductId ?? '',
+              productName: i.productName ?? i.ProductName ?? i.name ?? 'Składnik',
+              quantity: i.quantity ?? i.Quantity ?? 1,
+              unit: i.unit ?? i.Unit ?? 'szt.',
+              isOptional: !!(i.isOptional ?? i.IsOptional),
+              isOwnedInPantry: !!(i.isOwnedInPantry ?? i.IsOwnedInPantry)
+            }))
+            : []
+        });
+
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('Błąd pobierania szczegółów:', err);
+        console.error('Błąd pobierania szczegółów przepisu:', err);
         this.cdr.markForCheck();
       }
     });
@@ -187,5 +218,52 @@ export class RecipesComponent implements OnInit {
 
   addMissingToShoppingList(recipe: RecipeMatchDto): void {
     alert(`Dodano ${recipe.missingIngredients.length} brakujących pozycji do listy zakupów!`);
+  }
+
+  onOpenAddRecipe(): void {
+    this.isAddRecipeOpen.set(true);
+  }
+
+  onCloseAddRecipe(): void {
+    this.isAddRecipeOpen.set(false);
+  }
+
+  onSaveCustomRecipe(payload: CreateCustomRecipePayload): void {
+    const tempId = 'custom-' + Date.now();
+
+    const newRecipe: RecipeMatchDto = {
+      recipeId: tempId,
+      title: payload.title,
+      description: `Kategoria: ${payload.category}`,
+      imageUrl: payload.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
+      prepTimeMinutes: payload.prepTimeMinutes,
+      servings: payload.servings,
+      matchPercentage: 100,
+      ownedIngredientsCount: payload.ingredients.length,
+      totalIngredientsCount: payload.ingredients.length,
+      expiringIngredientsSaved: 0,
+      canBeCookedNow: true,
+      isFavorite: true, 
+      usedIngredientsSummary: `Składniki: ${payload.ingredients.map(i => i.name).join(', ')}`,
+      missingIngredients: []
+    };
+
+    this.recipes.update(list => [newRecipe, ...list]);
+    this.isAddRecipeOpen.set(false);
+    this.cdr.markForCheck();
+
+    this.recipeService.createRecipe(payload).subscribe({
+      next: (createdRecipe: any) => {
+        const serverId = createdRecipe?.id || createdRecipe?.recipeId || createdRecipe?.data?.id;
+        if (serverId) {
+          this.recipes.update(list =>
+            list.map(r => r.recipeId === tempId ? { ...r, recipeId: serverId } : r)
+          );
+        }
+      },
+      error: (err) => {
+        console.error('Błąd zapisu przepisu na backendzie:', err);
+      }
+    });
   }
 }

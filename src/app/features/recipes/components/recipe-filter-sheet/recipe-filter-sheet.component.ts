@@ -20,7 +20,7 @@ export class RecipeFilterSheetComponent implements OnInit {
 
   availability = signal<'all' | 'ready' | 'missing2'>('all');
   maxTime = signal<number | null>(null);
-  sortBy = signal<'match' | 'time'>('match');
+  sortBy = signal<'match' | 'time' | 'calories' | 'rating'>('match');
   mealType = signal<string | null>(null);
   diet = signal<string | null>(null);
 
