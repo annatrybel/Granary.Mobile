@@ -13,6 +13,8 @@ import { RecipeCardComponent } from './components/recipe-card/recipe-card.compon
 import { RecipeDetailSheetComponent } from './components/recipe-detail-sheet/recipe-detail-sheet.component';
 import { RecipeFilterSheetComponent } from './components/recipe-filter-sheet/recipe-filter-sheet.component';
 import { AddRecipeSheetComponent } from './components/add-recipe-sheet/add-recipe-sheet.component';
+import { RecipeFavoritesSheetComponent } from './components/recipe-favorites-sheet/recipe-favorites-sheet.component';
+
 
 @Component({
   selector: 'app-recipes',
@@ -26,7 +28,8 @@ import { AddRecipeSheetComponent } from './components/add-recipe-sheet/add-recip
     RecipeCardComponent,
     RecipeDetailSheetComponent,
     RecipeFilterSheetComponent,
-    AddRecipeSheetComponent
+    AddRecipeSheetComponent,
+    RecipeFavoritesSheetComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipes.component.html',
@@ -47,6 +50,7 @@ export class RecipesComponent implements OnInit {
   activeRecipeDetail = signal<RecipeDetailDto | null>(null);
   isFilterSheetOpen = signal<boolean>(false);
   isAddRecipeOpen = signal<boolean>(false);
+  isFavoritesSheetOpen = signal<boolean>(false);
 
   activeFilters = signal<RecipeFilters>({
     availability: 'all',
@@ -265,5 +269,10 @@ export class RecipesComponent implements OnInit {
         console.error('Błąd zapisu przepisu na backendzie:', err);
       }
     });
+  }
+
+  onOpenAddRecipeFromFavorites(): void {
+    this.isFavoritesSheetOpen.set(false);
+    this.isAddRecipeOpen.set(true);
   }
 }

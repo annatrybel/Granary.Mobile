@@ -1,0 +1,84 @@
+<!-- Backdrop tła -->
+<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+
+<div class="sheet-container animate-slide-up">
+  
+  <div class="sheet-header">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header-row">
+      <div class="flex items-center gap-2">
+        <h2 class="sheet-title">Twoje i ulubione</h2>
+        <span class="badge-count">{{ favorites().length }}</span>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <button 
+          type="button" 
+          class="add-custom-mini-btn"
+          (click)="addCustom.emit()"
+          title="Dodaj własny przepis">
+          <lucide-icon name="plus" class="w-4 h-4 mr-1"></lucide-icon>
+          <span>Własny</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="sheet-close-btn"
+          (click)="closeSheet.emit()"
+          aria-label="Zamknij">
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <div class="search-box-row">
+      <div class="search-input-wrapper">
+        <lucide-icon name="search" class="w-4 h-4 text-neutral-400 shrink-0"></lucide-icon>
+        <input 
+          type="text" 
+          placeholder="Szukaj w ulubionych..."
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+          class="search-input" />
+        @if (searchQuery()) {
+          <button type="button" class="clear-search-btn" (click)="searchQuery.set('')">✕</button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-content">
+    @if (filteredFavorites().length > 0) {
+      <div class="favorites-grid">
+        @for (recipe of filteredFavorites(); track recipe.recipeId) {
+          <app-recipe-card 
+            [recipe]="recipe"
+            [isFavorite]="true"
+            (cardClick)="recipeClick.emit(recipe)"
+            (toggleFav)="toggleFav.emit(recipe.recipeId)" 
+            (addMissing)="addMissing.emit(recipe)" />
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        @if (searchQuery()) {
+          <p class="text-sm font-medium text-neutral-600">Nie znaleziono przepisów dla frazy „{{ searchQuery() }}”.</p>
+          <button type="button" class="clear-query-link" (click)="searchQuery.set('')">Wyczyść wyszukiwanie</button>
+        } @else {
+          <div class="empty-icon-circle">
+            <lucide-icon name="heart" class="w-8 h-8 text-neutral-400"></lucide-icon>
+          </div>
+          <h3 class="text-base font-bold text-neutral-800 mt-3">Brak zapisanych przepisów</h3>
+          <p class="text-xs text-neutral-500 max-w-[260px] text-center mt-1 leading-relaxed">
+            Kliknij ikonę serduszka przy dowolnym daniu lub stwórz swój własny przepis, aby mieć go zawsze pod ręką.
+          </p>
+          <button type="button" class="submit-cta-btn max-w-[220px] mt-4" (click)="addCustom.emit()">
+            <lucide-icon name="plus" class="w-4 h-4 mr-1.5"></lucide-icon>
+            <span>Dodaj przepis</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+</div>

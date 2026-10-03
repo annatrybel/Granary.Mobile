@@ -14,7 +14,7 @@
     <app-recipe-favorites-carousel 
       [favorites]="favoriteRecipes()"
       (addCustom)="onOpenAddRecipe()"
-      (seeAll)="selectedTag.set('all')"
+       (seeAll)="isFavoritesSheetOpen.set(true)"
       (recipeClick)="openRecipeDetail($event)"
       (toggleFav)="toggleFavorite($event)" />
 
@@ -71,5 +71,15 @@
   <app-add-recipe-sheet 
     (closeSheet)="onCloseAddRecipe()"
     (save)="onSaveCustomRecipe($event)" />
+  }
+
+   @if (isFavoritesSheetOpen()) {
+    <app-recipe-favorites-sheet
+      [favorites]="favoriteRecipes()"
+      (closeSheet)="isFavoritesSheetOpen.set(false)"
+      (recipeClick)="openRecipeDetail($event.recipeId, $event)"
+      (toggleFav)="toggleFavorite($event)"
+      (addMissing)="addMissingToShoppingList($event)"
+      (addCustom)="onOpenAddRecipeFromFavorites()" />
   }
 </main>
