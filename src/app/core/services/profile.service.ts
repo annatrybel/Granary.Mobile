@@ -9,7 +9,7 @@ import { UserProfileDto } from '../../features/profile/models/profile.models';
 })
 export class ProfileService {
   private http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiBaseUrl}/authentication`;
+  private readonly baseUrl = `${environment.apiBaseUrl}/profile`; 
 
   getProfile(): Observable<UserProfileDto> {
     return this.http.get<UserProfileDto>(`${this.baseUrl}/me`);
@@ -19,7 +19,12 @@ export class ProfileService {
     return this.http.put(`${this.baseUrl}/update-profile`, formData);
   }
 
+  updateDarkMode(darkMode: boolean): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/dark-mode`, { darkMode });
+  }
+
   logout(): Observable<any> {
-    return this.http.post(`${this.baseUrl}/logout`, {});
+    // Wylogowanie nadal odwołuje się do modułu autentykacji
+    return this.http.post(`${environment.apiBaseUrl}/authentication/logout`, {});
   }
 }

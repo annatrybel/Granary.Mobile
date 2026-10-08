@@ -1,19 +1,18 @@
 import { Component, input, output, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-forgot-password-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './forgot-password-modal.component.html',
   styleUrl: './forgot-password-modal.component.scss'
 })
 export class ForgotPasswordModalComponent implements OnInit {
-  private authService = inject(AuthService);
+  private readonly authService = inject(AuthService);
 
   initialEmail = input<string>('');
   closeModal = output<void>();

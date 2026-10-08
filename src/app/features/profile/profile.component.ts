@@ -12,6 +12,7 @@ import { LucideAngularModule } from 'lucide-angular';
 
 import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service'; 
 import { UserProfileDto, HouseholdMember } from './models/profile.models';
 import { HouseholdInviteSheetComponent } from './components/household-invite-sheet/household-invite-sheet.component';
 
@@ -25,14 +26,14 @@ import { HouseholdInviteSheetComponent } from './components/household-invite-she
     HouseholdInviteSheetComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './profile.component.html',
-  styleUrl: './profile.component.scss'
+  templateUrl: './profile.component.html'
 })
 export class ProfileComponent implements OnInit {
   private location = inject(Location);
   private router = inject(Router);
   private profileService = inject(ProfileService);
   private authService = inject(AuthService);
+  protected themeService = inject(ThemeService);
   private cdr = inject(ChangeDetectorRef);
 
   isLoading = signal<boolean>(true);
@@ -46,7 +47,6 @@ export class ProfileComponent implements OnInit {
 
   expiryNotifications = signal<boolean>(true);
   dietPreference = signal<string>('Brak');
-  darkMode = signal<boolean>(false);
   language = signal<string>('Polski');
   unitSystem = signal<string>('Metryczne');
 
@@ -77,7 +77,13 @@ export class ProfileComponent implements OnInit {
           if (data.avatarUrl) this.avatarUrl.set(data.avatarUrl);
           if (data.dietPreference) this.dietPreference.set(data.dietPreference);
           if (data.expiryNotifications !== undefined) this.expiryNotifications.set(data.expiryNotifications);
-          if (data.darkMode !== undefined) this.darkMode.set(data.darkMode);
+
+          if (data.darkMode !== undefined) {
+            const currentIsDark = this.themeService.isDark();
+            if (currentIsDark !== data.darkMode) {
+              this.themeService.setTheme(data.darkMode ? 'dark' : 'light', false);
+            }
+          }
 
           this.authService.saveCurrentUser(data);
         }
@@ -98,7 +104,6 @@ export class ProfileComponent implements OnInit {
     this.location.back();
   }
 
-
   openHouseholdSheet(): void {
     this.isHouseholdSheetOpen.set(true);
   }
@@ -107,15 +112,14 @@ export class ProfileComponent implements OnInit {
     this.isHouseholdSheetOpen.set(false);
   }
 
-
   toggleExpiryNotifications(): void {
     this.expiryNotifications.update(v => !v);
   }
 
   toggleDarkMode(): void {
-    this.darkMode.update(v => !v);
+    const nextMode = this.themeService.isDark() ? 'light' : 'dark';
+    this.themeService.setTheme(nextMode, true);
   }
-
 
   onAvatarFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -142,7 +146,6 @@ export class ProfileComponent implements OnInit {
     img.onerror = null; 
     img.src = this.fallbackAvatar;
   }
-
 
   logout(): void {
     if (confirm('Czy na pewno chcesz się wylogować?')) {

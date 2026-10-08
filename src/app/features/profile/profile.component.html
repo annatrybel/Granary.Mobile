@@ -1,29 +1,29 @@
-<main class="profile-page">
+<main class="block w-full min-h-screen bg-app-bg pt-[68px] pb-[120px] overflow-x-hidden transition-colors duration-200">
   
-  <nav class="profile-navbar">
-    <button type="button" class="btn-back" (click)="goBack()" aria-label="Wróć">
-      <lucide-icon name="arrow-left" class="w-4.5 h-4.5 text-[#404040]"></lucide-icon>
+  <nav class="fixed top-0 inset-x-0 h-14 px-4 flex justify-between items-center border-b border-app-border bg-app-bg/90 backdrop-blur-md z-50 max-w-[480px] mx-auto transition-colors duration-200">
+    <button type="button" class="w-10 h-10 rounded-full flex items-center justify-center border-none bg-transparent hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 cursor-pointer transition-all" (click)="goBack()" aria-label="Wróć">
+      <lucide-icon name="arrow-left" [size]="18" class="text-app-text"></lucide-icon>
     </button>
     
-    <h1 class="navbar-title">Ustawienia profilu</h1>
+    <h1 class="m-0 text-app-text font-bold text-base leading-6">Ustawienia profilu</h1>
     
     <div class="w-10 h-10"></div>
   </nav>
 
-  <div class="profile-container">
+  <div class="w-full max-w-[480px] mx-auto px-4 py-3 flex flex-col gap-4">
 
-    <section class="user-hero-card">
-      <div class="avatar-wrapper">
+    <section class="flex flex-col items-center pt-4 pb-2 gap-3">
+      <div class="relative w-[88px] h-[88px]">
         <img 
           [src]="avatarUrl() || fallbackAvatar" 
           (error)="onImgError($event)" 
           [alt]="name()" 
-          class="avatar-img"
+          class="w-full h-full rounded-full object-cover shadow-md border-[3px] border-app-surface"
           loading="lazy"
         />
 
-        <label class="btn-avatar-camera" title="Zmień zdjęcie">
-          <lucide-icon name="camera" class="w-3.5 h-3.5 text-white"></lucide-icon>
+        <label class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-app-brand hover:brightness-110 active:scale-90 shadow-md flex items-center justify-center cursor-pointer border-2 border-app-bg transition-all" title="Zmień zdjęcie">
+          <lucide-icon name="camera" [size]="14" class="text-white"></lucide-icon>
           <input 
             type="file" 
             accept="image/*" 
@@ -33,167 +33,175 @@
         </label>
       </div>
 
-      <div class="user-info">
+      <div class="flex flex-col items-center gap-0.5">
         @if (isLoading()) {
-          <div class="h-7 w-48 bg-neutral-200/80 animate-pulse rounded-full my-1"></div>
-          <div class="h-4 w-36 bg-neutral-200/60 animate-pulse rounded-full"></div>
+          <div class="h-7 w-48 bg-app-border animate-pulse rounded-full my-1"></div>
+          <div class="h-4 w-36 bg-app-border/70 animate-pulse rounded-full"></div>
         } @else {
-          <h2 class="user-name">{{ name() }}</h2>
-          <span class="user-email">{{ email() }}</span>
+          <h2 class="m-0 text-app-text text-center text-2xl font-extrabold leading-8 tracking-tight">{{ name() }}</h2>
+          <span class="text-app-muted text-center text-xs font-medium">{{ email() }}</span>
         }
       </div>
     </section>
 
-    <section class="settings-card">
-      <span class="section-label">SPIŻARNIA I DOM</span>
+    <!-- Karta 1: SPIŻARNIA I DOM -->
+    <section class="p-4 flex flex-col gap-3 w-full rounded-3xl border border-app-border bg-app-surface shadow-sm backdrop-blur-md transition-colors duration-200">
+      <span class="text-[10px] font-bold text-app-muted uppercase tracking-[0.5px]">SPIŻARNIA I DOM</span>
 
-<div class="setting-row cursor-pointer" (click)="openHouseholdSheet()">
-  <div class="row-left">
-    <div class="icon-circle">
-      <lucide-icon name="users" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
-    </div>
-    <span class="row-title">Gospodarstwo domowe</span>
-  </div>
-
-  <div class="row-right">
-    @if (householdMembers().length > 0) {
-      <div class="avatar-initials-stack">
-        @for (member of householdMembers(); track member.initials; let i = $index) {
-          <div class="initials-bubble" [style.background-color]="member.colorBg" [style.z-index]="10 - i">
-            <span>{{ member.initials }}</span>
+      <!-- Gospodarstwo domowe -->
+      <div class="flex items-center justify-between w-full py-1 cursor-pointer" (click)="openHouseholdSheet()">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+            <lucide-icon name="users" [size]="18" class="text-app-brand"></lucide-icon>
           </div>
-        }
-      </div>
-      <span class="row-subtitle">Połączone {{ householdMembers().length }} osoby</span>
-    } @else {
-      <span class="row-subtitle">0 osób połączonych</span>
-    }
-
-    <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
-  </div>
-</div>
-
-      <div class="setting-row">
-        <div class="row-left">
-          <div class="icon-circle">
-            <lucide-icon name="bell" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
-          </div>
-          <span class="row-title">Powiadomienia o dacie ważności</span>
+          <span class="text-sm font-semibold text-app-text">Gospodarstwo domowe</span>
         </div>
 
-        <div class="row-right">
-          <button 
-            type="button" 
-            class="figma-toggle-switch" 
-            [class.active]="expiryNotifications()"
-            (click)="toggleExpiryNotifications()"
-            role="switch"
-            [attr.aria-checked]="expiryNotifications()">
-            <div class="toggle-knob"></div>
-          </button>
+        <div class="flex items-center gap-2">
+          @if (householdMembers().length > 0) {
+            <div class="flex items-center">
+              @for (member of householdMembers(); track member.initials; let i = $index) {
+                <div class="w-[22px] h-[22px] rounded-full flex items-center justify-center -ml-1.5 first:ml-0 ring-2 ring-app-surface text-white text-[9px] font-bold" [style.background-color]="member.colorBg" [style.z-index]="10 - i">
+                  <span>{{ member.initials }}</span>
+                </div>
+              }
+            </div>
+            <span class="text-xs text-app-muted font-medium">Połączone {{ householdMembers().length }} osoby</span>
+          } @else {
+            <span class="text-xs text-app-muted font-medium">0 osób połączonych</span>
+          }
+
+          <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
         </div>
       </div>
 
-      <div class="setting-row cursor-pointer" routerLink="/preferencje-diety">
-        <div class="row-left">
-          <div class="icon-circle">
-            <lucide-icon name="utensils" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+      <!-- Powiadomienia -->
+      <div class="flex items-center justify-between w-full py-1">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+            <lucide-icon name="bell" [size]="18" class="text-app-brand"></lucide-icon>
           </div>
-          <span class="row-title">Preferencje diety</span>
+          <span class="text-sm font-semibold text-app-text">Powiadomienia o ważności</span>
         </div>
 
-        <div class="row-right">
-          <span class="badge-pill">{{ dietPreference() }}</span>
-          <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
-        </div>
-      </div>
-    </section>
-
-    <section class="settings-card">
-      <span class="section-label">APLIKACJA</span>
-
-      <div class="setting-row">
-        <div class="row-left">
-          <div class="icon-circle">
-            <lucide-icon name="moon" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
-          </div>
-          <span class="row-title">Ciemny motyw</span>
-        </div>
-
-        <div class="row-right">
-          <button 
-            type="button" 
-            class="figma-toggle-switch" 
-            [class.active]="darkMode()"
-            (click)="toggleDarkMode()"
-            role="switch"
-            [attr.aria-checked]="darkMode()">
-            <div class="toggle-knob"></div>
-          </button>
-        </div>
+        <button 
+          type="button" 
+          class="w-[42px] h-6 p-0.5 rounded-full flex items-center border-none cursor-pointer transition-colors shadow-xs"
+          [class.bg-app-brand]="expiryNotifications()"
+          [class.bg-app-border]="!expiryNotifications()"
+          (click)="toggleExpiryNotifications()"
+          role="switch"
+          [attr.aria-checked]="expiryNotifications()">
+          <div 
+            class="w-5 h-5 rounded-full bg-white shadow-xs transition-transform duration-200"
+            [class.translate-x-[18px]]="expiryNotifications()"
+            [class.translate-x-0]="!expiryNotifications()"></div>
+        </button>
       </div>
 
-      <div class="setting-row cursor-pointer" routerLink="/jezyk">
-        <div class="row-left">
-          <div class="icon-circle">
-            <lucide-icon name="globe" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+      <!-- Preferencje diety -->
+      <div class="flex items-center justify-between w-full py-1 cursor-pointer" routerLink="/preferencje-diety">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+            <lucide-icon name="utensils" [size]="18" class="text-app-brand"></lucide-icon>
           </div>
-          <span class="row-title">Język / Language</span>
+          <span class="text-sm font-semibold text-app-text">Preferencje diety</span>
         </div>
 
-        <div class="row-right">
-          <span class="badge-pill">{{ language() }}</span>
-          <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
-        </div>
-      </div>
-
-      <div class="setting-row cursor-pointer" routerLink="/jednostki">
-        <div class="row-left">
-          <div class="icon-circle">
-            <lucide-icon name="ruler" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
-          </div>
-          <span class="row-title">Jednostki miar</span>
-        </div>
-
-        <div class="row-right">
-          <span class="badge-pill">{{ unitSystem() }}</span>
-          <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full border border-app-border bg-app-bg text-app-text text-xs font-bold">{{ dietPreference() }}</span>
+          <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
         </div>
       </div>
     </section>
 
-    <section class="settings-card">
-      <span class="section-label">POMOC I KONTO</span>
+    <!-- Karta 2: APLIKACJA -->
+    <section class="p-4 flex flex-col gap-3 w-full rounded-3xl border border-app-border bg-app-surface shadow-sm backdrop-blur-md transition-colors duration-200">
+      <span class="text-[10px] font-bold text-app-muted uppercase tracking-[0.5px]">APLIKACJA</span>
 
-      <div class="setting-row cursor-pointer" routerLink="/pomoc">
-        <div class="row-left">
-          <div class="icon-circle">
-            <lucide-icon name="help-circle" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+      <!-- Ciemny motyw -->
+      <div class="flex items-center justify-between w-full py-1">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+            <lucide-icon name="moon" [size]="18" class="text-app-brand"></lucide-icon>
           </div>
-          <span class="row-title">Pomoc i FAQ</span>
+          <span class="text-sm font-semibold text-app-text">Ciemny motyw</span>
         </div>
 
-        <div class="row-right">
-          <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
+        <button 
+          type="button" 
+          class="w-[42px] h-6 p-0.5 rounded-full flex items-center border-none cursor-pointer transition-colors shadow-xs"
+          [class.bg-app-brand]="themeService.isDark()"
+          [class.bg-app-border]="!themeService.isDark()"
+          (click)="toggleDarkMode()"
+          role="switch"
+          [attr.aria-checked]="themeService.isDark()">
+          <div 
+            class="w-5 h-5 rounded-full bg-white shadow-xs transition-transform duration-200"
+            [class.translate-x-[18px]]="themeService.isDark()"
+            [class.translate-x-0]="!themeService.isDark()"></div>
+        </button>
+      </div>
+
+      <!-- Język -->
+      <div class="flex items-center justify-between w-full py-1 cursor-pointer" routerLink="/jezyk">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+            <lucide-icon name="globe" [size]="18" class="text-app-brand"></lucide-icon>
+          </div>
+          <span class="text-sm font-semibold text-app-text">Język / Language</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full border border-app-border bg-app-bg text-app-text text-xs font-bold">{{ language() }}</span>
+          <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
         </div>
       </div>
 
-      <div class="setting-row cursor-pointer" routerLink="/polityka-prywatnosci">
-        <div class="row-left">
-          <div class="icon-circle">
-            <lucide-icon name="lock" class="w-4.5 h-4.5 text-[#536500]"></lucide-icon>
+      <!-- Jednostki -->
+      <div class="flex items-center justify-between w-full py-1 cursor-pointer" routerLink="/jednostki">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+            <lucide-icon name="ruler" [size]="18" class="text-app-brand"></lucide-icon>
           </div>
-          <span class="row-title">Polityka prywatności</span>
+          <span class="text-sm font-semibold text-app-text">Jednostki miar</span>
         </div>
 
-        <div class="row-right">
-          <lucide-icon name="chevron-right" class="w-3.5 h-3.5 text-[#A3A3A3]"></lucide-icon>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full border border-app-border bg-app-bg text-app-text text-xs font-bold">{{ unitSystem() }}</span>
+          <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
         </div>
       </div>
     </section>
 
-    <button type="button" class="btn-logout" (click)="logout()">
-      <lucide-icon name="log-out" class="w-4 h-4 text-[#9F1239]"></lucide-icon>
+    <!-- Karta 3: POMOC I KONTO -->
+    <section class="p-4 flex flex-col gap-3 w-full rounded-3xl border border-app-border bg-app-surface shadow-sm backdrop-blur-md transition-colors duration-200">
+      <span class="text-[10px] font-bold text-app-muted uppercase tracking-[0.5px]">POMOC I KONTO</span>
+
+      <div class="flex items-center justify-between w-full py-1 cursor-pointer" routerLink="/pomoc">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+            <lucide-icon name="help-circle" [size]="18" class="text-app-brand"></lucide-icon>
+          </div>
+          <span class="text-sm font-semibold text-app-text">Pomoc i FAQ</span>
+        </div>
+        <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
+      </div>
+
+      <div class="flex items-center justify-between w-full py-1 cursor-pointer" routerLink="/polityka-prywatnosci">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+            <lucide-icon name="lock" [size]="18" class="text-app-brand"></lucide-icon>
+          </div>
+          <span class="text-sm font-semibold text-app-text">Polityka prywatności</span>
+        </div>
+        <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
+      </div>
+    </section>
+
+    <!-- Przycisk wylogowania -->
+    <button type="button" class="h-12 w-full rounded-full border border-rose-200 dark:border-rose-500/20 bg-rose-50/80 dark:bg-rose-950/40 hover:bg-rose-100/90 dark:hover:bg-rose-900/40 text-rose-800 dark:text-rose-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer mt-1 active:scale-[0.98] transition-all" (click)="logout()">
+      <lucide-icon name="log-out" [size]="16" class="text-rose-800 dark:text-rose-200"></lucide-icon>
       <span>Wyloguj się</span>
     </button>
 

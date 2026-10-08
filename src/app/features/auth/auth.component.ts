@@ -1,6 +1,5 @@
 import { Component, signal, ChangeDetectionStrategy, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LucideAngularModule } from 'lucide-angular';
@@ -14,14 +13,12 @@ import { ForgotPasswordModalComponent } from './components/forgot-password-modal
   standalone: true,
   imports: [
     CommonModule, 
-    FormsModule, 
     RouterLink, 
     LucideAngularModule,
     ForgotPasswordModalComponent 
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './auth.component.html',
-  styleUrl: './auth.component.scss'
+  templateUrl: './auth.component.html'
 })
 export class AuthComponent implements OnInit {
   private router = inject(Router);
@@ -38,7 +35,6 @@ export class AuthComponent implements OnInit {
   password = signal<string>('');
 
   isForgotPasswordOpen = signal<boolean>(false);
-
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
 
@@ -71,7 +67,6 @@ export class AuthComponent implements OnInit {
     this.isLoading.set(true);
 
     if (this.mode() === 'login') {
-      // LOGOWANIE
       this.authService.login({
         email: this.email(),
         password: this.password()
@@ -88,7 +83,6 @@ export class AuthComponent implements OnInit {
         }
       });
     } else {
-      // REJESTRACJA
       this.authService.register({
         email: this.email(),
         password: this.password(),

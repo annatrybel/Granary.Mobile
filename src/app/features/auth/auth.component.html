@@ -1,73 +1,73 @@
-<main class="bg-[#FAF9F5] text-neutral-900 font-sans antialiased min-h-screen w-full flex flex-col justify-between pt-safe pb-safe px-4 py-6 selection:bg-[#536500]/10 selection:text-[#536500]">
+<main class="bg-app-bg text-app-text min-h-screen w-full flex flex-col justify-between pt-safe pb-safe px-4 py-6 transition-colors duration-200">
   
   <div class="w-full max-w-md mx-auto flex flex-col gap-4 my-auto">
     
     <!-- 1. NAGŁÓWEK -->
     <header class="text-center pt-2">
-      <div class="w-14 h-14 rounded-2xl bg-[#536500]/10 text-[#536500] flex items-center justify-center mx-auto shadow-xs">
-        <lucide-icon name="refrigerator" class="w-7 h-7 text-[#536500]"></lucide-icon>
+      <div class="w-14 h-14 rounded-2xl bg-app-brand/15 text-app-brand flex items-center justify-center mx-auto shadow-2xs">
+        <lucide-icon name="refrigerator" [size]="28" class="text-app-brand"></lucide-icon>
       </div>
-      <h1 class="text-2xl font-extrabold text-neutral-900 tracking-tight text-center mt-3">
+      <h1 class="text-2xl font-extrabold text-app-text tracking-tight text-center mt-3">
         Witaj w Smart Pantry
       </h1>
-      <p class="text-xs text-neutral-500 font-medium text-center mt-1">
+      <p class="text-xs text-app-muted font-medium text-center mt-1">
         Twoja domowa spiżarnia i kuchnia w pełnej harmonii
       </p>
     </header>
 
     <!-- 2. PRZEŁĄCZNIK: LOGOWANIE / REJESTRACJA -->
-    <div class="bg-neutral-200/60 p-1 rounded-full flex items-center max-w-[320px] w-full mx-auto">
+    <div class="bg-app-surface-variant p-1 rounded-full flex items-center max-w-[320px] w-full mx-auto border border-app-border/40">
       <button 
         type="button" 
         (click)="setMode('login')"
-        [class.bg-white]="mode() === 'login'"
-        [class.text-neutral-900]="mode() === 'login'"
+        [class.bg-app-surface]="mode() === 'login'"
+        [class.text-app-text]="mode() === 'login'"
         [class.font-bold]="mode() === 'login'"
         [class.shadow-xs]="mode() === 'login'"
-        [class.text-neutral-600]="mode() !== 'login'"
-        class="flex-1 py-2 rounded-full text-xs text-center transition-all cursor-pointer">
+        [class.text-app-muted]="mode() !== 'login'"
+        class="flex-1 py-2 rounded-full text-xs text-center transition-all cursor-pointer border-none outline-none">
         Zaloguj się
       </button>
       
       <button 
         type="button" 
         (click)="setMode('register')"
-        [class.bg-white]="mode() === 'register'"
-        [class.text-neutral-900]="mode() === 'register'"
+        [class.bg-app-surface]="mode() === 'register'"
+        [class.text-app-text]="mode() === 'register'"
         [class.font-bold]="mode() === 'register'"
         [class.shadow-xs]="mode() === 'register'"
-        [class.text-neutral-600]="mode() !== 'register'"
-        class="flex-1 py-2 rounded-full text-xs text-center transition-all cursor-pointer">
+        [class.text-app-muted]="mode() !== 'register'"
+        class="flex-1 py-2 rounded-full text-xs text-center transition-all cursor-pointer border-none outline-none">
         Utwórz konto
       </button>
     </div>
 
     <!-- 3. KARTA FORMULARZA -->
-    <div class="bg-white/95 backdrop-blur-xl border border-neutral-200/90 rounded-[28px] p-5 shadow-[0_8px_30px_rgba(83,101,0,0.05)] flex flex-col gap-4">
+    <div class="bg-app-surface backdrop-blur-xl border border-app-border rounded-[28px] p-6 shadow-xl flex flex-col gap-4">
       
       @if (errorMessage()) {
-        <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
-          <lucide-icon name="alert-circle" class="w-4 h-4 text-rose-600 shrink-0"></lucide-icon>
+        <div class="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
+          <lucide-icon name="alert-circle" [size]="16" class="shrink-0"></lucide-icon>
           <span class="flex-1 leading-snug">{{ errorMessage() }}</span>
         </div>
       }
 
-      <form class="flex flex-col gap-4" (ngSubmit)="onSubmit()">
+      <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); onSubmit()">
         
+        <!-- Pole: Imię -->
         @if (mode() === 'register') {
           <div class="flex flex-col gap-1.5 animate-in fade-in duration-200">
-            <label class="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-              <lucide-icon name="user" class="w-4 h-4 text-[#536500]"></lucide-icon>
+            <label class="text-xs font-bold text-app-text flex items-center gap-1.5">
+              <lucide-icon name="user" [size]="15" class="text-app-brand"></lucide-icon>
               Twoje imię
             </label>
-            <div class="h-13 py-3 bg-[#FAF9F5] border border-neutral-300 rounded-2xl px-4 flex items-center focus-within:border-[#536500] focus-within:ring-1 focus-within:ring-[#536500] transition-all">
+            <div class="h-[52px] bg-app-surface-variant border border-app-border rounded-2xl px-4 flex items-center focus-within:border-app-brand transition-colors">
               <input 
                 type="text" 
-                [ngModel]="name()" 
-                (ngModelChange)="name.set($event)"
-                name="name"
+                [value]="name()" 
+                (input)="name.set($any($event.target).value)"
                 placeholder="np. Anna" 
-                class="w-full bg-transparent border-none text-sm text-neutral-900 placeholder:text-neutral-400 font-medium outline-none" 
+                class="w-full bg-transparent border-none text-sm text-app-text placeholder:text-app-muted font-medium outline-none" 
                 required
               />
             </div>
@@ -76,66 +76,63 @@
 
         <!-- Pole: E-mail -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-            <lucide-icon name="mail" class="w-4 h-4 text-[#536500]"></lucide-icon>
+          <label class="text-xs font-bold text-app-text flex items-center gap-1.5">
+            <lucide-icon name="mail" [size]="15" class="text-app-brand"></lucide-icon>
             Adres e-mail
           </label>
-          <div class="h-13 py-3 bg-[#FAF9F5] border border-neutral-300 rounded-2xl px-4 flex items-center focus-within:border-[#536500] focus-within:ring-1 focus-within:ring-[#536500] transition-all">
+          <div class="h-[52px] bg-app-surface-variant border border-app-border rounded-2xl px-4 flex items-center focus-within:border-app-brand transition-colors">
             <input 
               type="email" 
-              [ngModel]="email()" 
-              (ngModelChange)="email.set($event)"
-              name="email"
+              [value]="email()" 
+              (input)="email.set($any($event.target).value)"
               placeholder="np. anna.kowalska@email.com" 
-              class="w-full bg-transparent border-none text-sm text-neutral-900 placeholder:text-neutral-400 font-medium outline-none" 
+              class="w-full bg-transparent border-none text-sm text-app-text placeholder:text-app-muted font-medium outline-none" 
               required
             />
           </div>
         </div>
 
-        <!-- Pole: Hasło z przełącznikiem oka -->
+        <!-- Pole: Hasło -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-            <lucide-icon name="lock" class="w-4 h-4 text-[#536500]"></lucide-icon>
+          <label class="text-xs font-bold text-app-text flex items-center gap-1.5">
+            <lucide-icon name="lock" [size]="15" class="text-app-brand"></lucide-icon>
             Hasło
           </label>
-          <div class="h-13 py-3 bg-[#FAF9F5] border border-neutral-300 rounded-2xl px-4 flex items-center justify-between focus-within:border-[#536500] focus-within:ring-1 focus-within:ring-[#536500] transition-all">
+          <div class="h-[52px] bg-app-surface-variant border border-app-border rounded-2xl px-4 flex items-center justify-between focus-within:border-app-brand transition-colors">
             <input 
               [type]="showPassword() ? 'text' : 'password'" 
-              [ngModel]="password()" 
-              (ngModelChange)="password.set($event)"
-              name="password"
+              [value]="password()" 
+              (input)="password.set($any($event.target).value)"
               placeholder="Wpisz swoje hasło" 
-              class="w-full bg-transparent border-none text-sm text-neutral-900 placeholder:text-neutral-400 font-medium outline-none pr-2" 
+              class="w-full bg-transparent border-none text-sm text-app-text placeholder:text-app-muted font-medium outline-none pr-2" 
               required
             />
             <button 
               type="button" 
               (click)="togglePasswordVisibility()"
               aria-label="Pokaż lub ukryj hasło" 
-              class="text-neutral-400 hover:text-neutral-700 p-1 flex items-center justify-center transition-colors cursor-pointer">
-              <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" class="w-4 h-4"></lucide-icon>
+              class="text-app-muted hover:text-app-text p-1 flex items-center justify-center transition-colors cursor-pointer border-none bg-transparent">
+              <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16"></lucide-icon>
             </button>
           </div>
         </div>
 
         <!-- Opcje pomocnicze -->
         <div class="flex items-center justify-between pt-0.5">
-          <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-neutral-600 select-none">
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-app-muted select-none">
             <input 
               type="checkbox" 
-              [ngModel]="rememberMe()" 
-              (ngModelChange)="rememberMe.set($event)"
-              name="rememberMe"
-              class="w-4 h-4 rounded text-[#536500] accent-[#536500] border-neutral-300 focus:ring-[#536500] cursor-pointer" 
+              [checked]="rememberMe()" 
+              (change)="rememberMe.set($any($event.target).checked)"
+              class="w-4 h-4 rounded text-app-brand accent-app-brand border-app-border cursor-pointer" 
             />
             <span>Zapamiętaj mnie</span>
           </label>
 
           @if (mode() === 'login') {
-            <a href="javascript:void(0)" (click)="openForgotPassword()" class="text-xs font-bold text-[#536500] hover:underline cursor-pointer">
+            <button type="button" (click)="openForgotPassword()" class="text-xs font-bold text-app-brand hover:underline cursor-pointer bg-transparent border-none p-0">
               Nie pamiętasz hasła?
-            </a>
+            </button>
           }
         </div>
 
@@ -143,10 +140,10 @@
         <button 
           type="submit" 
           [disabled]="isLoading()"
-          class="w-full h-13 py-3.5 bg-[#536500] hover:bg-[#435200] active:scale-[0.98] text-white rounded-full font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all mt-1 cursor-pointer disabled:opacity-70">
+          class="w-full h-[52px] bg-app-brand hover:brightness-110 active:scale-[0.98] text-white rounded-full font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all mt-1 cursor-pointer border-none disabled:opacity-70 disabled:cursor-not-allowed">
           
           @if (!isLoading()) {
-            <lucide-icon [name]="mode() === 'login' ? 'log-in' : 'user-plus'" class="w-4 h-4"></lucide-icon>
+            <lucide-icon [name]="mode() === 'login' ? 'log-in' : 'user-plus'" [size]="16"></lucide-icon>
             <span>
               {{ mode() === 'login' ? 'Zaloguj się do spiżarni' : 'Utwórz konto w spiżarni' }}
             </span>
@@ -157,38 +154,37 @@
         </button>
       </form>
 
-      <!-- Rozdzielacz -->
       <div class="flex items-center gap-3 my-1">
-        <div class="h-px bg-neutral-200 flex-1"></div>
-        <span class="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">lub kontynuuj przez</span>
-        <div class="h-px bg-neutral-200 flex-1"></div>
+        <div class="h-px bg-app-border flex-1"></div>
+        <span class="text-[11px] font-medium text-app-muted uppercase tracking-wider">lub kontynuuj przez</span>
+        <div class="h-px bg-app-border flex-1"></div>
       </div>
 
       <!-- Przycisk Google -->
       <button 
         type="button" 
         (click)="loginWithGoogle()"
-        class="w-full h-12 bg-white border border-neutral-200 rounded-2xl flex items-center justify-center gap-2.5 text-xs font-bold text-neutral-800 hover:bg-neutral-50 active:scale-[0.98] shadow-2xs transition-all cursor-pointer">
-        <span class="font-extrabold text-[#536500] text-sm leading-none">G</span>
+        class="w-full h-12 bg-app-surface-variant hover:brightness-105 border border-app-border rounded-2xl flex items-center justify-center gap-2.5 text-xs font-bold text-app-text active:scale-[0.98] shadow-2xs transition-all cursor-pointer">
+        <span class="font-extrabold text-app-brand text-sm leading-none">G</span>
         <span>Kontynuuj z kontem Google</span>
       </button>
 
     </div>
 
-    <!-- 4. STOPKA Z POLITYKĄ PRYWATNOŚCI -->
+    <!-- 4. STOPKA -->
     <footer class="text-center pt-1 pb-2">
-      <p class="text-center text-[11px] text-neutral-400 font-medium leading-relaxed max-w-xs mx-auto">
+      <p class="text-center text-[11px] text-app-muted font-medium leading-relaxed max-w-xs mx-auto m-0">
         Logując się, zyskujesz bezpieczny dostęp do swojego konta domowego. Przeczytaj naszą 
-        <a routerLink="/polityka-prywatnosci" class="text-[#536500] underline font-bold">Politykę prywatności</a>.
+        <a routerLink="/polityka-prywatnosci" class="text-app-brand underline font-bold">Politykę prywatności</a>.
       </p>
     </footer>
 
   </div>
 
-<!-- Modal resetu hasła -->
- @if (isForgotPasswordOpen()) {
-  <app-forgot-password-modal 
-    [initialEmail]="email()" 
-    (closeModal)="closeForgotPassword()" />
-}
+  <!-- Modal resetu hasła -->
+  @if (isForgotPasswordOpen()) {
+    <app-forgot-password-modal 
+      [initialEmail]="email()" 
+      (closeModal)="closeForgotPassword()" />
+  }
 </main>
