@@ -5,6 +5,23 @@ export interface MissingIngredientDto {
   unit: string;
 }
 
+export interface RecipeIngredientDto {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unit: string;
+  isOptional: boolean;
+  isOwnedInPantry: boolean;
+}
+
+export interface CatalogProductDto {
+  id: string;
+  name: string;
+  categoryId?: string | null;
+  imageUrl?: string | null;
+  barcode?: string | null;
+}
+
 export interface RecipeMatchDto {
   recipeId: string;
   title: string;
@@ -17,19 +34,10 @@ export interface RecipeMatchDto {
   totalIngredientsCount: number;
   expiringIngredientsSaved: number;
   canBeCookedNow: boolean;
-  isFavorite: boolean; 
+  isFavorite: boolean;
+  isCustom: boolean;
   usedIngredientsSummary?: string;
-  durationAndPortions?: string;
   missingIngredients: MissingIngredientDto[];
-}
-
-export interface RecipeIngredientDto {
-  productId: string;
-  productName: string;
-  quantity: number;
-  unit: string;
-  isOptional: boolean;
-  isOwnedInPantry: boolean;
 }
 
 export interface RecipeDetailDto {
@@ -41,10 +49,11 @@ export interface RecipeDetailDto {
   prepTimeMinutes: number;
   servings: number;
   calories?: number | null;
-  isFavorite: boolean;    
-  likesCount: number;       
-  dislikesCount: number;   
-  userVote?: boolean | null; 
+  isFavorite: boolean;
+  isCustom?: boolean;
+  likesCount: number;
+  dislikesCount: number;
+  userVote?: boolean | null;
   ingredients: RecipeIngredientDto[];
 }
 
@@ -58,20 +67,37 @@ export interface VoteResultDto {
   userVote: boolean | null;
 }
 
-export interface RecipeTag {
-  id: string;
-  name: string;
-}
+export type RecipeTabScope = 'all' | 'favorites' | 'custom';
 
 export interface RecipeFilters {
-  availability: 'all' | 'ready' | 'missing2'; 
-  maxTime: number | null; 
+  maxTime: number | null;
   sortBy: 'match' | 'time' | 'calories' | 'rating';
-  mealType: string | null; 
+  mealType: string | null;
   diet: string | null;
 }
 
+export interface RecipeQueryParams {
+  scope: RecipeTabScope;
+  page: number;
+  pageSize: number;
+  query?: string;
+  items?: string; // <-- DODAJ TĘ LINIJKĘ (filtr produktów z różdżki)
+  maxTime?: number | null;
+  sortBy?: 'match' | 'time' | 'calories' | 'rating';
+  mealType?: string | null;
+  diet?: string | null;
+}
+
+export interface PagedRecipesResult {
+  items: RecipeMatchDto[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
 export interface CreateRecipeIngredientPayload {
+  productId?: string;
   name: string;
   quantity: string;
 }

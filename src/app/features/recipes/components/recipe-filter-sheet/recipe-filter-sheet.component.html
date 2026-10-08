@@ -2,135 +2,79 @@
 
 <div class="sheet-container animate-slide-up">
   
-  <div class="sheet-header">
-    <div class="sheet-drag-handle"></div>
-    <div class="sheet-header-row">
-      <h2 class="sheet-title">Filtry i sortowanie</h2>
-      <button 
-        type="button" 
-        class="sheet-close-btn"
-        (click)="closeSheet.emit()"
-        aria-label="Zamknij">
-        ✕
-      </button>
+  <div class="flex flex-col items-center px-6 pt-4 pb-2 shrink-0">
+    <div class="w-12 h-1 bg-app-border rounded-full mb-3 shrink-0"></div>
+    <div class="w-full flex items-center justify-between">
+      <h2 class="text-xl font-bold text-app-text m-0">Filtry i sortowanie</h2>
+      <button type="button" (click)="closeSheet.emit()" class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text flex items-center justify-center border-none cursor-pointer active:scale-95 transition-all">✕</button>
     </div>
   </div>
 
-  <div class="sheet-content">
-    
-    <div class="form-group">
-      <div class="flex items-center justify-between">
-        <label class="form-label">Dostępność w magazynie</label>
-        <span class="bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded text-[10px] font-medium">Główny filtr</span>
-      </div>
-      <div class="grid grid-cols-3 gap-1 bg-neutral-100 p-1 rounded-xl border border-neutral-200/80">
-        <button 
-          type="button" 
-          [class.active-segment]="availability() === 'ready'"
-          [class.inactive-segment]="availability() !== 'ready'"
-          (click)="availability.set('ready')">
-          100% z magazynu
-        </button>
-        <button 
-          type="button" 
-          [class.active-segment]="availability() === 'missing2'"
-          [class.inactive-segment]="availability() !== 'missing2'"
-          (click)="availability.set('missing2')">
-          Brakuje ≤ 2
-        </button>
-        <button 
-          type="button" 
-          [class.active-segment]="availability() === 'all'"
-          [class.inactive-segment]="availability() !== 'all'"
-          (click)="availability.set('all')">
-          Wszystkie
-        </button>
-      </div>
-    </div>
+  <div class="flex-1 min-h-0 overflow-y-auto px-6 py-2 pb-8 flex flex-col gap-5 overscroll-contain">
 
-    <div class="form-group">
-      <label class="form-label">Maksymalny czas</label>
-      <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-        <button 
-          type="button" 
-          class="pill-filter-btn" 
-          [class.active]="maxTime() === 15" 
-          (click)="maxTime.set(maxTime() === 15 ? null : 15)">
-          do 15 min
-        </button>
-        <button 
-          type="button" 
-          class="pill-filter-btn" 
-          [class.active]="maxTime() === 30" 
-          (click)="maxTime.set(maxTime() === 30 ? null : 30)">
-          do 30 min
-        </button>
-        <button 
-          type="button" 
-          class="pill-filter-btn" 
-          [class.active]="maxTime() === 45" 
-          (click)="maxTime.set(maxTime() === 45 ? null : 45)">
-          do 45 min
-        </button>
-        <button 
-          type="button" 
-          class="pill-filter-btn" 
-          [class.active]="maxTime() === null" 
-          (click)="maxTime.set(null)">
-          Dowolny
-        </button>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Sortuj według</label>
+    <!-- Sortowanie -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">Sortuj według</label>
       <div class="grid grid-cols-2 gap-2.5">
-        <button 
-          type="button" 
-          class="sort-card-btn"
-          [class.active]="sortBy() === 'match'"
-          (click)="sortBy.set('match')">
-          <span class="truncate">Dopasowanie spiżarni</span>
-          @if (sortBy() === 'match') { <span>✓</span> }
-        </button>
-
-        <button 
-          type="button" 
-          class="sort-card-btn"
-          [class.active]="sortBy() === 'time'"
-          (click)="sortBy.set('time')">
-          <span class="truncate">Najkrótszy czas</span>
-          @if (sortBy() === 'time') { <span>✓</span> }
-        </button>
-
-        <button 
-          type="button" 
-          class="sort-card-btn"
-          [class.active]="sortBy() === 'calories'"
-          (click)="sortBy.set('calories')">
-          <span class="truncate">Najmniej kalorii</span>
-          @if (sortBy() === 'calories') { <span>✓</span> }
-        </button>
-
-        <button 
-          type="button" 
-          class="sort-card-btn"
-          [class.active]="sortBy() === 'rating'"
-          (click)="sortBy.set('rating')">
-          <span class="truncate">Ocena użytkowników</span>
-          @if (sortBy() === 'rating') { <span>✓</span> }
-        </button>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Posiłek</label>
-      <div class="flex flex-wrap gap-2">
-        @for (m of ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska']; track m) {
+        @for (opt of sortOptions; track opt.id) {
           <button 
             type="button" 
-            class="pill-filter-btn"
-            [class.active]="mealType() === m"
+            class="p-3 rounded-xl border text-xs flex items-center justify-between cursor-pointer outline-none active:scale-[0.98] transition-all"
+            [class.bg-app-brand/15]="sortBy() === opt.id"
+            [class.border-app-brand]="sortBy() === opt.id"
+            [class.text-app-brand]="sortBy() === opt.id"
+            [class.font-bold]="sortBy() === opt.id"
+            [class.bg-app-surface-variant]="sortBy() !== opt.id"
+            [class.border-app-border]="sortBy() !== opt.id"
+            [class.text-app-text]="sortBy() !== opt.id"
+            [class.font-medium]="sortBy() !== opt.id"
+            (click)="sortBy.set(opt.id)">
+            <span class="truncate">{{ opt.label }}</span>
+            @if (sortBy() === opt.id) { <span>✓</span> }
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Czas -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">Maksymalny czas</label>
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        @for (t of timeOptions; track t.label) {
+          <button 
+            type="button" 
+            class="h-[34px] px-4 rounded-full border text-xs whitespace-nowrap cursor-pointer flex items-center justify-center outline-none active:scale-95 transition-all"
+            [class.bg-app-brand]="maxTime() === t.val"
+            [class.text-white]="maxTime() === t.val"
+            [class.border-app-brand]="maxTime() === t.val"
+            [class.font-bold]="maxTime() === t.val"
+            [class.shadow-xs]="maxTime() === t.val"
+            [class.bg-app-surface-variant]="maxTime() !== t.val"
+            [class.text-app-text]="maxTime() !== t.val"
+            [class.border-app-border]="maxTime() !== t.val"
+            [class.font-medium]="maxTime() !== t.val"
+            (click)="maxTime.set(t.val)">
+            {{ t.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Posiłek -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">Posiłek</label>
+      <div class="flex flex-wrap gap-2">
+        @for (m of mealOptions; track m) {
+          <button 
+            type="button" 
+            class="h-[34px] px-4 rounded-full border text-xs whitespace-nowrap cursor-pointer flex items-center justify-center outline-none active:scale-95 transition-all"
+            [class.bg-app-brand]="mealType() === m"
+            [class.text-white]="mealType() === m"
+            [class.border-app-brand]="mealType() === m"
+            [class.font-bold]="mealType() === m"
+            [class.bg-app-surface-variant]="mealType() !== m"
+            [class.text-app-text]="mealType() !== m"
+            [class.border-app-border]="mealType() !== m"
             (click)="setMealType(m)">
             {{ m }}
           </button>
@@ -138,14 +82,21 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Preferencje i diety</label>
+    <!-- Preferencje i diety -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">Preferencje i diety</label>
       <div class="flex flex-wrap gap-2">
-        @for (d of ['Bez glutenu', 'Bez laktozy', 'Wegańskie', 'Wegetariańskie']; track d) {
+        @for (d of dietOptions; track d) {
           <button 
             type="button" 
-            class="pill-filter-btn"
-            [class.active]="diet() === d"
+            class="h-[34px] px-4 rounded-full border text-xs whitespace-nowrap cursor-pointer flex items-center justify-center outline-none active:scale-95 transition-all"
+            [class.bg-app-brand]="diet() === d"
+            [class.text-white]="diet() === d"
+            [class.border-app-brand]="diet() === d"
+            [class.font-bold]="diet() === d"
+            [class.bg-app-surface-variant]="diet() !== d"
+            [class.text-app-text]="diet() !== d"
+            [class.border-app-border]="diet() !== d"
             (click)="setDiet(d)">
             {{ d }}
           </button>
@@ -153,19 +104,10 @@
       </div>
     </div>
 
-    <div class="sheet-actions-row pt-2">
-      <button 
-        type="button" 
-        class="reset-link-btn" 
-        (click)="onReset()">
-        Wyczyść filtry
-      </button>
-      <button 
-        type="button" 
-        (click)="onApply()"
-        class="submit-cta-btn">
-        Pokaż przepisy
-      </button>
+    <!-- Akcje -->
+    <div class="flex items-center justify-between gap-4 pt-2">
+      <button type="button" class="bg-transparent border-none text-app-muted hover:text-app-text text-[13px] font-semibold cursor-pointer py-2 px-1 transition-colors" (click)="onReset()">Wyczyść filtry</button>
+      <button type="button" (click)="onApply()" class="flex-1 h-12 bg-app-brand hover:brightness-110 text-white text-sm font-bold rounded-full border-none shadow-sm flex items-center justify-center cursor-pointer active:scale-[0.98] transition-all">Pokaż przepisy</button>
     </div>
 
   </div>

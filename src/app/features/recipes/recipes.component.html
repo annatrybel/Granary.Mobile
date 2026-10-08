@@ -1,85 +1,275 @@
-<main class="recipes-page">
-  <div class="recipes-container">
+<main class="block w-full min-h-screen bg-app-bg pt-[76px] pb-[120px] box-border overflow-x-hidden transition-colors duration-200">
+  <div class="max-w-[560px] mx-auto flex flex-col gap-4 px-4 box-border">
 
+    <!-- 1. Pasek wyszukiwania z filtrami -->
     <app-recipe-search-bar 
       [searchQuery]="searchQuery()"
-      (queryChange)="searchQuery.set($event)"
+      (queryChange)="onSearchChange($event)"
       (openFilters)="isFilterSheetOpen.set(true)" />
 
-    <app-recipe-tags-bar 
-      [tags]="tags"
-      [selectedTag]="selectedTag()"
-      (selectTag)="selectedTag.set($event)" />
+    <!-- 2. Kafelki nawigacji (Wszystkie / Ulubione / Moje przepisy) -->
+    <nav class="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none" aria-label="Wybór zakresu">
+      
+      <!-- Wszystkie -->
+      <button 
+        type="button"
+        class="h-[34px] px-4 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-all outline-none border"
+        [class.bg-app-brand]="activeScope() === 'all'"
+        [class.text-white]="activeScope() === 'all'"
+        [class.border-app-brand]="activeScope() === 'all'"
+        [class.shadow-xs]="activeScope() === 'all'"
+        [class.bg-app-surface]="activeScope() !== 'all'"
+        [class.text-app-text]="activeScope() !== 'all'"
+        [class.border-app-border]="activeScope() !== 'all'"
+        (click)="setScope('all')">
+        <span>Wszystkie</span>
+      </button>
 
-    <app-recipe-favorites-carousel 
-      [favorites]="favoriteRecipes()"
-      (addCustom)="onOpenAddRecipe()"
-       (seeAll)="isFavoritesSheetOpen.set(true)"
-      (recipeClick)="openRecipeDetail($event)"
-      (toggleFav)="toggleFavorite($event)" />
+      <!-- Ulubione -->
+      <button 
+        type="button"
+        class="h-[34px] px-4 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-all outline-none border"
+        [class.bg-app-brand]="activeScope() === 'favorites'"
+        [class.text-white]="activeScope() === 'favorites'"
+        [class.border-app-brand]="activeScope() === 'favorites'"
+        [class.shadow-xs]="activeScope() === 'favorites'"
+        [class.bg-app-surface]="activeScope() !== 'favorites'"
+        [class.text-app-text]="activeScope() !== 'favorites'"
+        [class.border-app-border]="activeScope() !== 'favorites'"
+        (click)="setScope('favorites')">
+        <lucide-icon 
+          name="heart" 
+          [size]="13"
+          class="pill-icon"
+          [class.text-white]="activeScope() === 'favorites'"
+          [class.text-app-brand]="activeScope() !== 'favorites'">
+        </lucide-icon>
+        <span>Ulubione</span>
+      </button>
 
-    <section class="recipes-main-section">
-      <div class="flex items-center gap-2 mt-4 mb-2">
-        <lucide-icon name="sparkles" class="w-5 h-5 text-[#8429C8] shrink-0"></lucide-icon>
-        <h2 class="favorites-title">Zrób z tego, co masz</h2>
+      <!-- Moje przepisy -->
+      <button 
+        type="button"
+        class="h-[34px] px-4 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-all outline-none border"
+        [class.bg-app-brand]="activeScope() === 'custom'"
+        [class.text-white]="activeScope() === 'custom'"
+        [class.border-app-brand]="activeScope() === 'custom'"
+        [class.shadow-xs]="activeScope() === 'custom'"
+        [class.bg-app-surface]="activeScope() !== 'custom'"
+        [class.text-app-text]="activeScope() !== 'custom'"
+        [class.border-app-border]="activeScope() !== 'custom'"
+        (click)="setScope('custom')">
+        <lucide-icon 
+          name="book-open" 
+          [size]="13"
+          class="pill-icon"
+          [class.text-white]="activeScope() === 'custom'"
+          [class.text-app-brand]="activeScope() !== 'custom'">
+        </lucide-icon>
+        <span>Moje przepisy</span>
+      </button>
+
+    </nav>
+
+    <!-- 3. Baner dodawania własnego dania -->
+    @if (activeScope() === 'custom') {
+      <button 
+        type="button" 
+        class="w-full p-4 rounded-2xl bg-app-surface border border-app-border shadow-xs backdrop-blur-md flex items-center justify-between gap-3 text-left cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all"
+        (click)="openAddRecipe()">
+        
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-app-brand shadow-xs flex items-center justify-center shrink-0">
+            <lucide-icon name="plus" [size]="20" class="banner-plus-icon text-white"></lucide-icon>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-sm font-bold text-app-text leading-5">Dodaj własny przepis</span>
+            <span class="text-xs font-semibold text-app-muted leading-4">Zapisz sprawdzoną recepturę w domowej bazie</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-center shrink-0">
+          <lucide-icon name="chevron-right" [size]="16" class="banner-arrow-icon"></lucide-icon>
+        </div>
+
+      </button>
+    }
+
+    <!-- 4. Pigułka filtra z różdżki -->
+    @if (selectedItemsFilter()) {
+      <div class="flex items-center justify-between bg-app-brand/15 border border-app-brand/30 py-2 px-3.5 rounded-2xl animate-fade-in">
+        <div class="flex items-center gap-2">
+          <lucide-icon name="sparkles" [size]="16" class="text-app-brand shrink-0"></lucide-icon>
+          <span class="text-xs font-bold text-app-brand">Gotujesz z wybranych produktów z magazynu</span>
+        </div>
+        <button 
+          type="button" 
+          class="text-xs text-app-text font-bold bg-app-surface hover:brightness-105 px-2.5 py-1 rounded-full border border-app-border cursor-pointer transition-all active:scale-95 shadow-2xs"
+          (click)="clearSelectedItemsFilter()">
+          Pokaż wszystkie ✕
+        </button>
+      </div>
+    }
+
+    <!-- 5. Główna sekcja z listą dań -->
+    <section class="flex flex-col w-full">
+      <div class="flex items-center gap-2 mt-1 mb-2">
+        <lucide-icon 
+          [name]="searchQuery() ? 'search' : 'sparkles'" 
+          [size]="18"
+          class="text-app-brand shrink-0">
+        </lucide-icon>
+        <h2 class="m-0 text-xl font-bold text-app-text leading-7">
+          @if (selectedItemsFilter()) {
+            Dania z zaznaczonych produktów
+          } @else if (searchQuery()) {
+            Wyniki wyszukiwania
+          } @else if (activeScope() === 'favorites') {
+            Twoje ulubione dania
+          } @else if (activeScope() === 'custom') {
+            Przepisy z domowej bazy
+          } @else {
+            Zrób z tego, co masz
+          }
+        </h2>
       </div>
 
       @if (isLoading()) {
-        <div class="status-box animate-pulse">
-          Analizuję Twoją spiżarnię i dopasowuję przepisy...
+        <div class="text-center py-12 px-4 text-xs font-semibold text-app-muted animate-pulse">
+          Łączenie z bazą danych i dopasowywanie przepisów...
         </div>
       } @else if (errorMessage()) {
-        <div class="error-box">{{ errorMessage() }}</div>
+        <div class="p-3.5 rounded-2xl bg-rose-500/10 text-rose-500 border border-rose-500/20 text-center text-xs font-bold">
+          {{ errorMessage() }}
+        </div>
       } @else {
-        <div class="recipes-list">
-          @for (recipe of filteredRecipes(); track recipe.recipeId) {
+        <!-- Siatka 2-kolumnowa z kartami dań -->
+        <div class="grid grid-cols-2 gap-3 w-full">
+          @for (recipe of recipes(); track recipe.recipeId) {
             <app-recipe-card 
               [recipe]="recipe"
               [isFavorite]="recipe.isFavorite"
               (cardClick)="openRecipeDetail(recipe.recipeId, recipe)"
               (toggleFav)="toggleFavorite(recipe.recipeId)" 
-              (addMissing)="addMissingToShoppingList(recipe)" />
+              (editRecipe)="openEditRecipe($event)"
+              (deleteRecipe)="askDeleteRecipe($event)"
+              (addMissing)="openShoppingListModal(recipe)" />
           } @empty {
-            <div class="empty-state">
-              Brak przepisów spełniających wybrane kryteria wyszukiwania.
+            <div class="text-center py-12 px-4 text-xs font-medium text-app-muted leading-relaxed col-span-2">
+              @if (activeScope() === 'custom') {
+                Nie masz jeszcze własnych przepisów. Kliknij kafelek powyżej, aby dodać swój pierwszy przepis!
+              } @else if (activeScope() === 'favorites') {
+                Nie masz jeszcze zapisanych ulubionych dań.
+              } @else {
+                Brak dań spełniających wybrane kryteria.
+              }
             </div>
           }
+
+          <div #scrollSentinel class="h-5 w-full col-span-2 flex justify-center items-center">
+            @if (isLoadingMore()) {
+              <div class="text-[11.5px] font-semibold text-app-muted py-2">Ładowanie kolejnych przepisów...</div>
+            }
+          </div>
         </div>
       }
     </section>
 
   </div>
 
+  <!-- 6. Arkusz szczegółów dania -->
   @if (activeRecipeDetail(); as detail) {
     <app-recipe-detail-sheet 
       [recipe]="detail" 
       [isFavorite]="detail.isFavorite"
       (toggleFavorite)="toggleFavorite(detail.id)"
-      (closeSheet)="activeRecipeDetail.set(null)" />
+      (closeSheet)="onCloseRecipeDetail()" />
   }
 
+  <!-- 7. Arkusz filtrów backendowych -->
   @if (isFilterSheetOpen()) {
     <app-recipe-filter-sheet
       [filters]="activeFilters()"
-      [filteredCount]="filteredRecipes().length"
+      [filteredCount]="recipes().length"
       (closeSheet)="isFilterSheetOpen.set(false)"
-      (apply)="activeFilters.set($event)"
-      (reset)="activeFilters.set({ availability: 'all', maxTime: null, sortBy: 'match', mealType: null, diet: null })" />
+      (apply)="onFiltersApplied($event)"
+      (reset)="onFiltersReset()" />
   }
 
+  <!-- 8. Arkusz tworzenia / edycji własnego przepisu -->
   @if (isAddRecipeOpen()) {
-  <app-add-recipe-sheet 
-    (closeSheet)="onCloseAddRecipe()"
-    (save)="onSaveCustomRecipe($event)" />
+    <app-add-recipe-sheet 
+      [recipeToEdit]="recipeBeingEdited()"
+      (closeSheet)="closeAddOrEditRecipe()"
+      (save)="onSaveRecipePayload($event)" />
   }
 
-   @if (isFavoritesSheetOpen()) {
-    <app-recipe-favorites-sheet
-      [favorites]="favoriteRecipes()"
-      (closeSheet)="isFavoritesSheetOpen.set(false)"
-      (recipeClick)="openRecipeDetail($event.recipeId, $event)"
-      (toggleFav)="toggleFavorite($event)"
-      (addMissing)="addMissingToShoppingList($event)"
-      (addCustom)="onOpenAddRecipeFromFavorites()" />
+  <!-- 9. Modal potwierdzenia usunięcia własnego przepisu -->
+  @if (recipeToDelete(); as recipe) {
+    <div class="relative z-[120]">
+      <app-confirm-delete-modal
+        [productName]="recipe.title"
+        contextText="z Twoich przepisów"
+        (cancel)="cancelDeleteRecipe()"
+        (confirm)="confirmDeleteRecipe()" />
+    </div>
+  }
+
+  <!-- 10. Modal listy zakupów -->
+  @if (recipeForShoppingList(); as r) {
+    <div class="fixed inset-0 z-[120] bg-black/65 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" (click)="recipeForShoppingList.set(null)">
+      <div class="w-full max-w-[380px] bg-app-surface border border-app-border rounded-[32px] p-6 shadow-2xl flex flex-col items-center text-center animate-slide-up" (click)="$event.stopPropagation()">
+        
+        <!-- Odznaka koszyka -->
+        <div class="w-14 h-14 rounded-full bg-app-brand/20 border border-app-brand/35 flex items-center justify-center mb-3 shadow-inner">
+          <lucide-icon name="shopping-basket" [size]="24" class="text-app-brand"></lucide-icon>
+        </div>
+
+        <span class="text-[10px] font-extrabold uppercase tracking-widest text-app-brand bg-app-brand/15 px-3 py-1 rounded-full mb-2">
+          Inteligentna Spiżarnia
+        </span>
+
+        <h3 class="text-xl font-extrabold text-app-text m-0">
+          Uzupełnij brakujące składniki
+        </h3>
+
+        <p class="text-xs text-app-muted mt-1.5 mb-4 leading-relaxed">
+          Do przygotowania <strong>„{{ r.title }}”</strong> brakuje Ci 
+          <span class="text-amber-500 font-bold">{{ r.missingIngredients.length }} pozycji</span>. Czy chcesz przenieść je do listy zakupów?
+        </p>
+
+        <!-- Lista brakujących produktów -->
+        <div class="w-full bg-app-surface-variant border border-app-border rounded-2xl p-3 flex flex-col gap-2 max-h-40 overflow-y-auto mb-5 text-left scrollbar-none shadow-2xs">
+          @for (m of r.missingIngredients; track m.productId) {
+            <div class="flex items-center justify-between text-xs py-1 border-b border-app-border/40 last:border-none">
+              <div class="flex items-center gap-2 min-w-0">
+                <div class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></div>
+                <span class="font-semibold text-app-text truncate">{{ m.productName }}</span>
+              </div>
+              <span class="font-bold text-app-muted shrink-0 ml-2">{{ m.quantity }} {{ m.unit }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Przyciski akcji -->
+        <div class="flex w-full gap-2.5">
+          <button 
+            type="button" 
+            class="flex-1 h-11 rounded-full border border-app-border bg-app-surface hover:bg-app-surface-variant text-app-text text-xs font-bold cursor-pointer active:scale-95 transition-all"
+            (click)="recipeForShoppingList.set(null)">
+            Nie teraz
+          </button>
+
+          <button 
+            type="button" 
+            class="flex-1 h-11 rounded-full bg-app-brand hover:brightness-110 active:scale-95 text-white text-xs font-bold border-none shadow-sm flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+            (click)="confirmAddMissingToShoppingList(r)">
+            <lucide-icon name="plus" [size]="14"></lucide-icon>
+            <span>Dodaj do listy</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
   }
 </main>

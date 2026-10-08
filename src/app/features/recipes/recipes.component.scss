@@ -1,64 +1,29 @@
-.recipes-page {
-  display: block;
-  width: 100%;
-  min-height: 100vh;
-  background-color: #FAF9F5;
-  padding-top: 76px;
-  padding-bottom: 120px;
-  box-sizing: border-box;
-  overflow-x: hidden;
+.pill-icon {
+  width: 13px !important;
+  height: 13px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ::ng-deep svg {
+    width: 13px !important;
+    height: 13px !important;
+    stroke-width: 2.2px;
+    display: block;
+  }
 }
 
-.recipes-container {
-  max-width: 560px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 0 16px;
-  box-sizing: border-box;
+lucide-icon[name="heart"].pill-icon ::ng-deep svg {
+  fill: currentColor;
 }
 
-.recipes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
+.banner-plus-icon ::ng-deep svg {
+  stroke: #FFFFFF;
+  stroke-width: 2.5px;
 }
 
-.favorites-title {
-  color: #1C1B1B;
-  font-family: "Plus Jakarta Sans", sans-serif;
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 32px; 
-  margin: 0;
-}
-
-.status-box {
-  text-align: center;
-  padding: 48px 16px;
-  color: #9CA3AF;
-  font-size: 13.5px;
-  font-weight: 600;
-}
-
-.error-box {
-  padding: 16px;
-  border-radius: 18px;
-  background-color: #FEF2F2;
-  color: #DC2626;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  border: 1px solid #FEE2E2;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 48px 16px;
-  color: #737373;
-  font-size: 13.5px;
-  font-weight: 500;
-  line-height: 20px;
+.banner-arrow-icon ::ng-deep svg {
+  stroke: var(--app-text-muted);
+  stroke-width: 2.2px;
 }

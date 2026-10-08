@@ -1,278 +1,267 @@
-import { Component, signal, computed, inject, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { 
+  Component, signal, inject, OnInit, AfterViewInit, OnDestroy, 
+  ElementRef, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef 
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RecipeService } from '../../core/services/recipe.service';
-import { RecipeMatchDto, RecipeDetailDto, RecipeIngredientDto, RecipeTag, RecipeFilters, CreateCustomRecipePayload } from './models/recipe.models';
+import { 
+  RecipeMatchDto, RecipeDetailDto, RecipeFilters, 
+  RecipeTabScope, CreateCustomRecipePayload 
+} from './models/recipe.models';
 
 import { RecipeSearchBarComponent } from './components/recipe-search-bar/recipe-search-bar.component';
-import { RecipeTagsBarComponent } from './components/recipe-tags-bar/recipe-tags-bar.component';
-import { RecipeFavoritesCarouselComponent } from './components/recipe-favorites-carousel/recipe-favorites-carousel.component';
 import { RecipeCardComponent } from './components/recipe-card/recipe-card.component';
 import { RecipeDetailSheetComponent } from './components/recipe-detail-sheet/recipe-detail-sheet.component';
 import { RecipeFilterSheetComponent } from './components/recipe-filter-sheet/recipe-filter-sheet.component';
 import { AddRecipeSheetComponent } from './components/add-recipe-sheet/add-recipe-sheet.component';
-import { RecipeFavoritesSheetComponent } from './components/recipe-favorites-sheet/recipe-favorites-sheet.component';
-
+import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({
   selector: 'app-recipes',
   standalone: true,
   imports: [
-    CommonModule,
-    LucideAngularModule,
-    RecipeSearchBarComponent,
-    RecipeTagsBarComponent,
-    RecipeFavoritesCarouselComponent,
-    RecipeCardComponent,
-    RecipeDetailSheetComponent,
-    RecipeFilterSheetComponent,
-    AddRecipeSheetComponent,
-    RecipeFavoritesSheetComponent
+    CommonModule, LucideAngularModule, RecipeSearchBarComponent,
+    RecipeCardComponent, RecipeDetailSheetComponent, RecipeFilterSheetComponent,
+    AddRecipeSheetComponent, ConfirmDeleteModalComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipes.component.html',
   styleUrl: './recipes.component.scss'
 })
-export class RecipesComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private recipeService = inject(RecipeService);
-  private cdr = inject(ChangeDetectorRef);
+export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly recipeService = inject(RecipeService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
-  isLoading = signal<boolean>(true);
-  errorMessage = signal<string | null>(null);
+  @ViewChild('scrollSentinel') scrollSentinel?: ElementRef<HTMLDivElement>;
+  private observer?: IntersectionObserver;
+  private readonly searchSubject = new Subject<string>();
 
-  selectedTag = signal<string>('all');
-  searchQuery = signal<string>('');
+  readonly activeScope = signal<RecipeTabScope>('all');
+  readonly searchQuery = signal<string>('');
+  readonly selectedItemsFilter = signal<string | null>(null);
+  readonly recipes = signal<RecipeMatchDto[]>([]);
+  readonly isLoading = signal<boolean>(true);
+  readonly isLoadingMore = signal<boolean>(false);
+  readonly errorMessage = signal<string | null>(null);
 
-  recipes = signal<RecipeMatchDto[]>([]);
-  activeRecipeDetail = signal<RecipeDetailDto | null>(null);
-  isFilterSheetOpen = signal<boolean>(false);
-  isAddRecipeOpen = signal<boolean>(false);
-  isFavoritesSheetOpen = signal<boolean>(false);
+  // Stany arkuszy i modali
+  readonly activeRecipeDetail = signal<RecipeDetailDto | null>(null);
+  readonly recipeBeingEdited = signal<RecipeDetailDto | null>(null);
+  readonly recipeToDelete = signal<RecipeMatchDto | null>(null);
+  readonly recipeForShoppingList = signal<RecipeMatchDto | null>(null);
+  readonly isFilterSheetOpen = signal<boolean>(false);
+  readonly isAddRecipeOpen = signal<boolean>(false);
 
-  activeFilters = signal<RecipeFilters>({
-    availability: 'all',
-    maxTime: null,
-    sortBy: 'match',
-    mealType: null,
-    diet: null
+  private currentPage = 1;
+  private readonly pageSize = 20;
+  private hasMorePages = true;
+
+  readonly activeFilters = signal<RecipeFilters>({
+    maxTime: null, sortBy: 'match', mealType: null, diet: null
   });
 
-  readonly tags: RecipeTag[] = [
-    { id: 'all', name: 'Wszystkie' },
-    { id: 'ready', name: 'Do zrobienia teraz' },
-    { id: 'zerowaste', name: 'Zero Waste' },
-    { id: 'quick', name: 'Szybkie (≤ 20 min)' }
-  ];
-
-  favoriteRecipes = computed(() => {
-    return this.recipes().filter(r => r.isFavorite);
-  });
-
-  filteredRecipes = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    const tag = this.selectedTag();
-    const f = this.activeFilters();
-
-    let list = this.recipes().filter(recipe => {
-      if (tag === 'ready' && !recipe.canBeCookedNow && recipe.matchPercentage !== 100) return false;
-      if (tag === 'zerowaste' && recipe.expiringIngredientsSaved === 0 && recipe.matchPercentage < 50) return false;
-      if (tag === 'quick' && (recipe.prepTimeMinutes || 0) > 20) return false;
-
-      if (f.availability === 'ready' && !recipe.canBeCookedNow && recipe.matchPercentage !== 100) return false;
-      if (f.availability === 'missing2' && (recipe.missingIngredients?.length ?? 0) > 2) return false;
-      if (f.maxTime && (recipe.prepTimeMinutes || 0) > f.maxTime) return false;
-
-      if (query) {
-        const titleMatch = (recipe.title || '').toLowerCase().includes(query);
-        const descMatch = (recipe.description || '').toLowerCase().includes(query);
-        const summaryMatch = (recipe.usedIngredientsSummary || '').toLowerCase().includes(query);
-        const missingMatch = recipe.missingIngredients?.some(m => (m.productName || '').toLowerCase().includes(query)) ?? false;
-        if (!titleMatch && !descMatch && !summaryMatch && !missingMatch) return false;
-      }
-
-      return true;
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      takeUntilDestroyed()
+    ).subscribe(query => {
+      this.searchQuery.set(query);
+      this.resetAndReload();
     });
-
-    if (f.sortBy === 'time') {
-      list = [...list].sort((a, b) => (a.prepTimeMinutes || 0) - (b.prepTimeMinutes || 0));
-    } else {
-      list = [...list].sort((a, b) => b.matchPercentage - a.matchPercentage);
-    }
-
-    return list;
-  });
+  }
 
   ngOnInit(): void {
     const itemsParam = this.route.snapshot.queryParamMap.get('items');
-    const selectedItemIds = itemsParam ? itemsParam.split(',') : undefined;
-    this.loadSuggestions(selectedItemIds);
+    if (itemsParam) this.selectedItemsFilter.set(itemsParam);
+
+    this.fetchData(true);
+
+    const targetRecipeId = this.route.snapshot.queryParamMap.get('recipeId');
+    if (targetRecipeId) this.openRecipeDetail(targetRecipeId);
   }
 
-  loadSuggestions(itemIds?: string[]): void {
-    this.isLoading.set(true);
-    this.recipeService.getSuggestions(itemIds).subscribe({
-      next: (dtos: RecipeMatchDto[]) => {
-        this.recipes.set(dtos || []);
+  ngAfterViewInit(): void {
+    if (!this.scrollSentinel?.nativeElement) return;
+    this.observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !this.isLoading() && !this.isLoadingMore() && this.hasMorePages) {
+        this.currentPage++;
+        this.fetchData(false);
+      }
+    }, { rootMargin: '250px' });
+    this.observer.observe(this.scrollSentinel.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
+  }
+
+  setScope(scope: RecipeTabScope): void {
+    if (this.activeScope() === scope) return;
+    this.activeScope.set(scope);
+    this.resetAndReload();
+  }
+
+  onSearchChange(query: string): void {
+    this.searchSubject.next(query);
+  }
+
+  onFiltersApplied(filters: RecipeFilters): void {
+    this.activeFilters.set(filters);
+    this.resetAndReload();
+  }
+
+  onFiltersReset(): void {
+    this.activeFilters.set({ maxTime: null, sortBy: 'match', mealType: null, diet: null });
+    this.resetAndReload();
+  }
+
+  clearSelectedItemsFilter(): void {
+    this.selectedItemsFilter.set(null);
+    this.router.navigate([], { relativeTo: this.route, queryParams: { items: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    this.resetAndReload();
+  }
+
+  private resetAndReload(): void {
+    this.currentPage = 1;
+    this.hasMorePages = true;
+    this.recipes.set([]);
+    this.fetchData(true);
+  }
+
+  private fetchData(isInitial: boolean): void {
+    if (isInitial) {
+      this.isLoading.set(true);
+      this.errorMessage.set(null);
+    } else {
+      this.isLoadingMore.set(true);
+    }
+
+    const filters = this.activeFilters();
+    this.recipeService.getRecipes({
+      scope: this.activeScope(),
+      query: this.searchQuery(),
+      items: this.selectedItemsFilter() || undefined,
+      maxTime: filters.maxTime,
+      sortBy: filters.sortBy,
+      mealType: filters.mealType,
+      diet: filters.diet,
+      page: this.currentPage,
+      pageSize: this.pageSize
+    }).subscribe({
+      next: (res) => {
+        const newItems = res?.items ?? [];
+        this.hasMorePages = res?.hasMore ?? (newItems.length === this.pageSize);
+        if (isInitial) this.recipes.set(newItems);
+        else this.recipes.update(curr => [...curr, ...newItems]);
         this.isLoading.set(false);
+        this.isLoadingMore.set(false);
         this.cdr.markForCheck();
       },
       error: () => {
-        this.errorMessage.set('Nie udało się pobrać przepisów.');
+        if (isInitial) this.errorMessage.set('Wystąpił problem z pobraniem przepisów.');
         this.isLoading.set(false);
+        this.isLoadingMore.set(false);
         this.cdr.markForCheck();
       }
     });
   }
 
+  // --- TWORZENIE I EDYCJA ---
+  openAddRecipe(): void {
+    this.recipeBeingEdited.set(null);
+    this.isAddRecipeOpen.set(true);
+  }
+
+  openEditRecipe(recipe: RecipeMatchDto): void {
+    this.recipeService.getById(recipe.recipeId).subscribe(detail => {
+      this.recipeBeingEdited.set(detail);
+      this.isAddRecipeOpen.set(true);
+      this.cdr.markForCheck();
+    });
+  }
+
+  closeAddOrEditRecipe(): void {
+    this.recipeBeingEdited.set(null);
+    this.isAddRecipeOpen.set(false);
+  }
+
+  onSaveRecipePayload(payload: CreateCustomRecipePayload): void {
+    const edited = this.recipeBeingEdited();
+    const action$ = edited 
+      ? this.recipeService.updateRecipe(edited.id, payload)
+      : this.recipeService.createRecipe(payload);
+
+    action$.subscribe(() => {
+      this.closeAddOrEditRecipe();
+      if (!edited) this.activeScope.set('custom');
+      this.resetAndReload();
+    });
+  }
+
+  // --- USUWANIE PRZEPISU ---
+  askDeleteRecipe(recipe: RecipeMatchDto): void {
+    this.recipeToDelete.set(recipe);
+  }
+
+  cancelDeleteRecipe(): void {
+    this.recipeToDelete.set(null);
+  }
+  
+  confirmDeleteRecipe(): void {
+    const target = this.recipeToDelete();
+    if (!target) return;
+
+    this.recipeService.deleteRecipe(target.recipeId).subscribe(() => {
+      this.recipes.update(list => list.filter(r => r.recipeId !== target.recipeId));
+      this.recipeToDelete.set(null);
+      this.cdr.markForCheck();
+    });
+  }
+
+  // --- LISTA ZAKUPÓW ---
+  openShoppingListModal(recipe: RecipeMatchDto): void {
+    this.recipeForShoppingList.set(recipe);
+  }
+
+  confirmAddMissingToShoppingList(recipe: RecipeMatchDto): void {
+    alert(`Dodano ${recipe.missingIngredients.length} pozycji do Twojej listy zakupów!`);
+    this.recipeForShoppingList.set(null);
+  }
+
+  // --- ULUBIONE I SZCZEGÓŁY ---
   toggleFavorite(recipeId: string): void {
     if (!recipeId) return;
-
-    this.recipes.update(list =>
-      list.map(r => r.recipeId === recipeId ? { ...r, isFavorite: !r.isFavorite } : r)
-    );
-
-    if (this.activeRecipeDetail()?.id === recipeId) {
-      this.activeRecipeDetail.update(d => d ? { ...d, isFavorite: !d.isFavorite } : null);
-    }
-
-    this.cdr.markForCheck();
+    this.recipes.update(list => list.map(r => r.recipeId === recipeId ? { ...r, isFavorite: !r.isFavorite } : r));
 
     this.recipeService.toggleFavorite(recipeId).subscribe({
-      error: (err) => {
-        console.error('Błąd synchronizacji ulubionego:', err);
-        this.recipes.update(list =>
-          list.map(r => r.recipeId === recipeId ? { ...r, isFavorite: !r.isFavorite } : r)
-        );
+      error: () => {
+        this.recipes.update(list => list.map(r => r.recipeId === recipeId ? { ...r, isFavorite: !r.isFavorite } : r));
         this.cdr.markForCheck();
       }
     });
-  }
-
-  isFavorite(recipeId: string): boolean {
-    return !!this.recipes().find(r => r.recipeId === recipeId)?.isFavorite;
   }
 
   openRecipeDetail(recipeId: string, summary?: RecipeMatchDto): void {
     if (!recipeId) return;
+    this.activeRecipeDetail.set(summary ? { ...summary, id: summary.recipeId, description: '', instructions: '', isCustom: summary.isCustom ?? false, likesCount: 0, dislikesCount: 0, ingredients: [] } : null);
 
-    // 1. Wstępny stan (0 ms opóźnienia)
-    this.activeRecipeDetail.set({
-      id: recipeId,
-      title: summary?.title || 'Wczytywanie...',
-      description: '',
-      instructions: '',
-      imageUrl: summary?.imageUrl,
-      prepTimeMinutes: summary?.prepTimeMinutes || 15,
-      servings: summary?.servings || 2,
-      calories: (summary as any)?.calories ?? (summary as any)?.caloriesKcal ?? null,
-      isFavorite: summary?.isFavorite ?? false,
-      likesCount: 0,
-      dislikesCount: 0,
-      userVote: null,
-      ingredients: []
-    });
-
-    this.recipeService.getById(recipeId).subscribe({
-      next: (res: any) => {
-        const raw = res?.data ?? res?.result ?? res?.value ?? res;
-        if (!raw) return;
-
-        const rawIngredients = raw.ingredients ?? raw.Ingredients ?? [];
-
-        this.activeRecipeDetail.set({
-          id: raw.id ?? raw.Id ?? recipeId,
-          title: raw.title ?? raw.Title ?? summary?.title ?? '',
-          description: '',
-          instructions: raw.instructions ?? raw.Instructions ?? '',
-          imageUrl: raw.imageUrl ?? raw.ImageUrl ?? summary?.imageUrl,
-          prepTimeMinutes: raw.prepTimeMinutes ?? raw.PrepTimeMinutes ?? summary?.prepTimeMinutes ?? 15,
-          servings: raw.servings ?? raw.Servings ?? summary?.servings ?? 2,
-          calories: raw.calories ?? raw.Calories ?? raw.caloriesKcal ?? (summary as any)?.calories ?? null,
-          isFavorite: raw.isFavorite ?? raw.IsFavorite ?? summary?.isFavorite ?? false,
-          likesCount: raw.likesCount ?? raw.LikesCount ?? 0,
-          dislikesCount: raw.dislikesCount ?? raw.DislikesCount ?? 0,
-          userVote: raw.userVote ?? raw.UserVote ?? null,
-          ingredients: Array.isArray(rawIngredients)
-            ? rawIngredients.map((i: any) => ({
-              productId: i.productId ?? i.ProductId ?? '',
-              productName: i.productName ?? i.ProductName ?? i.name ?? 'Składnik',
-              quantity: i.quantity ?? i.Quantity ?? 1,
-              unit: i.unit ?? i.Unit ?? 'szt.',
-              isOptional: !!(i.isOptional ?? i.IsOptional),
-              isOwnedInPantry: !!(i.isOwnedInPantry ?? i.IsOwnedInPantry)
-            }))
-            : []
-        });
-
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error('Błąd pobierania szczegółów przepisu:', err);
-        this.cdr.markForCheck();
-      }
+    this.recipeService.getById(recipeId).subscribe(detail => {
+      this.activeRecipeDetail.set(detail);
+      this.cdr.markForCheck();
     });
   }
 
-  onAddCustomRecipe(): void {
-    alert('Tworzenie własnego przepisu – wkrótce!');
-  }
-
-  addMissingToShoppingList(recipe: RecipeMatchDto): void {
-    alert(`Dodano ${recipe.missingIngredients.length} brakujących pozycji do listy zakupów!`);
-  }
-
-  onOpenAddRecipe(): void {
-    this.isAddRecipeOpen.set(true);
-  }
-
-  onCloseAddRecipe(): void {
-    this.isAddRecipeOpen.set(false);
-  }
-
-  onSaveCustomRecipe(payload: CreateCustomRecipePayload): void {
-    const tempId = 'custom-' + Date.now();
-
-    const newRecipe: RecipeMatchDto = {
-      recipeId: tempId,
-      title: payload.title,
-      description: `Kategoria: ${payload.category}`,
-      imageUrl: payload.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
-      prepTimeMinutes: payload.prepTimeMinutes,
-      servings: payload.servings,
-      matchPercentage: 100,
-      ownedIngredientsCount: payload.ingredients.length,
-      totalIngredientsCount: payload.ingredients.length,
-      expiringIngredientsSaved: 0,
-      canBeCookedNow: true,
-      isFavorite: true, 
-      usedIngredientsSummary: `Składniki: ${payload.ingredients.map(i => i.name).join(', ')}`,
-      missingIngredients: []
-    };
-
-    this.recipes.update(list => [newRecipe, ...list]);
-    this.isAddRecipeOpen.set(false);
-    this.cdr.markForCheck();
-
-    this.recipeService.createRecipe(payload).subscribe({
-      next: (createdRecipe: any) => {
-        const serverId = createdRecipe?.id || createdRecipe?.recipeId || createdRecipe?.data?.id;
-        if (serverId) {
-          this.recipes.update(list =>
-            list.map(r => r.recipeId === tempId ? { ...r, recipeId: serverId } : r)
-          );
-        }
-      },
-      error: (err) => {
-        console.error('Błąd zapisu przepisu na backendzie:', err);
-      }
-    });
-  }
-
-  onOpenAddRecipeFromFavorites(): void {
-    this.isFavoritesSheetOpen.set(false);
-    this.isAddRecipeOpen.set(true);
+  onCloseRecipeDetail(): void {
+    this.activeRecipeDetail.set(null);
+    this.router.navigate([], { relativeTo: this.route, queryParams: { recipeId: null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 }

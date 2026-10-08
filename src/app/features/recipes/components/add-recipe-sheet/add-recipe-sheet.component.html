@@ -1,243 +1,256 @@
-<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+<div class="sheet-backdrop animate-fade-in" (click)="closeSheet.emit()"></div>
 
-<div class="sheet-anchor-wrapper" (click)="closeSheet.emit()">
-  <div class="sheet-card animate-slide-up" (click)="$event.stopPropagation()">
-    
-    <div class="sheet-drag-handle"></div>
+<div class="sheet-container animate-slide-up">
+  
+  <div class="w-11 h-1 bg-app-border rounded-full mx-auto my-2.5 shrink-0"></div>
 
-    <header class="sheet-header">
-      <div class="flex flex-col">
-        <span class="badge-cookbook">Książka kucharska</span>
-        <h2 class="sheet-title">Dodaj własny przepis</h2>
-        <p class="sheet-subtitle">Zapisz domową recepturę, aby łatwo gotować z zapasów</p>
-      </div>
+  <header class="flex items-center justify-between px-5 py-2 shrink-0">
+    <h2 class="m-0 text-lg font-extrabold text-app-text tracking-tight">Nowy przepis</h2>
 
-      <button 
-        type="button" 
-        class="btn-close-round" 
-        (click)="closeSheet.emit()"
-        aria-label="Zamknij formularz">
-        <lucide-icon name="x" class="w-4 h-4 text-neutral-600"></lucide-icon>
-      </button>
-    </header>
+    <button 
+      type="button" 
+      class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text border border-app-border flex items-center justify-center cursor-pointer shadow-2xs active:scale-90 transition-all"
+      (click)="closeSheet.emit()"
+      aria-label="Zamknij formularz">
+      <lucide-icon name="x" [size]="16"></lucide-icon>
+    </button>
+  </header>
 
-    <div class="sheet-scroll-body">
-      <form id="addRecipeForm" class="sheet-form-content" (ngSubmit)="onSubmit()">
+  <div class="flex-1 min-h-0 overflow-y-auto px-5 py-3 overscroll-contain">
+    <div class="flex flex-col gap-4">
 
-        <section class="form-section">
-          <div class="photo-upload-box">
-            @if (imageUrl()) {
-              <div class="relative w-full h-32 rounded-xl overflow-hidden mb-1">
-                <img [src]="imageUrl()!" alt="Podgląd dania" class="w-full h-full object-cover" />
-                <button 
-                  type="button" 
-                  (click)="imageUrl.set(null)" 
-                  class="absolute top-2 right-2 bg-black/60 text-white rounded-full p-2 hover:bg-black/80 transition-colors">
-                  <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
-                </button>
-              </div>
-            } @else {
+      <section class="flex flex-col gap-3">
+        
+        <div class="bg-app-surface-variant border border-app-border rounded-2xl p-2.5 flex flex-col items-center gap-1.5">
+          @if (imageUrl()) {
+            <div class="relative w-full h-32 rounded-xl overflow-hidden">
+              <img [src]="imageUrl()!" alt="Podgląd dania" class="w-full h-full object-cover" />
               <button 
                 type="button" 
-                class="btn-ai-generate" 
-                (click)="generateAiImage()">
-                <lucide-icon name="sparkles" class="w-4 h-4 text-[#536500]"></lucide-icon>
-                <span>Wygeneruj zdjęcie potrawy przez AI</span>
+                (click)="imageUrl.set(null)" 
+                class="absolute top-1.5 right-1.5 bg-black/65 border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer active:scale-90 text-white"
+                title="Usuń zdjęcie">
+                <lucide-icon name="trash-2" [size]="14"></lucide-icon>
               </button>
+            </div>
+          } @else {
+            <button 
+              type="button" 
+              class="w-full bg-app-brand/15 text-app-brand text-xs font-bold py-2.5 px-3 rounded-xl border border-app-brand/25 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+              (click)="generateAiImage()">
+              <lucide-icon name="sparkles" [size]="15"></lucide-icon>
+              <span>Wygeneruj zdjęcie potrawy przez AI</span>
+            </button>
 
-              <label class="btn-upload-file">
-                <lucide-icon name="image" class="w-4 h-4"></lucide-icon>
-                <span>lub wgraj własne zdjęcie z telefonu</span>
-                <input type="file" accept="image/*" class="hidden" (change)="onImageFileChange($event)" />
-              </label>
-            }
-          </div>
-
-          <div class="input-group">
-            <label class="input-label" for="recipe-title">
-              <span>Nazwa dania</span>
-              <span class="text-[#536500]">*</span>
+            <label class="text-[11px] font-semibold text-app-muted flex items-center gap-1.5 p-1 cursor-pointer hover:text-app-text">
+              <lucide-icon name="image" [size]="14"></lucide-icon>
+              <span>lub wgraj własne zdjęcie z telefonu</span>
+              <input type="file" accept="image/*" class="hidden" (change)="onImageFileChange($event)" />
             </label>
-            <input 
-              id="recipe-title"
-              type="text" 
-              class="text-input-field" 
-              placeholder="np. Szarlotka z jabłkami i cynamonem" 
-              [ngModel]="title()" 
-              (ngModelChange)="title.set($event)"
-              name="title"
-              required
-              autofocus
-            />
+          }
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-app-text" for="recipe-title">
+            Nazwa dania <span class="text-app-brand">*</span>
+          </label>
+          <input 
+            id="recipe-title"
+            type="text" 
+            class="h-11 bg-app-surface-variant border border-app-border rounded-xl px-3.5 text-[13.5px] font-semibold text-app-text outline-none focus:border-app-brand"
+            placeholder="np. Szarlotka z jabłkami i cynamonem" 
+            [value]="title()" 
+            (input)="title.set($any($event.target).value)"
+            required
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="bg-app-surface-variant border border-app-border rounded-xl p-2 flex items-center justify-between">
+            <button type="button" class="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center active:scale-90 text-app-text cursor-pointer" (click)="changeServings(-1)" aria-label="Zmniejsz porcje">
+              <lucide-icon name="minus" [size]="14"></lucide-icon>
+            </button>
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] font-bold text-app-muted uppercase tracking-wide">Porcje</span>
+              <span class="text-xs font-extrabold text-app-text">{{ servings() }} {{ servings() === 1 ? 'porcja' : 'porcje' }}</span>
+            </div>
+            <button type="button" class="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center active:scale-90 text-app-text cursor-pointer" (click)="changeServings(1)" aria-label="Zwiększ porcje">
+              <lucide-icon name="plus" [size]="14"></lucide-icon>
+            </button>
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <div class="stepper-card">
-              <button type="button" class="stepper-btn" (click)="changeServings(-1)" aria-label="Zmniejsz porcje">
-                <lucide-icon name="minus" class="w-4 h-4"></lucide-icon>
-              </button>
-              <div class="flex flex-col items-center">
-                <span class="stepper-label">Porcje</span>
-                <span class="stepper-val">{{ servings() }} {{ servings() === 1 ? 'porcja' : 'porcje' }}</span>
-              </div>
-              <button type="button" class="stepper-btn" (click)="changeServings(1)" aria-label="Zwiększ porcje">
-                <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
-              </button>
+          <div class="bg-app-surface-variant border border-app-border rounded-xl p-2 flex items-center justify-between">
+            <button type="button" class="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center active:scale-90 text-app-text cursor-pointer" (click)="changeTime(-5)" aria-label="Zmniejsz czas">
+              <lucide-icon name="minus" [size]="14"></lucide-icon>
+            </button>
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] font-bold text-app-muted uppercase tracking-wide">Czas</span>
+              <span class="text-xs font-extrabold text-app-text">{{ prepTimeMinutes() }} min</span>
             </div>
-
-            <div class="stepper-card">
-              <button type="button" class="stepper-btn" (click)="changeTime(-5)" aria-label="Zmniejsz czas">
-                <lucide-icon name="minus" class="w-4 h-4"></lucide-icon>
-              </button>
-              <div class="flex flex-col items-center">
-                <span class="stepper-label">Czas</span>
-                <span class="stepper-val">{{ prepTimeMinutes() }} min</span>
-              </div>
-              <button type="button" class="stepper-btn" (click)="changeTime(5)" aria-label="Zwiększ czas">
-                <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
-              </button>
-            </div>
+            <button type="button" class="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center active:scale-90 text-app-text cursor-pointer" (click)="changeTime(5)" aria-label="Zwiększ czas">
+              <lucide-icon name="plus" [size]="14"></lucide-icon>
+            </button>
           </div>
+        </div>
 
-          <div class="flex flex-col gap-1.5">
-            <label class="input-label">Kategoria posiłku</label>
-            <div class="categories-scroll no-scrollbar">
-              @for (cat of categories; track cat) {
-                <button 
-                  type="button" 
-                  class="category-chip" 
-                  [class.active]="selectedCategory() === cat"
-                  (click)="selectedCategory.set(cat)">
-                  @if (selectedCategory() === cat) {
-                    <lucide-icon name="check" class="w-3.5 h-3.5 text-white"></lucide-icon>
-                  }
-                  <span>{{ cat }}</span>
-                </button>
+      </section>
+
+      <!-- Kategoria posiłku -->
+      <section class="flex flex-col gap-2 pt-2 border-t border-app-border">
+        <div class="flex items-center justify-between">
+          <h3 class="m-0 text-[13.5px] font-bold text-app-text">Kategoria posiłku</h3>
+          <span class="text-[11px] text-app-muted font-medium">Wybierz rodzaj dania</span>
+        </div>
+
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          @for (cat of categories; track cat) {
+            <button 
+              type="button" 
+              class="h-[34px] px-3.5 rounded-full border text-xs font-semibold whitespace-nowrap cursor-pointer flex items-center gap-1.5 outline-none active:scale-95 transition-colors"
+              [class.bg-app-brand]="selectedCategory() === cat"
+              [class.text-white]="selectedCategory() === cat"
+              [class.border-app-brand]="selectedCategory() === cat"
+              [class.shadow-xs]="selectedCategory() === cat"
+              [class.bg-app-surface-variant]="selectedCategory() !== cat"
+              [class.text-app-text]="selectedCategory() !== cat"
+              [class.border-app-border]="selectedCategory() !== cat"
+              (click)="selectedCategory.set(cat)">
+              @if (selectedCategory() === cat) {
+                <lucide-icon name="check" [size]="13" class="text-white"></lucide-icon>
               }
-            </div>
-          </div>
-        </section>
-
-        <section class="form-section pt-3 border-t border-neutral-200/80">
-          <div class="flex items-center justify-between">
-            <h3 class="section-heading">
-              <lucide-icon name="shopping-bag" class="w-4 h-4 text-[#536500]"></lucide-icon>
-              <span>Składniki</span>
-            </h3>
-            <span class="text-xs text-neutral-500 font-medium">Co będzie potrzebne?</span>
-          </div>
-
-          <div class="flex flex-col gap-2.5">
-            @for (ing of ingredients(); track $index) {
-              <div class="ingredient-edit-row">
-                <input 
-                  type="text" 
-                  class="ing-name-input" 
-                  placeholder="np. Mąka pszenna" 
-                  [ngModel]="ing.name" 
-                  (ngModelChange)="updateIngredientName($index, $event)"
-                  [name]="'ing_name_' + $index"
-                />
-
-                <input 
-                  type="number" 
-                  class="ing-amount-input" 
-                  step="0.5" 
-                  min="0.1" 
-                  [ngModel]="ing.amount" 
-                  (ngModelChange)="updateIngredientAmount($index, $event)"
-                  [name]="'ing_amount_' + $index"
-                />
-
-                <select 
-                  class="ing-unit-select" 
-                  [ngModel]="ing.unit" 
-                  (ngModelChange)="updateIngredientUnit($index, $event)"
-                  [name]="'ing_unit_' + $index">
-                  @for (u of availableUnits; track u) {
-                    <option [value]="u">{{ u }}</option>
-                  }
-                </select>
-
-                <button 
-                  type="button" 
-                  class="btn-delete-row" 
-                  (click)="removeIngredient($index)"
-                  aria-label="Usuń składnik">
-                  <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
-                </button>
-              </div>
-            }
-
-            <button 
-              type="button" 
-              class="btn-add-line" 
-              (click)="addIngredient()">
-              <lucide-icon name="plus-circle" class="w-4.5 h-4.5"></lucide-icon>
-              <span>Dodaj kolejny składnik</span>
+              <span>{{ cat }}</span>
             </button>
-          </div>
-        </section>
+          }
+        </div>
+      </section>
 
-        <section class="form-section pt-3 border-t border-neutral-200/80">
-          <div class="flex items-center justify-between">
-            <h3 class="section-heading">
-              <lucide-icon name="list-ordered" class="w-4 h-4 text-[#536500]"></lucide-icon>
-              <span>Kroki przygotowania</span>
-            </h3>
-            <span class="text-xs text-neutral-400 font-medium">Instrukcja gotowania</span>
-          </div>
+      <!-- Składniki -->
+      <section class="flex flex-col gap-2.5 pt-2 border-t border-app-border">
+        <div class="flex items-center justify-between">
+          <h3 class="m-0 text-[13.5px] font-bold text-app-text flex items-center gap-1.5">
+            <span>Składniki</span>
+            @if (ingredients().length > 0) {
+              <span class="text-[11px] bg-app-brand/15 text-app-brand font-bold px-2 py-0.5 rounded-full border border-app-brand/20">
+                {{ ingredients().length }}
+              </span>
+            }
+          </h3>
+          <span class="text-[11px] text-app-muted font-medium">Co będzie potrzebne?</span>
+        </div>
 
-          <div class="flex flex-col gap-2.5">
-            @for (step of steps(); track $index) {
-              <div class="step-card">
-                <div class="step-badge">{{ $index + 1 }}</div>
-                <div class="flex-1 min-w-0">
-                  <textarea 
-                    class="step-textarea" 
-                    rows="2" 
-                    placeholder="Opisz ten krok przygotowania..."
-                    [ngModel]="step" 
-                    (ngModelChange)="updateStep($index, $event)"
-                    [name]="'step_' + $index">
-                  </textarea>
+        @if (ingredients().length > 0) {
+          <div class="flex flex-col gap-2">
+            @for (ing of ingredients(); track ing.id) {
+              <div class="flex items-center justify-between bg-app-surface-variant border border-app-border rounded-xl px-3 py-2 gap-2 shadow-2xs">
+                
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                  <div class="w-1.5 h-1.5 rounded-full bg-app-brand shrink-0"></div>
+                  <span class="text-[13px] font-bold text-app-text truncate">{{ ing.name }}</span>
                 </div>
-                <button 
-                  type="button" 
-                  class="btn-delete-row mt-1" 
-                  (click)="removeStep($index)">
-                  <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
-                </button>
+
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <input 
+                    type="number" 
+                    class="w-12 h-8 text-center text-xs font-bold bg-app-surface border border-app-border text-app-text rounded-lg outline-none focus:border-app-brand"
+                    step="0.5" 
+                    min="0.1" 
+                    [value]="ing.amount" 
+                    (input)="updateIngredientAmount(ing.id, +$any($event.target).value)"
+                  />
+
+                  <select 
+                    class="h-8 text-xs font-bold text-app-text bg-app-surface border border-app-border rounded-lg px-2 outline-none cursor-pointer"
+                    [value]="ing.unit" 
+                    (change)="updateIngredientUnit(ing.id, $any($event.target).value)">
+                    @for (u of availableUnits; track u) {
+                      <option class="bg-app-surface text-app-text" [value]="u">{{ u }}</option>
+                    }
+                  </select>
+
+                  <button 
+                    type="button" 
+                    class="w-8 h-8 rounded-lg text-app-muted hover:text-rose-500 hover:bg-rose-500/10 flex items-center justify-center cursor-pointer border-none bg-transparent active:scale-90"
+                    (click)="askDeleteIngredient(ing)"
+                    aria-label="Usuń składnik">
+                    <lucide-icon name="trash-2" [size]="15"></lucide-icon>
+                  </button>
+                </div>
+
               </div>
             }
-
-            <button 
-              type="button" 
-              class="btn-add-line" 
-              (click)="addStep()">
-              <lucide-icon name="plus-circle" class="w-4.5 h-4.5"></lucide-icon>
-              <span>Dodaj kolejny krok</span>
-            </button>
           </div>
-        </section>
+        }
 
-      </form>
+        <app-catalog-search-bar 
+          placeholder="Wyszukaj kolejny składnik..."
+          (selectProduct)="onSelectCatalogProduct($event)"
+          (createCustom)="onCreateCustomProduct($event)" />
+      </section>
+
+      <!-- Kroki przygotowania -->
+      <section class="flex flex-col gap-2.5 pt-2 border-t border-app-border">
+        <div class="flex items-center justify-between">
+          <h3 class="m-0 text-[13.5px] font-bold text-app-text">Kroki przygotowania</h3>
+          <span class="text-[11px] text-app-muted font-medium">Instrukcja gotowania</span>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          @for (step of steps(); track step.id; let i = $index) {
+            <div class="bg-app-surface-variant border border-app-border rounded-xl p-2.5 flex items-start gap-2 shadow-2xs">
+              <div class="w-5 h-5 rounded-full bg-app-brand text-white text-[11px] font-extrabold flex items-center justify-center shrink-0 mt-0.5">
+                {{ i + 1 }}
+              </div>
+              
+              <div class="flex-1 min-w-0">
+                <textarea 
+                  class="w-full text-xs font-medium text-app-text outline-none resize-none bg-transparent border-none leading-relaxed cursor-text caret-app-brand block p-0 placeholder:text-app-muted" 
+                  rows="2" 
+                  placeholder="Opisz ten krok przygotowania..."
+                  [value]="step.text" 
+                  (input)="updateStep(step.id, $any($event.target).value)"></textarea>
+              </div>
+
+              <button 
+                type="button" 
+                class="w-7 h-7 rounded-lg text-app-muted hover:text-rose-500 flex items-center justify-center shrink-0 border-none bg-transparent cursor-pointer active:scale-90"
+                (click)="removeStep(step.id)"
+                aria-label="Usuń krok">
+                <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+              </button>
+            </div>
+          }
+
+          <button 
+            type="button" 
+            class="text-app-brand text-xs font-bold flex items-center gap-1.5 p-1 cursor-pointer w-fit active:scale-95 border-none bg-transparent" 
+            (click)="addStep()">
+            <lucide-icon name="plus" [size]="15"></lucide-icon>
+            <span>Dodaj kolejny krok</span>
+          </button>
+        </div>
+      </section>
+
     </div>
-
-    <footer class="sheet-sticky-footer">
-      <button 
-        type="submit" 
-        form="addRecipeForm"
-        [disabled]="!title().trim()" 
-        class="btn-submit-recipe">
-        <lucide-icon name="book-open" class="w-4 h-4"></lucide-icon>
-        <span>Zapisz w Moich Przepisach</span>
-      </button>
-
-      <p class="footer-note">
-        Przepis pojawi się od razu w Twojej bibliotece w zakładce „Twoje i ulubione”.
-      </p>
-    </footer>
-
   </div>
+
+  <footer class="shrink-0 bg-app-surface border-t border-app-border px-5 py-3">
+    <button 
+      type="button" 
+      [disabled]="!title().trim()" 
+      (click)="onSubmit()"
+      class="w-full h-11 bg-app-brand text-white text-xs font-bold rounded-full border-none flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110">
+      <lucide-icon name="check" [size]="16"></lucide-icon>
+      <span>Zapisz przepis</span>
+    </button>
+  </footer>
+
 </div>
+
+@if (ingredientToDelete(); as target) {
+  <app-confirm-delete-modal
+    [productName]="target.name"
+    contextText="z tego przepisu"
+    (cancel)="cancelDeleteIngredient()"
+    (confirm)="confirmDeleteIngredient()" />
+}

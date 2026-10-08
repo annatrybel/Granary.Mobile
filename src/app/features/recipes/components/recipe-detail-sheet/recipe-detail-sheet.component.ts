@@ -51,6 +51,20 @@ export class RecipeDetailSheetComponent {
     return r?.calories ?? r?.caloriesKcal ?? r?.kcal ?? null;
   });
 
+  metaItems = computed(() => {
+    const r = this.recipe();
+    if (!r) return [];
+    const items = [
+      { icon: 'clock', text: `${r.prepTimeMinutes} min` },
+      { icon: 'users', text: `${r.servings} porcje` }
+    ];
+    const kcal = this.caloriesCount();
+    if (kcal) {
+      items.push({ icon: 'flame', text: `${kcal} kcal` });
+    }
+    return items;
+  });
+
   instructionSteps = computed(() => {
     const raw = (this.recipe()?.instructions || '').trim();
     if (!raw) return [];

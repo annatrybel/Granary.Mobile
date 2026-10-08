@@ -18,15 +18,30 @@ export class RecipeFilterSheetComponent implements OnInit {
   apply = output<RecipeFilters>();
   reset = output<void>();
 
-  availability = signal<'all' | 'ready' | 'missing2'>('all');
   maxTime = signal<number | null>(null);
   sortBy = signal<'match' | 'time' | 'calories' | 'rating'>('match');
   mealType = signal<string | null>(null);
   diet = signal<string | null>(null);
 
+  readonly sortOptions = [
+    { id: 'match', label: 'Dopasowanie spiżarni' },
+    { id: 'time', label: 'Najkrótszy czas' },
+    { id: 'calories', label: 'Najmniej kalorii' },
+    { id: 'rating', label: 'Ocena użytkowników' }
+  ] as const;
+
+  readonly timeOptions = [
+    { val: 15, label: 'do 15 min' },
+    { val: 30, label: 'do 30 min' },
+    { val: 45, label: 'do 45 min' },
+    { val: null, label: 'Dowolny' }
+  ] as const;
+
+  readonly mealOptions = ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska'] as const;
+  readonly dietOptions = ['Bez glutenu', 'Bez laktozy', 'Wegańskie', 'Wegetariańskie'] as const;
+
   ngOnInit(): void {
     const f = this.filters();
-    this.availability.set(f.availability);
     this.maxTime.set(f.maxTime);
     this.sortBy.set(f.sortBy);
     this.mealType.set(f.mealType);
@@ -42,7 +57,6 @@ export class RecipeFilterSheetComponent implements OnInit {
   }
 
   onReset(): void {
-    this.availability.set('all');
     this.maxTime.set(null);
     this.sortBy.set('match');
     this.mealType.set(null);
@@ -52,7 +66,6 @@ export class RecipeFilterSheetComponent implements OnInit {
 
   onApply(): void {
     this.apply.emit({
-      availability: this.availability(),
       maxTime: this.maxTime(),
       sortBy: this.sortBy(),
       mealType: this.mealType(),

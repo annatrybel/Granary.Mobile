@@ -2,152 +2,127 @@
 
 @if (recipe(); as r) {
   <main class="sheet-fullscreen-wrapper animate-slide-up">
-    
-    <div class="hero-image">
+
+    <div class="relative w-full h-[300px] shrink-0 overflow-hidden bg-app-surface-variant">
       <img 
-        [src]="r.imageUrl || fallbackSvg" 
-        (error)="$any($event.target).onerror = null; $any($event.target).src = fallbackSvg"
+        [src]="r.imageUrl || '/icons/food-placeholder.svg'"
+        (error)="$any($event.target).onerror = null; $any($event.target).src = '/icons/food-placeholder.svg'"
         [alt]="r.title" 
-        class="hero-img-tag"
-        loading="lazy"
+        class="absolute inset-0 w-full h-full object-cover" 
+        loading="lazy" 
       />
-      <div class="hero-gradient-top"></div>
-      <div class="hero-gradient-bottom"></div>
+      <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/65 to-transparent z-[1]"></div>
+      <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/65 to-transparent z-[1]"></div>
 
-      <header class="hero-nav-bar pt-safe">
-        <button 
-          type="button" 
-          class="nav-btn-figma" 
-          (click)="closeSheet.emit()"
-          aria-label="Wróć">
-          <lucide-icon name="arrow-left" class="w-5 h-5 text-white"></lucide-icon>
+      <header class="absolute top-0 inset-x-0 p-4 flex justify-between items-center z-10 pt-safe">
+        <button type="button" class="w-10 h-10 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10 cursor-pointer text-white active:scale-[0.92] transition-transform" (click)="closeSheet.emit()" aria-label="Wróć">
+          <lucide-icon name="arrow-left" [size]="20"></lucide-icon>
         </button>
-
-        <button 
-          type="button" 
-          class="nav-btn-figma" 
-          (click)="onFavoriteClick($event)" 
-          aria-label="Ulubione">
-          <lucide-icon 
-            name="heart" 
-            class="w-5 h-5 transition-colors"
-            [class.text-[#BA1A1A]]="isFavorite()"
-            [class.fill-[#BA1A1A]]="isFavorite()"
-            [class.text-white]="!isFavorite()">
-          </lucide-icon>
-        </button>
+        
+        @if (!r.isCustom) {
+          <button type="button" class="w-10 h-10 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10 cursor-pointer active:scale-[0.92] transition-transform" (click)="onFavoriteClick($event)" aria-label="Ulubione">
+            <lucide-icon name="heart" [size]="20" class="transition-colors" [class.text-rose-500]="isFavorite()" [class.fill-rose-500]="isFavorite()" [class.text-white]="!isFavorite()"></lucide-icon>
+          </button>
+        }
       </header>
     </div>
 
-    <section class="detail-card-content">
-      
+    <section class="relative z-20 -mt-8 rounded-t-[36px] bg-app-surface border-t border-app-border p-6 shadow-2xl flex flex-col gap-6">
+
       <div class="flex flex-col gap-2">
-        <h1 class="recipe-detail-title">{{ r.title }}</h1>
-        
+        <h1 class="m-0 text-2xl font-extrabold text-app-text leading-8">
+          {{ r.title }}
+        </h1>
+
         <div class="flex flex-wrap items-center gap-2 pt-1">
-          <div class="pill-meta">
-            <lucide-icon name="clock" class="w-3.5 h-3.5 text-[#536500] shrink-0"></lucide-icon>
-            <span class="text-meta">{{ r.prepTimeMinutes }} min</span>
-          </div>
-
-          <div class="pill-meta">
-            <lucide-icon name="users" class="w-3.5 h-3.5 text-[#536500] shrink-0"></lucide-icon>
-            <span class="text-meta">{{ r.servings }} porcje</span>
-          </div>
-
-          @if (caloriesCount(); as kcal) {
-            <div class="pill-meta">
-              <lucide-icon name="flame" class="w-3.5 h-3.5 text-[#536500] shrink-0"></lucide-icon>
-              <span class="text-meta">{{ kcal }} kcal</span>
+          @for (item of metaItems(); track item.icon) {
+            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-app-surface-variant border border-app-border text-xs font-semibold text-app-text">
+              <lucide-icon [name]="item.icon" [size]="14" class="text-app-brand shrink-0"></lucide-icon>
+              <span>{{ item.text }}</span>
             </div>
           }
 
           <button 
             type="button" 
-            class="pill-meta pill-meta-btn cursor-pointer transition-all active:scale-95"
-            [class.pill-meta-active]="isLiked()"
-            (click)="toggleLike()"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer active:scale-95 transition-all outline-none"
+            [class.bg-app-brand/15]="isLiked()"
+            [class.border-app-brand]="isLiked()"
+            [class.text-app-brand]="isLiked()"
+            [class.bg-app-surface-variant]="!isLiked()"
+            [class.border-app-border]="!isLiked()"
+            [class.text-app-text]="!isLiked()"
+            (click)="toggleLike()" 
             aria-label="Polub przepis">
-            <lucide-icon 
-              name="thumbs-up" 
-              class="w-3.5 h-3.5 text-[#536500] shrink-0 transition-transform"
-              [class.fill-current]="isLiked()">
-            </lucide-icon>
-            <span class="text-meta">{{ likesCount() }}</span>
+            <lucide-icon name="thumbs-up" [size]="14" class="text-app-brand shrink-0 transition-transform" [class.fill-current]="isLiked()"></lucide-icon>
+            <span class="text-xs font-semibold">{{ likesCount() }}</span>
           </button>
         </div>
       </div>
 
+      <!-- Składniki -->
       <div class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
-          <h2 class="text-xl font-bold text-neutral-900">Składniki</h2>
-          @if (r.ingredients && r.ingredients.length > 0) {
-            <span class="text-xs font-semibold text-neutral-500">
-              {{ r.ingredients.length }} pozycji
-            </span>
+          <h2 class="text-xl font-bold text-app-text m-0">Składniki</h2>
+          @if (r.ingredients.length) {
+            <span class="text-xs font-semibold text-app-muted">{{ r.ingredients.length }} pozycji</span>
           }
         </div>
-        
+
         <div class="flex flex-col gap-2.5">
-          @if (r.ingredients && r.ingredients.length > 0) {
-            @for (ing of r.ingredients; track $index) {
-              <div class="ingredient-row">
-                <div class="flex flex-col">
-                  <span class="font-semibold text-sm text-neutral-900">{{ ing.productName }}</span>
-                  <span class="text-xs text-neutral-500 font-medium">{{ ing.quantity }} {{ ing.unit }}</span>
-                </div>
-
-                @if (ing.isOwnedInPantry) {
-                  <div class="status-badge-owned">
-                    <lucide-icon name="check-circle-2" class="w-3.5 h-3.5"></lucide-icon>
-                    <span>W magazynie</span>
-                  </div>
-                } @else {
-                  <div class="status-badge-missing">
-                    <lucide-icon name="x-circle" class="w-3.5 h-3.5"></lucide-icon>
-                    <span>Brakuje</span>
-                  </div>
-                }
+          @for (ing of r.ingredients; track $index) {
+            <div class="bg-app-surface-variant rounded-2xl p-3 px-4 border border-app-border flex items-center justify-between shadow-2xs">
+              <div class="flex flex-col gap-0.5">
+                <span class="font-bold text-sm text-app-text">{{ ing.productName }}</span>
+                <span class="text-xs text-app-muted font-medium">{{ ing.quantity }} {{ ing.unit }}</span>
               </div>
-            }
-          } @else {
-            <div class="py-6 text-center text-xs text-neutral-400">
-              Wczytywanie listy składników ze spiżarni...
+
+              <div 
+                class="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border"
+                [class.bg-app-brand/15]="ing.isOwnedInPantry"
+                [class.border-app-brand/30]="ing.isOwnedInPantry"
+                [class.text-app-brand]="ing.isOwnedInPantry"
+                [class.bg-rose-500/15]="!ing.isOwnedInPantry"
+                [class.border-rose-500/30]="!ing.isOwnedInPantry"
+                [class.text-rose-500]="!ing.isOwnedInPantry">
+                <lucide-icon [name]="ing.isOwnedInPantry ? 'check-circle-2' : 'x-circle'" [size]="14"></lucide-icon>
+                <span>{{ ing.isOwnedInPantry ? 'W magazynie' : 'Brakuje' }}</span>
+              </div>
             </div>
+          } @empty {
+            <div class="py-6 text-center text-xs text-app-muted">Wczytywanie listy składników...</div>
           }
         </div>
       </div>
 
+      <!-- Sposób przygotowania -->
       <div class="flex flex-col gap-4 mt-2">
-        <h2 class="text-xl font-bold text-neutral-900">Sposób przygotowania</h2>
-        
-        <div class="timeline-container">
-          <div class="timeline-vertical-line"></div>
-          
-          @if (instructionSteps().length > 0) {
-            @for (step of instructionSteps(); track $index) {
-              <div class="timeline-step-item">
-                <div class="step-badge">{{ $index + 1 }}</div>
-                <div class="step-content">
-                  <p class="step-text">{{ step }}</p>
-                </div>
+        <h2 class="text-xl font-bold text-app-text m-0">Sposób przygotowania</h2>
+
+        <div class="relative flex flex-col gap-5 ml-1">
+          <div class="absolute left-[15px] top-3.5 bottom-3.5 w-0.5 bg-app-border z-[1]"></div>
+
+          @for (step of instructionSteps(); track $index) {
+            <div class="relative z-[2] flex gap-4 items-start">
+              <div class="w-8 h-8 rounded-full border border-app-brand/30 bg-app-brand/15 text-app-brand font-extrabold text-[13px] flex items-center justify-center shrink-0">
+                {{ $index + 1 }}
               </div>
-            }
-          } @else if (r.instructions) {
-            <p class="text-sm text-neutral-700 leading-relaxed whitespace-pre-line p-2">
-              {{ r.instructions }}
-            </p>
-          } @else {
-            <p class="py-4 text-center text-xs text-neutral-400">
-              Wczytywanie instrukcji...
-            </p>
+              <div class="pt-1 flex-1">
+                <p class="text-sm text-app-text leading-[22px] m-0">{{ step }}</p>
+              </div>
+            </div>
+          } @empty {
+            <p class="py-4 text-center text-xs text-app-muted">Wczytywanie instrukcji...</p>
           }
         </div>
       </div>
 
+      <!-- Przycisk ugotowania -->
       <div class="pt-4 pb-safe flex justify-center w-full">
-        <button type="button" class="cook-btn" (click)="cookRecipe()">
-          <lucide-icon name="utensils" class="w-5 h-5 text-white mr-2"></lucide-icon>
+        <button 
+          type="button" 
+          class="w-full max-w-[400px] h-[50px] rounded-full bg-app-brand hover:brightness-110 text-white text-sm font-bold shadow-md flex items-center justify-center cursor-pointer border-none transition-all active:scale-[0.97]" 
+          (click)="cookRecipe()">
+          <lucide-icon name="utensils" [size]="20" class="text-white mr-2"></lucide-icon>
           <span>Ugotowane! Odlicz z magazynu</span>
         </button>
       </div>
