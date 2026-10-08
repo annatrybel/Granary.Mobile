@@ -1,28 +1,45 @@
-<main class="inventory-page">
-  <div class="inventory-container">
-    
-    <app-inventory-filter-tabs 
-      [selectedCategory]="selectedCategory()" 
-      (selectCategory)="setCategory($event)" />
-
-    <div class="px-5">
+<main class="block w-full min-h-screen bg-app-bg pt-[86px] pb-[120px] transition-colors duration-200">
+  <div class="max-w-[600px] mx-auto flex flex-col gap-4">
+  
+    <div class="px-5 pt-2">
       <app-catalog-search-bar 
         placeholder="Szukaj lub dodaj produkt..."
+        [excludePantry]="true"
         (selectProduct)="onSelectSuggestion($event)"
         (createCustom)="onAddCustomProduct($event)">
         
         <button 
           search-actions
           type="button" 
-          class="inline-camera-btn" 
+          class="flex w-[38px] h-[38px] justify-center items-center rounded-full bg-app-brand/15 hover:bg-app-brand/25 border-none cursor-pointer shrink-0 ml-1 active:scale-[0.92] transition-all" 
           (click)="openCameraScanner()" 
           title="Skanuj kod kreskowy">
-          <lucide-icon name="camera" class="w-5 h-5 text-[#536500]"></lucide-icon>
+          <lucide-icon name="camera" [size]="18" class="text-app-brand"></lucide-icon>
         </button>
       </app-catalog-search-bar>
     </div>
 
-    <section class="product-grid">
+    <!-- Pigułki lokalizacji (Lodówka, Zamrażarka itp.) -->
+    <div class="flex items-center gap-2 overflow-x-auto pt-0.5 pb-1 px-5 scrollbar-none">
+      @for (loc of locationFilters; track loc.key) {
+        <button 
+          type="button" 
+          class="h-[34px] px-4 rounded-full border text-xs font-bold whitespace-nowrap cursor-pointer flex items-center justify-center shrink-0 active:scale-95 transition-all outline-none"
+          [class.bg-app-brand]="selectedLocation() === loc.key"
+          [class.text-white]="selectedLocation() === loc.key"
+          [class.border-app-brand]="selectedLocation() === loc.key"
+          [class.shadow-xs]="selectedLocation() === loc.key"
+          [class.bg-app-surface]="selectedLocation() !== loc.key"
+          [class.text-app-text]="selectedLocation() !== loc.key"
+          [class.border-app-border]="selectedLocation() !== loc.key"
+          (click)="setLocation(loc.key)">
+          {{ loc.label }}
+        </button>
+      }
+    </div>
+
+    <!-- Siatka produktów -->
+    <section class="grid grid-cols-2 gap-3 px-5">
       @for (item of filteredItems(); track item.id) {
         <app-inventory-card 
           [item]="item"
@@ -31,8 +48,8 @@
           (toggleSelect)="toggleSelect(item.id)"
           (deleteClick)="askRemoveItem(item)" />
       } @empty {
-        <div class="empty-state">
-          Brak produktów w tej sekcji. Wpisz w wyszukiwarce powyżej co najmniej 2 znaki, aby znaleźć produkt w katalogu lub dodać własny.
+        <div class="col-span-2 text-center py-10 px-5 text-[13px] text-app-muted leading-5">
+          Brak produktów w wybranej lokalizacji.
         </div>
       }
     </section>

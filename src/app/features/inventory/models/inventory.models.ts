@@ -1,5 +1,3 @@
-export type StorageCategory = 'all' | 'lodowka' | 'zamrazarka' | 'spizarnia';
-
 export interface CatalogProductDto {
   id: string;
   name: string;
@@ -14,4 +12,11 @@ export interface ProductDetailUpdatePayload {
   quantity: number;
   unit: string;
   expirationDate: string;
+}
+
+export interface CategoryDto {
+  id: string;
+  name: string;
+  imageUrl?: string | null;
+  displayOrder: number;
 }

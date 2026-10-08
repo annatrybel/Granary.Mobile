@@ -8,26 +8,23 @@ import { ProductItem } from '../../../../core/db/app-database';
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './inventory-card.component.html',
-  styleUrl: './inventory-card.component.scss'
+  templateUrl: './inventory-card.component.html'
 })
 export class InventoryCardComponent {
   item = input.required<ProductItem>();
   isSelected = input<boolean>(false);
 
   cardClick = output<ProductItem>();
-  toggleSelect = output<Event>();
+  toggleSelect = output<void>();
   deleteClick = output<void>();
 
   onSelect(event: Event): void {
     event.stopPropagation();
-    event.preventDefault();
-    this.toggleSelect.emit(event);
+    this.toggleSelect.emit();
   }
 
   onDelete(event: Event): void {
     event.stopPropagation();
-    event.preventDefault();
     this.deleteClick.emit();
   }
 }

@@ -12,7 +12,7 @@ export interface ProductItem {
 
   locationName?: string;         
   storageLocation?: string;
-  imageUrl?: string;
+  imageUrl?: string | null; 
   quantity: number;
   unit?: string;
   expiryDays?: number;

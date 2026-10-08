@@ -1,9 +1,11 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { AppDatabase, ProductItem } from '../db/app-database';
 import { NetworkService } from './network.service';
 import { environment } from '../../../environments/environment';
-
+import { CategoryDto } from '../../features/inventory/models/inventory.models';
 @Injectable({
   providedIn: 'root'
 })
@@ -14,6 +16,7 @@ export class PantryService {
 
   private readonly apiUrl = `${environment.apiBaseUrl}/pantry/items`;
   readonly products = signal<ProductItem[]>([]);
+  readonly categories = signal<CategoryDto[]>([]);
 
   constructor() {
     this.loadInitialData();
@@ -46,13 +49,13 @@ export class PantryService {
                 name: item.productName || item.name || 'Produkt',
                 category: cat,
                 categoryName: item.categoryName || 'Inne',
-                locationName: polishLoc,        
-                storageLocation: item.storageLocation, 
+                locationName: polishLoc,
+                storageLocation: item.storageLocation,
                 imageUrl: item.imageUrl,
                 quantity: item.quantity || 1,
                 unit: item.unit || 'szt.',
-                expiryDays: item.expirationDate 
-                  ? Math.max(0, Math.ceil((new Date(item.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) 
+                expiryDays: item.expirationDate
+                  ? Math.max(0, Math.ceil((new Date(item.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
                   : 7,
                 isSynced: true,
                 updatedAt: Date.now()
@@ -78,7 +81,7 @@ export class PantryService {
       updatedAt: Date.now()
     };
 
-   
+
     await this.db.products.add(newProduct);
     this.products.update(items => [newProduct, ...items]);
 
@@ -86,23 +89,23 @@ export class PantryService {
       .toISOString()
       .split('T')[0];
 
-    const locationEnum = newProduct.locationName === 'Zamrażarka' 
-      ? 'Freezer' 
-      : newProduct.locationName === 'Spiżarnia' 
-        ? 'Pantry' 
+    const locationEnum = newProduct.locationName === 'Zamrażarka'
+      ? 'Freezer'
+      : newProduct.locationName === 'Spiżarnia'
+        ? 'Pantry'
         : 'Fridge';
 
     const backendDto: any = {
-      location: locationEnum,        
+      location: locationEnum,
       quantity: newProduct.quantity || 1,
       unit: newProduct.unit || 'szt.',
-      expirationDate: expiryFormatted  
+      expirationDate: expiryFormatted
     };
 
     if (newProduct.catalogProductId) {
-      backendDto.productId = newProduct.catalogProductId; 
+      backendDto.productId = newProduct.catalogProductId;
     } else {
-      backendDto.customProductName = newProduct.name;    
+      backendDto.customProductName = newProduct.name;
     }
 
     if (!isOnline) {
@@ -129,10 +132,10 @@ export class PantryService {
   }
 
   async updateProduct(id: string, updates: { locationName: string; quantity: number; unit: string; expirationDate: string }): Promise<void> {
-    const locEnum = updates.locationName === 'Zamrażarka' 
-      ? 'Freezer' 
-      : updates.locationName === 'Spiżarnia' 
-        ? 'Pantry' 
+    const locEnum = updates.locationName === 'Zamrażarka'
+      ? 'Freezer'
+      : updates.locationName === 'Spiżarnia'
+        ? 'Pantry'
         : 'Fridge';
 
     const expiryDays = Math.max(0, Math.ceil((new Date(updates.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
@@ -161,7 +164,7 @@ export class PantryService {
       } : p)
     );
 
-   
+
     if (this.network.isOnline()) {
       const backendDto = {
         location: locEnum,
@@ -194,5 +197,27 @@ export class PantryService {
         createdAt: Date.now()
       });
     }
+  }
+
+  getExpiringItems(days: number, limit: number): Observable<any[]> {
+    const params = new HttpParams()
+      .set('days', days.toString())
+      .set('limit', limit.toString());
+
+    return this.http.get<{ data?: any[]; result?: any[] } | any[]>(
+      `${environment.apiBaseUrl}/pantry/items/expiring`,
+      { params }
+    ).pipe(
+      map((res: any) => (Array.isArray(res) ? res : res?.data ?? res?.result ?? []))
+    );
+  }
+
+  loadCategories(): void {
+    this.http.get<any>(`${environment.apiBaseUrl}/catalog/products/categories`).pipe(
+      map(res => (Array.isArray(res) ? res : res?.data ?? res?.result ?? []))
+    ).subscribe({
+      next: (cats) => this.categories.set(cats),
+      error: (err) => console.error('Błąd pobierania kategorii z katalogu:', err)
+    });
   }
 }

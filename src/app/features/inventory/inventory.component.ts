@@ -5,12 +5,10 @@ import { LucideAngularModule } from 'lucide-angular';
 
 import { PantryService } from '../../core/services/pantry.service';
 import { ProductItem } from '../../core/db/app-database';
-import { StorageCategory, ProductDetailUpdatePayload, CatalogProductDto } from './models/inventory.models';
+import { ProductDetailUpdatePayload, CatalogProductDto } from './models/inventory.models';
 
 import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { CatalogSearchBarComponent } from '../../shared/components/catalog-search-bar/catalog-search-bar.component';
-
-import { InventoryFilterTabsComponent } from './components/inventory-filter-tabs/inventory-filter-tabs.component';
 import { InventoryCardComponent } from './components/inventory-card/inventory-card.component';
 import { InventoryRecipeBarComponent } from './components/inventory-recipe-bar/inventory-recipe-bar.component';
 import { ProductDetailSheetComponent } from './components/product-detail-sheet/product-detail-sheet.component';
@@ -23,22 +21,26 @@ import { ProductDetailSheetComponent } from './components/product-detail-sheet/p
     LucideAngularModule,
     ConfirmDeleteModalComponent,
     CatalogSearchBarComponent,
-    InventoryFilterTabsComponent,
     InventoryCardComponent,
     InventoryRecipeBarComponent,
     ProductDetailSheetComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './inventory.component.html',
-  styleUrl: './inventory.component.scss'
+  templateUrl: './inventory.component.html'
 })
 export class InventoryComponent {
   private router = inject(Router);
   private pantryService = inject(PantryService);
 
-  selectedCategory = signal<StorageCategory>('all');
-  searchQuery = signal<string>('');
+  selectedLocation = signal<string>('all');
   selectedIds = signal<Set<string>>(new Set());
+
+  readonly locationFilters = [
+    { key: 'all', label: 'Wszystko' },
+    { key: 'Lodówka', label: 'Lodówka' },
+    { key: 'Zamrażarka', label: 'Zamrażarka' },
+    { key: 'Spiżarnia', label: 'Spiżarnia' }
+  ];
 
   productToDelete = signal<ProductItem | null>(null);
   activeProductForDetails = signal<ProductItem | null>(null);
@@ -46,15 +48,14 @@ export class InventoryComponent {
   products = this.pantryService.products;
 
   filteredItems = computed(() => {
-    const category = this.selectedCategory();
-    const query = this.searchQuery().toLowerCase().trim();
+    const loc = this.selectedLocation();
+    const all = this.products();
 
-    return this.products().filter(item => {
-      const itemCat = (item.category || item.locationName || '').toLowerCase();
-      const matchesCategory = category === 'all' || itemCat.includes(category);
-      const matchesQuery = !query || item.name.toLowerCase().includes(query);
-      return matchesCategory && matchesQuery;
-    });
+    if (loc === 'all') {
+      return all;
+    }
+
+    return all.filter(item => item.locationName === loc);
   });
 
   selectedCount = computed(() => this.selectedIds().size);
@@ -67,22 +68,18 @@ export class InventoryComponent {
       .join(', ');
   });
 
-  setCategory(category: StorageCategory): void {
-    this.selectedCategory.set(category);
+  setLocation(key: string): void {
+    this.selectedLocation.update(current => current === key && key !== 'all' ? 'all' : key);
   }
 
   onSelectSuggestion(product: CatalogProductDto): void {
-    const categoryName = (product.categoryName || product.category || 'Lodówka').toLowerCase();
-    let mappedCat: StorageCategory = 'lodowka';
-    if (categoryName.includes('zamraż') || categoryName.includes('freezer')) mappedCat = 'zamrazarka';
-    if (categoryName.includes('spiż') || categoryName.includes('pantry')) mappedCat = 'spizarnia';
-
     this.pantryService.addProduct({
       catalogProductId: product.id,
       name: product.name,
-      category: mappedCat,
-      locationName: mappedCat === 'zamrazarka' ? 'Zamrażarka' : mappedCat === 'spizarnia' ? 'Spiżarnia' : 'Lodówka',
-      imageUrl: product.imageUrl,
+      category: 'ogolne',
+      categoryName: product.categoryName || 'Inne',
+      locationName: this.selectedLocation() !== 'all' ? this.selectedLocation() : 'Lodówka',
+      imageUrl: product.imageUrl, 
       quantity: 1,
       unit: product.defaultUnit || 'szt.',
       expiryDays: 7
@@ -90,13 +87,15 @@ export class InventoryComponent {
   }
 
   onAddCustomProduct(name?: string): void {
-    const customName = (name || this.searchQuery()).trim();
+    const customName = (name || '').trim();
     if (!customName) return;
 
     this.pantryService.addProduct({
       name: customName,
-      category: 'spizarnia',
-      locationName: 'Spiżarnia',
+      category: 'ogolne',
+      categoryName: 'Inne',
+      locationName: this.selectedLocation() !== 'all' ? this.selectedLocation() : 'Lodówka',
+      imageUrl: null, 
       quantity: 1,
       unit: 'szt.',
       expiryDays: 7
@@ -162,8 +161,16 @@ export class InventoryComponent {
   }
 
   generateRecipe(): void {
-    this.router.navigate(['/generuj-przepis'], { 
-      queryParams: { items: Array.from(this.selectedIds()).join(',') } 
+    const selected = this.products().filter(item => this.selectedIds().has(item.id));
+    
+    const targetProductIds = selected
+      .map(item => (item as any).catalogProductId || (item as any).productId || item.id)
+      .filter(id => !!id);
+
+    if (targetProductIds.length === 0) return;
+
+    this.router.navigate(['/przepisy'], { 
+      queryParams: { items: targetProductIds.join(',') } 
     });
   }
 }
