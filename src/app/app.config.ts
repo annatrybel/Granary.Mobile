@@ -25,7 +25,6 @@ import {
   HelpCircle,
   Ruler,
   Globe,
-  Moon,
   Utensils,
   Package,
   BookOpen,
@@ -65,7 +64,11 @@ import {
   ThumbsUp,
   ThumbsDown, 
   CheckCircle2,
-  XCircle
+  XCircle,
+  Pencil,
+  Moon,
+  Sun,
+  Laptop
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -96,7 +99,6 @@ export const appConfig: ApplicationConfig = {
         HelpCircle,
         Ruler,
         Globe,
-        Moon,
         Package,
         BookOpen,
         ShoppingBasket,
@@ -134,7 +136,11 @@ export const appConfig: ApplicationConfig = {
         ThumbsUp,
         ThumbsDown, 
         CheckCircle2,
-        XCircle
+        XCircle,
+        Pencil,
+        Moon,
+        Sun,
+        Laptop
       })
     )
   ],

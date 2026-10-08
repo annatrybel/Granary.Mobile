@@ -1,1 +1,13 @@
-@import 'tailwindcss';
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-app-bg: var(--app-bg);
+  --color-app-surface: var(--app-surface);
+  --color-app-surface-variant: var(--app-surface-variant);
+  --color-app-border: var(--app-border);
+  --color-app-text: var(--app-text);
+  --color-app-muted: var(--app-text-muted);
+  --color-app-brand: var(--app-brand);
+}

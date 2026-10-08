@@ -1,30 +1,26 @@
-@use "tailwindcss";
-
 :root {
-  --color-surface: #FCF9F8;
-  --color-on-surface: #1C1B1B;
-  --color-primary: #536500;
-  --color-olive: #454934;
-  --color-error: #BA1A1A;
-  --color-muted: #76786B;
+  --app-bg: #FAF9F5;
+  --app-surface: #FFFFFF;
+  --app-surface-variant: #F3F1EB;       
+  --app-border: rgba(229, 229, 229, 0.9);
+  --app-text: #171717;
+  --app-text-muted: #737373;
+  --app-brand: #536500;
 }
 
-.bg-surface {
-  background-color: var(--color-surface) !important;
+.dark {
+  --app-bg: #22251E;                     
+  --app-surface: #2D3128;              
+  --app-surface-variant: #383D32;       
+  --app-border: rgba(255, 255, 255, 0.12);
+  --app-text: #F7F8F4;                  
+  --app-text-muted: #B4B8AA;            
+  --app-brand: #9DC400;                 
 }
 
-.text-on-surface {
-  color: var(--color-on-surface);
-}
-
-.text-primary {
-  color: var(--color-primary);
-}
-
-.text-olive {
-  color: var(--color-olive);
-}
-
-.text-muted {
-  color: var(--color-muted);
+body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
