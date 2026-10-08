@@ -1,34 +1,44 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-confirm-delete-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="delete-overlay" (click)="cancel.emit()">
-      <div class="delete-dialog" (click)="$event.stopPropagation()">
-        <div class="delete-icon-circle">
-          <svg width="18" height="20" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2.25 13.5C1.8375 13.5 1.48438 13.3531 1.19062 13.0594C0.896875 12.7656 0.75 12.4125 0.75 12V2.25H0V0.75H3.75V0H8.25V0.75H12V2.25H11.25V12C11.25 12.4125 11.1031 12.7656 10.8094 13.0594C10.5156 13.3531 10.1625 13.5 9.75 13.5H2.25ZM9.75 2.25H2.25V12H9.75V2.25ZM3.75 10.5H5.25V3.75H3.75V10.5ZM6.75 10.5H8.25V3.75H6.75V10.5ZM2.25 2.25V12V2.25Z" fill="#BA1A1A"/>
-          </svg>
+    <div class="fixed inset-0 z-[120] bg-black/65 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in" (click)="cancel.emit()">
+      <div class="w-full max-w-[320px] bg-app-surface border border-app-border rounded-[28px] p-6 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95" (click)="$event.stopPropagation()">
+        
+        <div class="w-12 h-12 rounded-full bg-rose-500/15 flex items-center justify-center mb-3 text-rose-600 dark:text-rose-400">
+          <lucide-icon name="trash-2" [size]="20"></lucide-icon>
         </div>
 
-        <h3 class="delete-title">Usunąć produkt?</h3>
+        <h3 class="text-base font-bold text-app-text m-0">Usunąć produkt?</h3>
         
-        <p class="delete-desc">
-          Czy na pewno chcesz usunąć <strong class="text-neutral-900">"{{ productName() }}"</strong> {{ contextText() }}?
+        <p class="text-xs text-app-muted mt-1.5 mb-5 leading-relaxed">
+          Czy na pewno chcesz usunąć <strong class="text-app-text font-bold">„{{ productName() }}”</strong> {{ contextText() }}?
         </p>
 
-        <div class="delete-actions">
-          <button type="button" class="btn-cancel" (click)="cancel.emit()">Anuluj</button>
-          <button type="button" class="btn-confirm" (click)="confirm.emit()">Usuń</button>
+        <div class="flex w-full gap-2.5">
+          <button 
+            type="button" 
+            class="flex-1 h-10 rounded-full border border-app-border bg-app-surface-variant hover:brightness-95 text-app-text text-xs font-bold transition-all cursor-pointer" 
+            (click)="cancel.emit()">
+            Anuluj
+          </button>
+          
+          <button 
+            type="button" 
+            class="flex-1 h-10 rounded-full border-none bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer" 
+            (click)="confirm.emit()">
+            Usuń
+          </button>
         </div>
       </div>
     </div>
-  `,
-  styleUrl: './confirm-delete-modal.component.scss'
+  `
 })
 export class ConfirmDeleteModalComponent {
   productName = input<string>('');

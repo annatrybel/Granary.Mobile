@@ -1,7 +1,6 @@
 import { Component, signal, computed, inject, OnInit, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular'; // USUNIĘTO FormsModule!
 
 import { ShoppingListService } from '../../core/services/shopping-list.service';
 import { PantryService } from '../../core/services/pantry.service';
@@ -24,7 +23,6 @@ import { ShoppingItemCardComponent } from './components/shopping-item-card/shopp
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     LucideAngularModule,
     ConfirmDeleteModalComponent,
     CatalogSearchBarComponent,
@@ -125,7 +123,6 @@ export class ShoppingListComponent implements OnInit {
     this.loadListDetails(list.id);
   }
 
-
   onAddCatalog(prod: CatalogProductDto): void {
     const list = this.currentList();
     if (!list) return;
@@ -207,7 +204,6 @@ export class ShoppingListComponent implements OnInit {
     });
   }
 
-
   onToggleCheck(id: string): void {
     const list = this.currentList();
     let isChecked = false;
@@ -249,8 +245,6 @@ export class ShoppingListComponent implements OnInit {
       this.shoppingService.deleteItem(list.id, item.id).subscribe();
     }
   }
-
-  // --- ZARZĄDZANIE LISTAMI I MENU ---
 
   toggleOptionsMenu(event: Event): void {
     event.stopPropagation();

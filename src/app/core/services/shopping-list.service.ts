@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export type{
+import type {
   ShoppingListDto,
   ShoppingItemDto,
   CreateShoppingListDto,
@@ -13,7 +13,7 @@ export type{
   BulkTransferResultDto
 } from '../../features/shopping-list/models/shopping-list.models';
 
-import {
+export type {
   ShoppingListDto,
   ShoppingItemDto,
   CreateShoppingListDto,
@@ -21,7 +21,7 @@ import {
   UpdateShoppingItemDto,
   BulkTransferToPantryDto,
   BulkTransferResultDto
-} from '../../features/shopping-list/models/shopping-list.models';
+};
 
 @Injectable({
   providedIn: 'root'

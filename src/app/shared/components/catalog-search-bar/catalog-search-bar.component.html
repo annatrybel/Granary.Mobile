@@ -1,10 +1,10 @@
-<div class="search-section-wrapper">
-  <div class="search-input-wrapper">
-    <lucide-icon name="search" class="w-4 h-4 text-[#A3A3A3] shrink-0 mr-2"></lucide-icon>
+<div class="relative w-full">
+  <div class="flex h-12 px-3 pl-4 items-center w-full rounded-full border border-app-border bg-app-surface focus-within:border-app-brand shadow-2xs transition-colors box-border">
+    <lucide-icon name="search" [size]="16" class="text-app-muted shrink-0 mr-2.5"></lucide-icon>
 
     <input 
       type="text" 
-      class="search-text-field"
+      class="flex-1 min-w-0 border-none bg-transparent outline-none text-app-text text-sm font-medium placeholder:text-app-muted font-['Plus_Jakarta_Sans',sans-serif]"
       [placeholder]="placeholder()"
       [value]="searchQuery()"
       (input)="onInput($event)"
@@ -12,43 +12,62 @@
     />
 
     @if (hasQuery()) {
-      <button type="button" class="btn-clear-search" (click)="resetSearch()" title="Wyczyść">✕</button>
+      <button 
+        type="button" 
+        class="bg-transparent border-none text-app-muted hover:text-app-text text-xs cursor-pointer p-1 flex items-center justify-center transition-colors" 
+        (click)="resetSearch()" 
+        title="Wyczyść">
+        ✕
+      </button>
     }
 
     <ng-content select="[search-actions]"></ng-content>
   </div>
 
   @if (showSuggestions() && hasMinQuery()) {
-    <div class="suggestions-dropdown animate-in fade-in">
+    <div class="absolute top-14 inset-x-0 z-50 bg-app-surface border border-app-border rounded-2xl shadow-xl max-h-70 overflow-y-auto py-2 animate-in fade-in zoom-in-95 scrollbar-none">
+      
       @if (isSearching()) {
-        <div class="dropdown-status">Przeszukuję katalog...</div>
+        <div class="py-4 text-center text-xs text-app-muted font-medium">Przeszukuję katalog...</div>
       } @else if (catalogSuggestions().length > 0) {
-        <div class="dropdown-header">Podpowiedzi z bazy produktów:</div>
-        <ul class="suggestions-list">
+        <div class="px-4 py-1.5 text-[10px] font-bold text-app-muted uppercase tracking-[0.5px]">
+          Podpowiedzi z bazy produktów:
+        </div>
+
+        <ul class="list-none m-0 p-0">
           @for (prod of catalogSuggestions(); track prod.id) {
-            <li class="suggestion-item" (click)="selectCatalog(prod)">
-              <div class="item-info">
-                <span class="item-name">{{ prod.name }}</span>
-                <span class="item-cat">{{ prod.categoryName || prod.category || 'Katalog ogólny' }}</span>
+            <li 
+              class="flex items-center justify-between px-4 py-2.5 cursor-pointer hover:bg-app-surface-variant transition-colors" 
+              (click)="selectCatalog(prod)">
+              <div class="flex flex-col gap-0.5">
+                <span class="text-sm font-semibold text-app-text">{{ prod.name }}</span>
+                <span class="text-[11px] text-app-muted">{{ prod.categoryName || prod.category || 'Katalog ogólny' }}</span>
               </div>
-              <span class="btn-add-badge">+ Dodaj</span>
+              <span class="px-2.5 py-1 rounded-full bg-app-brand text-white text-[11px] font-bold shadow-2xs">
+                + Dodaj
+              </span>
             </li>
           }
         </ul>
       } @else {
-        <div class="not-found-container" (click)="addCustom()">
-          <div class="not-found-content">
-            <div class="not-found-icon">
-              <lucide-icon name="plus" class="w-4 h-4 text-[#536500]"></lucide-icon>
+        <div 
+          class="p-3 m-2 rounded-2xl bg-app-surface-variant border border-dashed border-app-brand/40 flex items-center justify-between gap-3 cursor-pointer hover:border-app-brand transition-all" 
+          (click)="addCustom()">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+              <lucide-icon name="plus" [size]="16" class="text-app-brand"></lucide-icon>
             </div>
-            <div class="not-found-texts">
-              <span class="not-found-title">Nie znaleziono w katalogu</span>
-              <span class="not-found-subtitle">Dodać <strong>„{{ searchQuery() }}”</strong>?</span>
+            <div class="flex flex-col min-w-0">
+              <span class="text-[10px] font-bold text-app-muted uppercase tracking-[0.4px]">Nie znaleziono w katalogu</span>
+              <span class="text-xs text-app-text truncate">Dodać <strong>„{{ searchQuery() }}”</strong>?</span>
             </div>
           </div>
-          <button type="button" class="btn-add-custom">Dodaj do listy</button>
+          <button type="button" class="px-3 py-1.5 rounded-full bg-app-brand text-white text-[11px] font-bold border-none cursor-pointer whitespace-nowrap hover:brightness-110 active:scale-95 transition-all">
+            Dodaj do listy
+          </button>
         </div>
       }
+
     </div>
   }
 </div>

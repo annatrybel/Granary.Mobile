@@ -7,13 +7,14 @@ import {
   computed, 
   HostListener, 
   DestroyRef, 
-  ChangeDetectionStrategy 
+  ChangeDetectionStrategy,
+  ChangeDetectorRef 
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { LucideAngularModule } from 'lucide-angular';
 import { Subject, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, switchMap, catchError, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '../../../../environments/environment';
 
@@ -31,14 +32,15 @@ export interface CatalogProductDto {
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './catalog-search-bar.component.html',
-  styleUrl: './catalog-search-bar.component.scss'
+  templateUrl: './catalog-search-bar.component.html'
 })
 export class CatalogSearchBarComponent {
-  private http = inject(HttpClient);
-  private destroyRef = inject(DestroyRef);
+  private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   placeholder = input<string>('Szukaj lub wpisz własny produkt...');
+  excludePantry = input<boolean>(false);
 
   selectProduct = output<CatalogProductDto>();
   createCustom = output<string>();
@@ -49,24 +51,41 @@ export class CatalogSearchBarComponent {
   showSuggestions = signal<boolean>(false);
 
   hasQuery = computed(() => this.searchQuery().trim().length > 0);
-  hasMinQuery = computed(() => this.searchQuery().trim().length >= 2);
+  hasMinQuery = computed(() => this.searchQuery().trim().length >= 1);
 
-  private searchInput$ = new Subject<string>();
+  private readonly searchInput$ = new Subject<string>();
+  private readonly searchCache = new Map<string, CatalogProductDto[]>();
 
   constructor() {
     this.searchInput$.pipe(
-      debounceTime(250),
+      debounceTime(80),
       distinctUntilChanged(),
       switchMap(term => {
         const trimmed = term.trim();
-        if (trimmed.length < 2) {
+        if (trimmed.length < 1) {
           this.catalogSuggestions.set([]);
           this.isSearching.set(false);
+          this.cdr.markForCheck();
           return of([]);
         }
+
+        const cacheKey = `${trimmed.toLowerCase()}_${this.excludePantry()}`;
+        if (this.searchCache.has(cacheKey)) {
+          this.isSearching.set(false);
+          this.cdr.markForCheck();
+          return of(this.searchCache.get(cacheKey)!);
+        }
+
         this.isSearching.set(true);
-        const params = new HttpParams().set('query', trimmed);
+        this.cdr.markForCheck();
+
+        let params = new HttpParams().set('query', trimmed);
+        if (this.excludePantry()) {
+          params = params.set('excludePantry', 'true');
+        }
+
         return this.http.get<CatalogProductDto[]>(`${environment.apiBaseUrl}/catalog-products`, { params }).pipe(
+          tap(results => this.searchCache.set(cacheKey, results || [])),
           catchError(() => of([]))
         );
       }),
@@ -75,30 +94,42 @@ export class CatalogSearchBarComponent {
       this.catalogSuggestions.set(results || []);
       this.isSearching.set(false);
       this.showSuggestions.set(true);
+      this.cdr.markForCheck();
     });
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement | null;
-    if (target && !target.closest('.search-section-wrapper')) {
+    if (target && !target.closest('.relative')) {
       this.showSuggestions.set(false);
+      this.cdr.markForCheck();
     }
   }
 
   onInput(event: Event): void {
     const val = (event.target as HTMLInputElement).value;
     this.searchQuery.set(val);
+
+    if (val.trim().length >= 1) {
+      this.showSuggestions.set(true);
+    } else {
+      this.showSuggestions.set(false);
+      this.catalogSuggestions.set([]);
+    }
+
     this.searchInput$.next(val);
   }
 
   onFocus(): void {
-    if (this.catalogSuggestions().length > 0) {
+    if (this.catalogSuggestions().length > 0 || this.hasMinQuery()) {
       this.showSuggestions.set(true);
+      this.cdr.markForCheck();
     }
   }
 
   selectCatalog(prod: CatalogProductDto): void {
+    this.searchCache.clear();
     this.selectProduct.emit(prod);
     this.resetSearch();
   }
@@ -106,6 +137,7 @@ export class CatalogSearchBarComponent {
   addCustom(): void {
     const query = this.searchQuery().trim();
     if (query) {
+      this.searchCache.clear();
       this.createCustom.emit(query);
       this.resetSearch();
     }
@@ -115,5 +147,6 @@ export class CatalogSearchBarComponent {
     this.searchQuery.set('');
     this.showSuggestions.set(false);
     this.catalogSuggestions.set([]);
+    this.cdr.markForCheck();
   }
 }
