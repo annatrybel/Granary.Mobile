@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, effect, untracked } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -6,6 +6,9 @@ import { AppDatabase, ProductItem } from '../db/app-database';
 import { NetworkService } from './network.service';
 import { environment } from '../../../environments/environment';
 import { CategoryDto } from '../../features/inventory/models/inventory.models';
+import { TranslationService } from './translation.service';
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -13,6 +16,7 @@ export class PantryService {
   private db = inject(AppDatabase);
   private network = inject(NetworkService);
   private http = inject(HttpClient);
+  private translationService = inject(TranslationService);
 
   private readonly apiUrl = `${environment.apiBaseUrl}/pantry/items`;
   readonly products = signal<ProductItem[]>([]);
@@ -20,6 +24,16 @@ export class PantryService {
 
   constructor() {
     this.loadInitialData();
+
+    effect(() => {
+      const currentLang = this.translationService.currentLang();
+      untracked(() => {
+        if (this.network.isOnline()) {
+          this.loadInitialData();
+          this.loadCategories();
+        }
+      });
+    });
   }
 
   async loadInitialData(): Promise<void> {
@@ -131,7 +145,19 @@ export class PantryService {
     }
   }
 
-  async updateProduct(id: string, updates: { locationName: string; quantity: number; unit: string; expirationDate: string }): Promise<void> {
+
+  async updateProduct(
+    id: string,
+    updates: {
+      locationName: string;
+      quantity: number;
+      unit: string;
+      expirationDate: string;
+      customImageUrl?: string;
+      categoryId?: string;
+      categoryName?: string;
+    }
+  ): Promise<void> {
     const locEnum = updates.locationName === 'Zamrażarka'
       ? 'Freezer'
       : updates.locationName === 'Spiżarnia'
@@ -140,7 +166,7 @@ export class PantryService {
 
     const expiryDays = Math.max(0, Math.ceil((new Date(updates.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
 
-    await this.db.products.update(id, {
+    const localUpdates: Partial<ProductItem> = {
       locationName: updates.locationName,
       storageLocation: locEnum,
       category: updates.locationName.toLowerCase(),
@@ -149,37 +175,45 @@ export class PantryService {
       expirationDate: updates.expirationDate,
       expiryDays: expiryDays,
       updatedAt: Date.now()
-    });
+    };
+
+    if (updates.customImageUrl !== undefined) {
+      localUpdates.imageUrl = updates.customImageUrl;
+    }
+    if (updates.categoryName) {
+      localUpdates.categoryName = updates.categoryName;
+    }
+
+    await this.db.products.update(id, localUpdates);
 
     this.products.update(items =>
-      items.map(p => p.id === id ? {
-        ...p,
-        locationName: updates.locationName,
-        storageLocation: locEnum,
-        category: updates.locationName.toLowerCase(),
-        quantity: updates.quantity,
-        unit: updates.unit,
-        expirationDate: updates.expirationDate,
-        expiryDays: expiryDays
-      } : p)
+      items.map(p => p.id === id ? { ...p, ...localUpdates } : p)
     );
 
-
     if (this.network.isOnline()) {
-      const backendDto = {
+      const backendDto: any = {
         location: locEnum,
         quantity: updates.quantity,
         unit: updates.unit,
-        expirationDate: updates.expirationDate
+        expirationDate: updates.expirationDate,
+        customImageUrl: updates.customImageUrl,   
+        customCategoryId: updates.categoryId     
       };
 
       this.http.put(`${this.apiUrl}/${id}`, backendDto).subscribe({
-        next: () => console.log('Zaktualizowano produkt na backendzie!'),
+        next: (res: any) => {
+          console.log('Zaktualizowano produkt na backendzie!', res);
+          if (res?.data?.imageUrl) {
+            this.db.products.update(id, { imageUrl: res.data.imageUrl });
+            this.products.update(items =>
+              items.map(p => p.id === id ? { ...p, imageUrl: res.data.imageUrl } : p)
+            );
+          }
+        },
         error: (err) => console.error('Błąd aktualizacji na backendzie:', err)
       });
     }
   }
-
   async deleteProduct(id: string): Promise<void> {
     await this.db.products.delete(id);
     this.products.update(items => items.filter(p => p.id !== id));
@@ -213,11 +247,21 @@ export class PantryService {
   }
 
   loadCategories(): void {
-    this.http.get<any>(`${environment.apiBaseUrl}/catalog/products/categories`).pipe(
-      map(res => (Array.isArray(res) ? res : res?.data ?? res?.result ?? []))
+    this.http.get<any>(`${environment.apiBaseUrl}/catalog-products/categories`).pipe(
+      map((res: any): CategoryDto[] => {
+        const raw = res?.data ?? res?.result ?? res;
+        return Array.isArray(raw) ? raw : [];
+      })
     ).subscribe({
       next: (cats) => this.categories.set(cats),
       error: (err) => console.error('Błąd pobierania kategorii z katalogu:', err)
     });
+  }
+
+  generateProductImage(name: string): Observable<{ success: boolean; imageUrl: string; message?: string }> {
+    return this.http.post<{ success: boolean; imageUrl: string; message?: string }>(
+      `${environment.apiBaseUrl}/pantry/items/generate-product-image`,
+      { name }
+    );
   }
 }

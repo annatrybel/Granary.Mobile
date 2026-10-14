@@ -1,9 +1,22 @@
-import { Component, input, output, signal, inject, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { 
+  Component, 
+  input, 
+  output, 
+  signal, 
+  computed, 
+  inject, 
+  OnInit, 
+  ChangeDetectionStrategy, 
+  ChangeDetectorRef 
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
-import * as QRCode from 'qrcode'; // <-- 1. Import biblioteki
+import * as QRCode from 'qrcode';
 
 import { ConfirmDeleteModalComponent } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
+import { TranslationService } from '../../../../core/services/translation.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 export interface HouseholdDetailMember {
   id: string;
@@ -19,32 +32,69 @@ export interface HouseholdDetailMember {
   imports: [
     CommonModule, 
     LucideAngularModule,
-    ConfirmDeleteModalComponent
+    ConfirmDeleteModalComponent,
+    TranslatePipe
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './household-invite-sheet.component.html',
   styleUrl: './household-invite-sheet.component.scss'
 })
 export class HouseholdInviteSheetComponent implements OnInit {
-  private cdr = inject(ChangeDetectorRef);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly translationService = inject(TranslationService);
+  private readonly authService = inject(AuthService);
 
+  customMembers = input<HouseholdDetailMember[]>();
   closeSheet = output<void>();
   removeMember = output<string>();
 
-  readonly inviteUrl = 'smartpantry.app/join/spizarnia-kowalscy';
+  readonly inviteUrl = computed(() => {
+    const user = this.authService.currentUser();
+    const host = typeof window !== 'undefined' ? window.location.host : 'granary.app';
+    const userId = user?.id || 'pantry';
+    return `${host}/join/${userId}`;
+  });
+
   isCopied = signal<boolean>(false);
-
-  members = signal<HouseholdDetailMember[]>([
-    { id: '1', name: 'Anna Kowalska', email: 'anna.kowalska@email.com', initials: 'AK', isOwner: true },
-    { id: '2', name: 'Marek Kowalski', email: 'marek.k@email.com', initials: 'MK', isOwner: false },
-    { id: '3', name: 'Jan Kowalski', email: 'jasiu@email.com', initials: 'JK', isOwner: false }
-  ]);
-
   qrCodeUrl = signal<string>('');
   memberToRemove = signal<HouseholdDetailMember | null>(null);
 
+  members = signal<HouseholdDetailMember[]>([]);
+
   ngOnInit(): void {
-    this.generateQrCode(this.inviteUrl);
+    this.initMembers();
+    this.generateQrCode(this.inviteUrl());
+  }
+
+  private initMembers(): void {
+    const provided = this.customMembers();
+    if (provided && provided.length > 0) {
+      this.members.set(provided);
+      return;
+    }
+
+    const currentUser = this.authService.currentUser();
+    const displayName = currentUser?.name || currentUser?.userName || 'Ty';
+    const email = currentUser?.email || '';
+
+    const owner: HouseholdDetailMember = {
+      id: currentUser?.id || 'owner',
+      name: displayName,
+      email: email,
+      initials: this.getInitials(displayName),
+      isOwner: true
+    };
+
+    this.members.set([owner]);
+  }
+
+  private getInitials(name: string): string {
+    if (!name) return 'TY';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
   }
 
   private async generateQrCode(url: string): Promise<void> {
@@ -52,7 +102,7 @@ export class HouseholdInviteSheetComponent implements OnInit {
       const fullUrl = `https://${url}`;
       
       const dataUrl = await QRCode.toDataURL(fullUrl, {
-        width: 128,
+        width: 140,
         margin: 1, 
         color: {
           dark: '#1B1C18', 
@@ -64,12 +114,12 @@ export class HouseholdInviteSheetComponent implements OnInit {
       this.qrCodeUrl.set(dataUrl);
       this.cdr.markForCheck();
     } catch (err) {
-      console.error('Błąd generowania kodu QR offline:', err);
+      console.error('Błąd generowania kodu QR:', err);
     }
   }
 
   copyLink(): void {
-    navigator.clipboard.writeText(`https://${this.inviteUrl}`);
+    navigator.clipboard.writeText(`https://${this.inviteUrl()}`);
     this.isCopied.set(true);
     setTimeout(() => {
       this.isCopied.set(false);
@@ -79,9 +129,9 @@ export class HouseholdInviteSheetComponent implements OnInit {
 
   shareViaApps(): void {
     const shareData = {
-      title: 'Dołącz do mojej spiżarni w Smart Pantry',
-      text: 'Wspólnie zarządzajmy domowymi zapasami i listą zakupów!',
-      url: `https://${this.inviteUrl}`
+      title: this.translationService.translate('householdInvite.shareTitle', 'Dołącz do mojej spiżarni w Smart Pantry'),
+      text: this.translationService.translate('householdInvite.shareText', 'Wspólnie zarządzajmy domowymi zapasami i listą zakupów!'),
+      url: `https://${this.inviteUrl()}`
     };
 
     if (navigator.share) {
@@ -105,6 +155,7 @@ export class HouseholdInviteSheetComponent implements OnInit {
       this.members.update(list => list.filter(m => m.id !== member.id));
       this.removeMember.emit(member.id);
       this.memberToRemove.set(null);
+      this.cdr.markForCheck();
     }
   }
 }

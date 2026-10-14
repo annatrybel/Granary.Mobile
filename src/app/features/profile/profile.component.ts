@@ -1,10 +1,11 @@
-import { 
-  Component, 
-  signal, 
-  inject, 
-  OnInit, 
-  ChangeDetectionStrategy, 
-  ChangeDetectorRef 
+import {
+  Component,
+  signal,
+  inject,
+  OnInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  effect 
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
@@ -12,30 +13,35 @@ import { LucideAngularModule } from 'lucide-angular';
 
 import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
-import { ThemeService } from '../../core/services/theme.service'; 
+import { ThemeService } from '../../core/services/theme.service';
 import { UserProfileDto, HouseholdMember } from './models/profile.models';
 import { HouseholdInviteSheetComponent } from './components/household-invite-sheet/household-invite-sheet.component';
+import { TranslationService } from '../../core/services/translation.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterLink, 
+    CommonModule,
+    RouterLink,
     LucideAngularModule,
-    HouseholdInviteSheetComponent
+    HouseholdInviteSheetComponent,
+    TranslatePipe
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.component.html'
 })
 export class ProfileComponent implements OnInit {
-  private location = inject(Location);
-  private router = inject(Router);
-  private profileService = inject(ProfileService);
-  private authService = inject(AuthService);
-  protected themeService = inject(ThemeService);
-  private cdr = inject(ChangeDetectorRef);
+  private readonly location = inject(Location);
+  private readonly router = inject(Router);
+  private readonly profileService = inject(ProfileService);
+  private readonly authService = inject(AuthService);
+  protected readonly themeService = inject(ThemeService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  protected readonly translationService = inject(TranslationService);
 
+  isLanguageDropdownOpen = signal<boolean>(false);
   isLoading = signal<boolean>(true);
 
   name = signal<string>('');
@@ -47,10 +53,16 @@ export class ProfileComponent implements OnInit {
 
   expiryNotifications = signal<boolean>(true);
   dietPreference = signal<string>('Brak');
-  language = signal<string>('Polski');
-  unitSystem = signal<string>('Metryczne');
 
   readonly fallbackAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23FAF9F5' viewBox='0 0 24 24'><rect width='24' height='24' fill='%23FAF9F5'/><circle cx='12' cy='8' r='4' fill='%23D4D4D4'/><path d='M4 20c0-4 4-6 8-6s8 2 8 6' fill='%23D4D4D4'/></svg>";
+
+  constructor() {
+    effect(() => {
+      this.translationService.dictionary(); 
+      this.translationService.currentLang(); 
+      this.cdr.markForCheck();
+    });
+  }
 
   ngOnInit(): void {
     const cachedUser = this.authService.currentUser();
@@ -70,10 +82,10 @@ export class ProfileComponent implements OnInit {
       next: (res: any) => {
         const data: UserProfileDto = res?.data ?? res;
         if (data) {
-          const resolvedName = data.name || (data as any).userName || (data.email ? data.email.split('@')[0] : 'Użytkownik');
+          const resolvedName = data.name || data.userName || (data.email ? data.email.split('@')[0] : 'Użytkownik');
           this.name.set(resolvedName);
           this.email.set(data.email || '');
-          
+
           if (data.avatarUrl) this.avatarUrl.set(data.avatarUrl);
           if (data.dietPreference) this.dietPreference.set(data.dietPreference);
           if (data.expiryNotifications !== undefined) this.expiryNotifications.set(data.expiryNotifications);
@@ -91,9 +103,7 @@ export class ProfileComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: () => {
-        if (!this.name()) {
-          this.name.set('Użytkownik');
-        }
+        if (!this.name()) this.name.set('Użytkownik');
         this.isLoading.set(false);
         this.cdr.markForCheck();
       }
@@ -135,7 +145,19 @@ export class ProfileComponent implements OnInit {
 
       const formData = new FormData();
       formData.append('avatar', file);
+
       this.profileService.updateProfile(formData).subscribe({
+        next: (res) => {
+          if (res.avatarUrl) {
+            this.avatarUrl.set(res.avatarUrl);
+            const user = this.authService.currentUser();
+            if (user) {
+              user.avatarUrl = res.avatarUrl;
+              this.authService.saveCurrentUser(user);
+            }
+          }
+          this.cdr.markForCheck();
+        },
         error: (err) => console.error('Błąd aktualizacji awatara:', err)
       });
     }
@@ -143,7 +165,7 @@ export class ProfileComponent implements OnInit {
 
   onImgError(event: Event): void {
     const img = event.target as HTMLImageElement;
-    img.onerror = null; 
+    img.onerror = null;
     img.src = this.fallbackAvatar;
   }
 
@@ -159,5 +181,15 @@ export class ProfileComponent implements OnInit {
   private finalizeLogout(): void {
     this.authService.logout();
     this.router.navigate(['/auth']);
+  }
+
+  toggleLanguageDropdown(event: Event): void {
+    event.stopPropagation();
+    this.isLanguageDropdownOpen.update(v => !v);
+  }
+
+  selectLanguage(code: string): void {
+    this.translationService.setLanguage(code, true);
+    this.isLanguageDropdownOpen.set(false);
   }
 }

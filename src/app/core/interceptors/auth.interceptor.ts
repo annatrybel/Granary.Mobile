@@ -1,17 +1,29 @@
+// src/app/core/interceptors/auth.interceptor.ts
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../../environments/environment';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = authService.getToken();
+  if (req.url.startsWith(environment.apiBaseUrl)) {
+    const authService = inject(AuthService);
+    const token = authService.getToken();
 
-  if (token && req.url.startsWith(environment.apiBaseUrl)) {
+    const currentLang = typeof localStorage !== 'undefined' 
+      ? (localStorage.getItem('granary_lang') || 'pl') 
+      : 'pl';
+
+    const headers: Record<string, string> = {
+      'Accept-Language': currentLang
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     req = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
+      setHeaders: headers,
+      params: req.params.has('lang') ? req.params : req.params.set('lang', currentLang)
     });
   }
 

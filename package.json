@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "prebuild": "node scripts/sync-translations.mjs",
+    "i18n:sync": "node scripts/sync-translations.mjs"
   },
   "private": true,
   "packageManager": "npm@10.9.0",
