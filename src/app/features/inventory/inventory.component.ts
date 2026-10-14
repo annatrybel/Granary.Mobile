@@ -12,6 +12,7 @@ import { CatalogSearchBarComponent } from '../../shared/components/catalog-searc
 import { InventoryCardComponent } from './components/inventory-card/inventory-card.component';
 import { InventoryRecipeBarComponent } from './components/inventory-recipe-bar/inventory-recipe-bar.component';
 import { ProductDetailSheetComponent } from './components/product-detail-sheet/product-detail-sheet.component';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-inventory',
@@ -23,7 +24,8 @@ import { ProductDetailSheetComponent } from './components/product-detail-sheet/p
     CatalogSearchBarComponent,
     InventoryCardComponent,
     InventoryRecipeBarComponent,
-    ProductDetailSheetComponent
+    ProductDetailSheetComponent,
+    TranslatePipe
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inventory.component.html'
@@ -79,7 +81,7 @@ export class InventoryComponent {
       category: 'ogolne',
       categoryName: product.categoryName || 'Inne',
       locationName: this.selectedLocation() !== 'all' ? this.selectedLocation() : 'Lodówka',
-      imageUrl: product.imageUrl, 
+      imageUrl: product.imageUrl,
       quantity: 1,
       unit: product.defaultUnit || 'szt.',
       expiryDays: 7
@@ -95,7 +97,7 @@ export class InventoryComponent {
       category: 'ogolne',
       categoryName: 'Inne',
       locationName: this.selectedLocation() !== 'all' ? this.selectedLocation() : 'Lodówka',
-      imageUrl: null, 
+      imageUrl: null,
       quantity: 1,
       unit: 'szt.',
       expiryDays: 7
@@ -162,15 +164,15 @@ export class InventoryComponent {
 
   generateRecipe(): void {
     const selected = this.products().filter(item => this.selectedIds().has(item.id));
-    
+
     const targetProductIds = selected
-      .map(item => (item as any).catalogProductId || (item as any).productId || item.id)
+      .map(item => (item as any).productId || (item as any).catalogProductId || item.id)
       .filter(id => !!id);
 
     if (targetProductIds.length === 0) return;
 
-    this.router.navigate(['/przepisy'], { 
-      queryParams: { items: targetProductIds.join(',') } 
+    this.router.navigate(['/przepisy'], {
+      queryParams: { items: targetProductIds.join(',') }
     });
   }
 }

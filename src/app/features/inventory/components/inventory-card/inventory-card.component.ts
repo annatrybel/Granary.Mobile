@@ -2,11 +2,12 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { ProductItem } from '../../../../core/db/app-database';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-inventory-card',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule,TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inventory-card.component.html'
 })

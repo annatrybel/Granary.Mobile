@@ -16,7 +16,10 @@ import { LucideAngularModule } from 'lucide-angular';
 import { Subject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { environment } from '../../../../environments/environment';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { TranslationService } from '../../../core/services/translation.service';
 
 export interface CatalogProductDto {
   id: string;
@@ -30,7 +33,7 @@ export interface CatalogProductDto {
 @Component({
   selector: 'app-catalog-search-bar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './catalog-search-bar.component.html'
 })
@@ -38,8 +41,10 @@ export class CatalogSearchBarComponent {
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly translationService = inject(TranslationService);
 
-  placeholder = input<string>('Szukaj lub wpisz własny produkt...');
+  placeholderKey = input<string>('search.defaultPlaceholder');
+  fallbackPlaceholder = input<string>('Szukaj lub dodaj produkt...');
   excludePantry = input<boolean>(false);
 
   selectProduct = output<CatalogProductDto>();
@@ -69,7 +74,9 @@ export class CatalogSearchBarComponent {
           return of([]);
         }
 
-        const cacheKey = `${trimmed.toLowerCase()}_${this.excludePantry()}`;
+        const lang = this.translationService.currentLang();
+        const cacheKey = `${trimmed.toLowerCase()}_${this.excludePantry()}_${lang}`;
+
         if (this.searchCache.has(cacheKey)) {
           this.isSearching.set(false);
           this.cdr.markForCheck();
