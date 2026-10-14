@@ -4,6 +4,8 @@ import {
   computed, 
   inject, 
   OnInit, 
+  effect,
+  untracked,
   ChangeDetectionStrategy, 
   ChangeDetectorRef 
 } from '@angular/core';
@@ -14,8 +16,10 @@ import { LucideAngularModule } from 'lucide-angular';
 import { PantryService } from '../../core/services/pantry.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { RecipeService } from '../../core/services/recipe.service';
+import { TranslationService } from '../../core/services/translation.service';
 import { ExpiringItem, StockSection } from './models/dashboard.models';
 import { RecipeMatchDto } from '../recipes/models/recipe.models';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,7 +27,8 @@ import { RecipeMatchDto } from '../recipes/models/recipe.models';
   imports: [
     CommonModule,
     RouterLink,
-    LucideAngularModule
+    LucideAngularModule,
+    TranslatePipe
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html'
@@ -32,32 +37,56 @@ export class DashboardComponent implements OnInit {
   private readonly pantryService = inject(PantryService);
   private readonly profileService = inject(ProfileService);
   private readonly recipeService = inject(RecipeService);
+  protected readonly translationService = inject(TranslationService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   userName = signal<string>('UŻYTKOWNIKU');
   expiringItems = signal<ExpiringItem[]>([]);
+  recipes = signal<RecipeMatchDto[]>([]);
+  isLoadingRecipes = signal<boolean>(true);
+
   private readonly products = this.pantryService.products;
 
   stockSections = computed<StockSection[]>(() => {
     const all = this.products();
-    const isFridge = (p: any) => p.storageLocation === 0 || `${p.locationName}`.toLowerCase().includes('lodów');
-    const isPantry = (p: any) => p.storageLocation === 1 || `${p.locationName}`.toLowerCase().includes('spiż');
-    const isFreezer = (p: any) => p.storageLocation === 2 || `${p.locationName}`.toLowerCase().includes('zamraż');
+    const isFridge = (p: any) => p.storageLocation === 0 || `${p.locationName}`.toLowerCase().includes('lodów') || `${p.locationName}`.toLowerCase().includes('fridge');
+    const isPantry = (p: any) => p.storageLocation === 1 || `${p.locationName}`.toLowerCase().includes('spiż') || `${p.locationName}`.toLowerCase().includes('pantry');
+    const isFreezer = (p: any) => p.storageLocation === 2 || `${p.locationName}`.toLowerCase().includes('zamraż') || `${p.locationName}`.toLowerCase().includes('freezer');
 
     return [
-      { title: 'Lodówka', count: all.filter(isFridge).length, icon: '/icons/fridge.svg', type: 'fridge' },
-      { title: 'Spiżarnia', count: all.filter(isPantry).length, icon: '/icons/pantry.svg', type: 'pantry' },
-      { title: 'Zamrażarka', count: all.filter(isFreezer).length, icon: '/icons/freezer.svg', type: 'freezer' }
+      { 
+        title: this.translationService.translate('inventory.locFridge', 'Lodówka'), 
+        count: all.filter(isFridge).length, 
+        icon: '/icons/fridge.svg', 
+        type: 'fridge' 
+      },
+      { 
+        title: this.translationService.translate('inventory.locPantry', 'Spiżarnia'), 
+        count: all.filter(isPantry).length, 
+        icon: '/icons/pantry.svg', 
+        type: 'pantry' 
+      },
+      { 
+        title: this.translationService.translate('inventory.locFreezer', 'Zamrażarka'), 
+        count: all.filter(isFreezer).length, 
+        icon: '/icons/freezer.svg', 
+        type: 'freezer' 
+      }
     ];
   });
 
-  recipes = signal<RecipeMatchDto[]>([]);
-  isLoadingRecipes = signal<boolean>(true);
+  constructor() {
+    effect(() => {
+      this.translationService.currentLang(); 
+      untracked(() => {
+        this.loadExpiringItems();
+        this.loadZeroWasteRecipes();
+      });
+    });
+  }
 
   ngOnInit(): void {
     this.fetchUserProfile();
-    this.loadExpiringItems();
-    this.loadZeroWasteRecipes();
   }
 
   private fetchUserProfile(): void {
@@ -69,7 +98,7 @@ export class DashboardComponent implements OnInit {
           this.cdr.markForCheck();
         }
       },
-      error: () => this.userName.set('W KUCHNI')
+      error: () => this.userName.set(this.translationService.translate('dashboard.defaultUser', 'W KUCHNI'))
     });
   }
 
@@ -118,17 +147,20 @@ export class DashboardComponent implements OnInit {
   }
 
   private formatTimeLeft(days: number): string {
-    if (days <= 0) return 'Dzisiaj!';
-    if (days === 1) return 'Zostało 24h';
-    if (days === 2) return 'Zostało 48h';
-    return `Zostało ${days} dni`;
+    if (days <= 0) return this.translationService.translate('dashboard.today', 'Dzisiaj!');
+    if (days === 1) return this.translationService.translate('dashboard.hours24', 'Zostało 24h');
+    if (days === 2) return this.translationService.translate('dashboard.hours48', 'Zostało 48h');
+    
+    const daysLabel = this.translationService.translate('common.days', 'dni');
+    const leftLabel = this.translationService.translate('dashboard.leftPrefix', 'Zostało');
+    return `${leftLabel} ${days} ${daysLabel}`;
   }
 
   private mapLocationToString(loc: number): string {
     switch (loc) {
-      case 1: return 'Spiżarnia';
-      case 2: return 'Zamrażarka';
-      default: return 'Lodówka';
+      case 1: return this.translationService.translate('inventory.locPantry', 'Spiżarnia');
+      case 2: return this.translationService.translate('inventory.locFreezer', 'Zamrażarka');
+      default: return this.translationService.translate('inventory.locFridge', 'Lodówka');
     }
   }
 
