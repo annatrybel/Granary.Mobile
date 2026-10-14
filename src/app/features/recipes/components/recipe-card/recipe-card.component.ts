@@ -2,11 +2,12 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { RecipeMatchDto } from '../../models/recipe.models';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-recipe-card',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule,TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipe-card.component.html'
 })

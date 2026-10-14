@@ -1,11 +1,12 @@
 import { Component, input, output, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecipeFilters } from '../../models/recipe.models';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-recipe-filter-sheet',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipe-filter-sheet.component.html',
   styleUrl: './recipe-filter-sheet.component.scss'

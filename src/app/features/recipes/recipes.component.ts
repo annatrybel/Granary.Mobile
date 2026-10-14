@@ -1,5 +1,5 @@
 import { 
-  Component, signal, inject, OnInit, AfterViewInit, OnDestroy, 
+  Component, signal, inject, effect, untracked, OnInit, AfterViewInit, OnDestroy, 
   ElementRef, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef 
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -14,6 +14,7 @@ import {
   RecipeMatchDto, RecipeDetailDto, RecipeFilters, 
   RecipeTabScope, CreateCustomRecipePayload 
 } from './models/recipe.models';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 import { RecipeSearchBarComponent } from './components/recipe-search-bar/recipe-search-bar.component';
 import { RecipeCardComponent } from './components/recipe-card/recipe-card.component';
@@ -22,13 +23,15 @@ import { RecipeFilterSheetComponent } from './components/recipe-filter-sheet/rec
 import { AddRecipeSheetComponent } from './components/add-recipe-sheet/add-recipe-sheet.component';
 import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
+import { TranslationService } from '../../core/services/translation.service';
+
 @Component({
   selector: 'app-recipes',
   standalone: true,
   imports: [
     CommonModule, LucideAngularModule, RecipeSearchBarComponent,
     RecipeCardComponent, RecipeDetailSheetComponent, RecipeFilterSheetComponent,
-    AddRecipeSheetComponent, ConfirmDeleteModalComponent
+    AddRecipeSheetComponent, ConfirmDeleteModalComponent,TranslatePipe 
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipes.component.html',
@@ -36,6 +39,7 @@ import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-del
 })
 export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly recipeService = inject(RecipeService);
+  private readonly translationService = inject(TranslationService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -77,7 +81,14 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
       this.searchQuery.set(query);
       this.resetAndReload();
     });
+  effect(() => {
+      this.translationService.currentLang(); 
+      untracked(() => {
+        this.resetAndReload();
+      });
+    });
   }
+
 
   ngOnInit(): void {
     const itemsParam = this.route.snapshot.queryParamMap.get('items');

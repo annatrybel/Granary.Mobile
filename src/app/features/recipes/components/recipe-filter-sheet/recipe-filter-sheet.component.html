@@ -5,7 +5,7 @@
   <div class="flex flex-col items-center px-6 pt-4 pb-2 shrink-0">
     <div class="w-12 h-1 bg-app-border rounded-full mb-3 shrink-0"></div>
     <div class="w-full flex items-center justify-between">
-      <h2 class="text-xl font-bold text-app-text m-0">Filtry i sortowanie</h2>
+      <h2 class="text-xl font-bold text-app-text m-0">{{ 'recipeFilters.title' | t:'Filtry i sortowanie' }}</h2>
       <button type="button" (click)="closeSheet.emit()" class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text flex items-center justify-center border-none cursor-pointer active:scale-95 transition-all">✕</button>
     </div>
   </div>
@@ -14,7 +14,7 @@
 
     <!-- Sortowanie -->
     <div class="flex flex-col gap-2">
-      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">Sortuj według</label>
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">{{ 'recipeFilters.sortBy' | t:'Sortuj według' }}</label>
       <div class="grid grid-cols-2 gap-2.5">
         @for (opt of sortOptions; track opt.id) {
           <button 
@@ -29,7 +29,7 @@
             [class.text-app-text]="sortBy() !== opt.id"
             [class.font-medium]="sortBy() !== opt.id"
             (click)="sortBy.set(opt.id)">
-            <span class="truncate">{{ opt.label }}</span>
+            <span class="truncate">{{ ('recipeFilters.sort' + (opt.id === 'match' ? 'Match' : opt.id === 'time' ? 'Time' : opt.id === 'calories' ? 'Calories' : 'Rating')) | t:opt.label }}</span>
             @if (sortBy() === opt.id) { <span>✓</span> }
           </button>
         }
@@ -38,7 +38,7 @@
 
     <!-- Czas -->
     <div class="flex flex-col gap-2">
-      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">Maksymalny czas</label>
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">{{ 'recipeFilters.maxTime' | t:'Maksymalny czas' }}</label>
       <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         @for (t of timeOptions; track t.label) {
           <button 
@@ -52,9 +52,8 @@
             [class.bg-app-surface-variant]="maxTime() !== t.val"
             [class.text-app-text]="maxTime() !== t.val"
             [class.border-app-border]="maxTime() !== t.val"
-            [class.font-medium]="maxTime() !== t.val"
             (click)="maxTime.set(t.val)">
-            {{ t.label }}
+            {{ ('recipeFilters.time' + (t.val === 15 ? '15' : t.val === 30 ? '30' : t.val === 45 ? '45' : 'Any')) | t:t.label }}
           </button>
         }
       </div>
@@ -62,7 +61,7 @@
 
     <!-- Posiłek -->
     <div class="flex flex-col gap-2">
-      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">Posiłek</label>
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">{{ 'recipeFilters.mealType' | t:'Posiłek' }}</label>
       <div class="flex flex-wrap gap-2">
         @for (m of mealOptions; track m) {
           <button 
@@ -76,7 +75,7 @@
             [class.text-app-text]="mealType() !== m"
             [class.border-app-border]="mealType() !== m"
             (click)="setMealType(m)">
-            {{ m }}
+            {{ ('category.' + (m === 'Obiad' ? 'lunch' : m === 'Śniadanie' ? 'breakfast' : m === 'Kolacja' ? 'dinner' : 'snack')) | t:m }}
           </button>
         }
       </div>
@@ -84,7 +83,7 @@
 
     <!-- Preferencje i diety -->
     <div class="flex flex-col gap-2">
-      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">Preferencje i diety</label>
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">{{ 'recipeFilters.diets' | t:'Preferencje i diety' }}</label>
       <div class="flex flex-wrap gap-2">
         @for (d of dietOptions; track d) {
           <button 
@@ -98,7 +97,7 @@
             [class.text-app-text]="diet() !== d"
             [class.border-app-border]="diet() !== d"
             (click)="setDiet(d)">
-            {{ d }}
+            {{ ('diet.' + (d === 'Bez glutenu' ? 'glutenFree' : d === 'Bez laktozy' ? 'lactoseFree' : d === 'Wegańskie' ? 'vegan' : 'vegetarian')) | t:d }}
           </button>
         }
       </div>
@@ -106,8 +105,12 @@
 
     <!-- Akcje -->
     <div class="flex items-center justify-between gap-4 pt-2">
-      <button type="button" class="bg-transparent border-none text-app-muted hover:text-app-text text-[13px] font-semibold cursor-pointer py-2 px-1 transition-colors" (click)="onReset()">Wyczyść filtry</button>
-      <button type="button" (click)="onApply()" class="flex-1 h-12 bg-app-brand hover:brightness-110 text-white text-sm font-bold rounded-full border-none shadow-sm flex items-center justify-center cursor-pointer active:scale-[0.98] transition-all">Pokaż przepisy</button>
+      <button type="button" class="bg-transparent border-none text-app-muted hover:text-app-text text-[13px] font-semibold cursor-pointer py-2 px-1 transition-colors" (click)="onReset()">
+        {{ 'recipeFilters.reset' | t:'Wyczyść filtry' }}
+      </button>
+      <button type="button" (click)="onApply()" class="flex-1 h-12 bg-app-brand hover:brightness-110 text-white text-sm font-bold rounded-full border-none shadow-sm flex items-center justify-center cursor-pointer active:scale-[0.98] transition-all">
+        {{ 'recipeFilters.apply' | t:'Pokaż przepisy' }}
+      </button>
     </div>
 
   </div>

@@ -1,13 +1,13 @@
-import { 
-  Component, 
-  input, 
-  output, 
-  signal, 
-  inject, 
-  OnInit, 
-  AfterViewInit, 
-  ChangeDetectionStrategy, 
-  ChangeDetectorRef 
+import {
+  Component,
+  input,
+  output,
+  signal,
+  inject,
+  OnInit,
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
@@ -15,11 +15,13 @@ import { LucideAngularModule } from 'lucide-angular';
 import { RecipeService } from '../../../../core/services/recipe.service';
 import { CreateCustomRecipePayload, RecipeDetailDto } from '../../models/recipe.models';
 
-import { 
-  CatalogSearchBarComponent, 
-  CatalogProductDto 
+import {
+  CatalogSearchBarComponent,
+  CatalogProductDto
 } from '../../../../shared/components/catalog-search-bar/catalog-search-bar.component';
 import { ConfirmDeleteModalComponent } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 
 export interface FormIngredientItem {
   id: string;
@@ -38,10 +40,11 @@ export interface FormStepItem {
   selector: 'app-add-recipe-sheet',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     LucideAngularModule,
     CatalogSearchBarComponent,
-    ConfirmDeleteModalComponent
+    ConfirmDeleteModalComponent,
+    TranslatePipe 
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './add-recipe-sheet.component.html',
@@ -53,7 +56,6 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
 
   recipeToEdit = input<RecipeDetailDto | null>(null);
   isOpen = input<boolean>(true);
-
   closeSheet = output<void>();
   save = output<CreateCustomRecipePayload>();
 
@@ -62,6 +64,7 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
   prepTimeMinutes = signal<number>(20);
   selectedCategory = signal<string>('Obiad');
   imageUrl = signal<string | null>(null);
+  isGeneratingImage = signal<boolean>(false);
 
   readonly categories = ['Obiad', 'Śniadanie', 'Kolacja', 'Wypieki i ciasta', 'Przekąska'];
   readonly availableUnits = ['szt.', 'g', 'kg', 'ml', 'L', 'łyżka', 'szklanka', 'szczypta', 'op.'];
@@ -126,7 +129,7 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
 
   onSelectCatalogProduct(prod: CatalogProductDto): void {
     const existing = this.ingredients().find(i => i.productId === prod.id);
-    
+
     if (existing) {
       this.ingredients.update(list =>
         list.map(item => item.id === existing.id ? { ...item, amount: item.amount + 1 } : item)
@@ -201,13 +204,13 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
   }
 
   updateIngredientAmount(id: string, amount: number): void {
-    this.ingredients.update(list => 
+    this.ingredients.update(list =>
       list.map(item => item.id === id ? { ...item, amount: Math.max(0.1, amount) } : item)
     );
   }
 
   updateIngredientUnit(id: string, unit: string): void {
-    this.ingredients.update(list => 
+    this.ingredients.update(list =>
       list.map(item => item.id === id ? { ...item, unit } : item)
     );
   }
@@ -219,7 +222,7 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
   }
 
   updateStep(id: number, text: string): void {
-    this.steps.update(list => 
+    this.steps.update(list =>
       list.map(s => s.id === id ? { ...s, text } : s)
     );
   }
@@ -246,14 +249,33 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // add-recipe-sheet.component.ts
+  // 1. Poprawione generateAiImage() z jawnym otypowaniem (res: any) i (err: any):
   generateAiImage(): void {
     const titleVal = this.title().trim();
     if (!titleVal) {
       alert('Wpisz najpierw nazwę dania!');
       return;
     }
-    this.imageUrl.set(`https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80`);
-    this.cdr.markForCheck();
+
+    this.isGeneratingImage.set(true);
+
+    this.recipeService.generateRecipeImage(titleVal).subscribe({
+      next: (res: any) => {
+        this.isGeneratingImage.set(false);
+        if (res.success && res.imageUrl) {
+          this.imageUrl.set(res.imageUrl);
+        }
+        this.cdr.markForCheck();
+      },
+      error: (err: any) => {
+        this.isGeneratingImage.set(false);
+        const msg = err.error?.message || 'Nie udało się wygenerować zdjęcia (nazwa nie jest potrawą lub narusza zasady).';
+        alert(msg);
+        this.imageUrl.set('/icons/food-placeholder.svg');
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   onSubmit(): void {

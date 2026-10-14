@@ -1,11 +1,12 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-recipe-search-bar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="figma-search-section">
@@ -15,7 +16,7 @@ import { LucideAngularModule } from 'lucide-angular';
         <input 
           type="text" 
           class="figma-text-input" 
-          placeholder="Szukaj dania lub składnika..." 
+          [placeholder]="'recipes.searchPlaceholder' | t:'Szukaj dania lub składnika...'" 
           [value]="searchQuery()"
           (input)="queryChange.emit($any($event.target).value)"
         />
@@ -24,8 +25,8 @@ import { LucideAngularModule } from 'lucide-angular';
           <button type="button" class="clear-btn" (click)="queryChange.emit('')">✕</button>
         }
 
-        <button type="button" class="inline-filter-btn" (click)="openFilters.emit()" title="Filtry">
-          <lucide-icon name="sliders-horizontal" class="w-4 h-4 text-[#536500]"></lucide-icon>
+        <button type="button" class="inline-filter-btn" (click)="openFilters.emit()" [title]="'recipeFilters.buttonTooltip' | t:'Filtry'">
+          <lucide-icon name="sliders-horizontal" class="w-4 h-4 text-app-brand"></lucide-icon>
         </button>
       </div>
     </div>

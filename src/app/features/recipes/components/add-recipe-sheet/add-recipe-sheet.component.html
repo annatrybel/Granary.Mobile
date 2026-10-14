@@ -5,7 +5,9 @@
   <div class="w-11 h-1 bg-app-border rounded-full mx-auto my-2.5 shrink-0"></div>
 
   <header class="flex items-center justify-between px-5 py-2 shrink-0">
-    <h2 class="m-0 text-lg font-extrabold text-app-text tracking-tight">Nowy przepis</h2>
+    <h2 class="m-0 text-lg font-extrabold text-app-text tracking-tight">
+      {{ (recipeToEdit() ? 'addRecipe.titleEdit' : 'addRecipe.titleNew') | t:(recipeToEdit() ? 'Edytuj przepis' : 'Nowy przepis') }}
+    </h2>
 
     <button 
       type="button" 
@@ -23,28 +25,29 @@
         
         <div class="bg-app-surface-variant border border-app-border rounded-2xl p-2.5 flex flex-col items-center gap-1.5">
           @if (imageUrl()) {
-            <div class="relative w-full h-32 rounded-xl overflow-hidden">
+            <div class="relative w-full h-32 rounded-xl overflow-hidden bg-app-surface border border-app-border">
               <img [src]="imageUrl()!" alt="Podgląd dania" class="w-full h-full object-cover" />
               <button 
                 type="button" 
                 (click)="imageUrl.set(null)" 
                 class="absolute top-1.5 right-1.5 bg-black/65 border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer active:scale-90 text-white"
-                title="Usuń zdjęcie">
+                [title]="'addRecipe.removePhoto' | t:'Usuń zdjęcie'">
                 <lucide-icon name="trash-2" [size]="14"></lucide-icon>
               </button>
             </div>
           } @else {
             <button 
               type="button" 
-              class="w-full bg-app-brand/15 text-app-brand text-xs font-bold py-2.5 px-3 rounded-xl border border-app-brand/25 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+              [disabled]="isGeneratingImage()"
+              class="w-full bg-app-brand/15 text-app-brand text-xs font-bold py-2.5 px-3 rounded-xl border border-app-brand/25 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 disabled:opacity-50"
               (click)="generateAiImage()">
               <lucide-icon name="sparkles" [size]="15"></lucide-icon>
-              <span>Wygeneruj zdjęcie potrawy przez AI</span>
+              <span>{{ (isGeneratingImage() ? 'addRecipe.generatingAi' : 'addRecipe.generateAiBtn') | t:'Wygeneruj zdjęcie potrawy przez AI' }}</span>
             </button>
 
             <label class="text-[11px] font-semibold text-app-muted flex items-center gap-1.5 p-1 cursor-pointer hover:text-app-text">
               <lucide-icon name="image" [size]="14"></lucide-icon>
-              <span>lub wgraj własne zdjęcie z telefonu</span>
+              <span>{{ 'addRecipe.uploadPhoto' | t:'lub wgraj własne zdjęcie z telefonu' }}</span>
               <input type="file" accept="image/*" class="hidden" (change)="onImageFileChange($event)" />
             </label>
           }
@@ -52,13 +55,13 @@
 
         <div class="flex flex-col gap-1">
           <label class="text-xs font-bold text-app-text" for="recipe-title">
-            Nazwa dania <span class="text-app-brand">*</span>
+            {{ 'addRecipe.nameLabel' | t:'Nazwa dania' }} <span class="text-app-brand">*</span>
           </label>
           <input 
             id="recipe-title"
             type="text" 
             class="h-11 bg-app-surface-variant border border-app-border rounded-xl px-3.5 text-[13.5px] font-semibold text-app-text outline-none focus:border-app-brand"
-            placeholder="np. Szarlotka z jabłkami i cynamonem" 
+            [placeholder]="'addRecipe.namePlaceholder' | t:'np. Szarlotka z jabłkami i cynamonem'" 
             [value]="title()" 
             (input)="title.set($any($event.target).value)"
             required
@@ -72,8 +75,10 @@
               <lucide-icon name="minus" [size]="14"></lucide-icon>
             </button>
             <div class="flex flex-col items-center">
-              <span class="text-[10px] font-bold text-app-muted uppercase tracking-wide">Porcje</span>
-              <span class="text-xs font-extrabold text-app-text">{{ servings() }} {{ servings() === 1 ? 'porcja' : 'porcje' }}</span>
+              <span class="text-[10px] font-bold text-app-muted uppercase tracking-wide">{{ 'addRecipe.servings' | t:'Porcje' }}</span>
+              <span class="text-xs font-extrabold text-app-text">
+                {{ servings() }} {{ (servings() === 1 ? 'common.servingsSingular' : 'common.servingsPlural') | t:'porcje' }}
+              </span>
             </div>
             <button type="button" class="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center active:scale-90 text-app-text cursor-pointer" (click)="changeServings(1)" aria-label="Zwiększ porcje">
               <lucide-icon name="plus" [size]="14"></lucide-icon>
@@ -85,8 +90,8 @@
               <lucide-icon name="minus" [size]="14"></lucide-icon>
             </button>
             <div class="flex flex-col items-center">
-              <span class="text-[10px] font-bold text-app-muted uppercase tracking-wide">Czas</span>
-              <span class="text-xs font-extrabold text-app-text">{{ prepTimeMinutes() }} min</span>
+              <span class="text-[10px] font-bold text-app-muted uppercase tracking-wide">{{ 'addRecipe.time' | t:'Czas' }}</span>
+              <span class="text-xs font-extrabold text-app-text">{{ prepTimeMinutes() }} {{ 'common.min' | t:'min' }}</span>
             </div>
             <button type="button" class="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center active:scale-90 text-app-text cursor-pointer" (click)="changeTime(5)" aria-label="Zwiększ czas">
               <lucide-icon name="plus" [size]="14"></lucide-icon>
@@ -99,8 +104,8 @@
       <!-- Kategoria posiłku -->
       <section class="flex flex-col gap-2 pt-2 border-t border-app-border">
         <div class="flex items-center justify-between">
-          <h3 class="m-0 text-[13.5px] font-bold text-app-text">Kategoria posiłku</h3>
-          <span class="text-[11px] text-app-muted font-medium">Wybierz rodzaj dania</span>
+          <h3 class="m-0 text-[13.5px] font-bold text-app-text">{{ 'addRecipe.categoryTitle' | t:'Kategoria posiłku' }}</h3>
+          <span class="text-[11px] text-app-muted font-medium">{{ 'addRecipe.categorySubtitle' | t:'Wybierz rodzaj dania' }}</span>
         </div>
 
         <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -119,7 +124,7 @@
               @if (selectedCategory() === cat) {
                 <lucide-icon name="check" [size]="13" class="text-white"></lucide-icon>
               }
-              <span>{{ cat }}</span>
+              <span>{{ ('category.' + (cat === 'Obiad' ? 'lunch' : cat === 'Śniadanie' ? 'breakfast' : cat === 'Kolacja' ? 'dinner' : cat === 'Wypieki i ciasta' ? 'baking' : 'snack')) | t:cat }}</span>
             </button>
           }
         </div>
@@ -129,14 +134,14 @@
       <section class="flex flex-col gap-2.5 pt-2 border-t border-app-border">
         <div class="flex items-center justify-between">
           <h3 class="m-0 text-[13.5px] font-bold text-app-text flex items-center gap-1.5">
-            <span>Składniki</span>
+            <span>{{ 'addRecipe.ingredientsTitle' | t:'Składniki' }}</span>
             @if (ingredients().length > 0) {
               <span class="text-[11px] bg-app-brand/15 text-app-brand font-bold px-2 py-0.5 rounded-full border border-app-brand/20">
                 {{ ingredients().length }}
               </span>
             }
           </h3>
-          <span class="text-[11px] text-app-muted font-medium">Co będzie potrzebne?</span>
+          <span class="text-[11px] text-app-muted font-medium">{{ 'addRecipe.ingredientsSubtitle' | t:'Co będzie potrzebne?' }}</span>
         </div>
 
         @if (ingredients().length > 0) {
@@ -172,7 +177,7 @@
                     type="button" 
                     class="w-8 h-8 rounded-lg text-app-muted hover:text-rose-500 hover:bg-rose-500/10 flex items-center justify-center cursor-pointer border-none bg-transparent active:scale-90"
                     (click)="askDeleteIngredient(ing)"
-                    aria-label="Usuń składnik">
+                    [attr.aria-label]="'addRecipe.deleteIngredient' | t:'Usuń składnik'">
                     <lucide-icon name="trash-2" [size]="15"></lucide-icon>
                   </button>
                 </div>
@@ -183,7 +188,8 @@
         }
 
         <app-catalog-search-bar 
-          placeholder="Wyszukaj kolejny składnik..."
+          [placeholderKey]="'addRecipe.searchIngredientPlaceholder'"
+          [fallbackPlaceholder]="'Wyszukaj kolejny składnik...'"
           (selectProduct)="onSelectCatalogProduct($event)"
           (createCustom)="onCreateCustomProduct($event)" />
       </section>
@@ -191,8 +197,8 @@
       <!-- Kroki przygotowania -->
       <section class="flex flex-col gap-2.5 pt-2 border-t border-app-border">
         <div class="flex items-center justify-between">
-          <h3 class="m-0 text-[13.5px] font-bold text-app-text">Kroki przygotowania</h3>
-          <span class="text-[11px] text-app-muted font-medium">Instrukcja gotowania</span>
+          <h3 class="m-0 text-[13.5px] font-bold text-app-text">{{ 'addRecipe.stepsTitle' | t:'Kroki przygotowania' }}</h3>
+          <span class="text-[11px] text-app-muted font-medium">{{ 'addRecipe.stepsSubtitle' | t:'Instrukcja gotowania' }}</span>
         </div>
 
         <div class="flex flex-col gap-2">
@@ -206,7 +212,7 @@
                 <textarea 
                   class="w-full text-xs font-medium text-app-text outline-none resize-none bg-transparent border-none leading-relaxed cursor-text caret-app-brand block p-0 placeholder:text-app-muted" 
                   rows="2" 
-                  placeholder="Opisz ten krok przygotowania..."
+                  [placeholder]="'addRecipe.stepPlaceholder' | t:'Opisz ten krok przygotowania...'"
                   [value]="step.text" 
                   (input)="updateStep(step.id, $any($event.target).value)"></textarea>
               </div>
@@ -215,7 +221,7 @@
                 type="button" 
                 class="w-7 h-7 rounded-lg text-app-muted hover:text-rose-500 flex items-center justify-center shrink-0 border-none bg-transparent cursor-pointer active:scale-90"
                 (click)="removeStep(step.id)"
-                aria-label="Usuń krok">
+                [attr.aria-label]="'addRecipe.deleteStep' | t:'Usuń krok'">
                 <lucide-icon name="trash-2" [size]="14"></lucide-icon>
               </button>
             </div>
@@ -226,7 +232,7 @@
             class="text-app-brand text-xs font-bold flex items-center gap-1.5 p-1 cursor-pointer w-fit active:scale-95 border-none bg-transparent" 
             (click)="addStep()">
             <lucide-icon name="plus" [size]="15"></lucide-icon>
-            <span>Dodaj kolejny krok</span>
+            <span>{{ 'addRecipe.addStep' | t:'Dodaj kolejny krok' }}</span>
           </button>
         </div>
       </section>
@@ -241,7 +247,7 @@
       (click)="onSubmit()"
       class="w-full h-11 bg-app-brand text-white text-xs font-bold rounded-full border-none flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110">
       <lucide-icon name="check" [size]="16"></lucide-icon>
-      <span>Zapisz przepis</span>
+      <span>{{ 'addRecipe.saveBtn' | t:'Zapisz przepis' }}</span>
     </button>
   </footer>
 
@@ -250,7 +256,7 @@
 @if (ingredientToDelete(); as target) {
   <app-confirm-delete-modal
     [productName]="target.name"
-    contextText="z tego przepisu"
+    [contextText]="'addRecipe.deleteIngredientContext' | t:'z tego przepisu'"
     (cancel)="cancelDeleteIngredient()"
     (confirm)="confirmDeleteIngredient()" />
 }

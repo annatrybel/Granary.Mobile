@@ -13,7 +13,7 @@
       <!-- Wszystkie -->
       <button 
         type="button"
-        class="h-[34px] px-4 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-all outline-none border"
+        class="h-[34px] px-4 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-all outline-none border cursor-pointer"
         [class.bg-app-brand]="activeScope() === 'all'"
         [class.text-white]="activeScope() === 'all'"
         [class.border-app-brand]="activeScope() === 'all'"
@@ -22,13 +22,13 @@
         [class.text-app-text]="activeScope() !== 'all'"
         [class.border-app-border]="activeScope() !== 'all'"
         (click)="setScope('all')">
-        <span>Wszystkie</span>
+        <span>{{ 'recipes.scopeAll' | t:'Wszystkie' }}</span>
       </button>
 
       <!-- Ulubione -->
       <button 
         type="button"
-        class="h-[34px] px-4 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-all outline-none border"
+        class="h-[34px] px-4 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-all outline-none border cursor-pointer"
         [class.bg-app-brand]="activeScope() === 'favorites'"
         [class.text-white]="activeScope() === 'favorites'"
         [class.border-app-brand]="activeScope() === 'favorites'"
@@ -44,13 +44,13 @@
           [class.text-white]="activeScope() === 'favorites'"
           [class.text-app-brand]="activeScope() !== 'favorites'">
         </lucide-icon>
-        <span>Ulubione</span>
+        <span>{{ 'recipes.scopeFavorites' | t:'Ulubione' }}</span>
       </button>
 
       <!-- Moje przepisy -->
       <button 
         type="button"
-        class="h-[34px] px-4 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-all outline-none border"
+        class="h-[34px] px-4 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-all outline-none border cursor-pointer"
         [class.bg-app-brand]="activeScope() === 'custom'"
         [class.text-white]="activeScope() === 'custom'"
         [class.border-app-brand]="activeScope() === 'custom'"
@@ -66,7 +66,7 @@
           [class.text-white]="activeScope() === 'custom'"
           [class.text-app-brand]="activeScope() !== 'custom'">
         </lucide-icon>
-        <span>Moje przepisy</span>
+        <span>{{ 'recipes.scopeCustom' | t:'Moje przepisy' }}</span>
       </button>
 
     </nav>
@@ -83,8 +83,12 @@
             <lucide-icon name="plus" [size]="20" class="banner-plus-icon text-white"></lucide-icon>
           </div>
           <div class="flex flex-col gap-0.5">
-            <span class="text-sm font-bold text-app-text leading-5">Dodaj własny przepis</span>
-            <span class="text-xs font-semibold text-app-muted leading-4">Zapisz sprawdzoną recepturę w domowej bazie</span>
+            <span class="text-sm font-bold text-app-text leading-5">
+              {{ 'recipes.addBannerTitle' | t:'Dodaj własny przepis' }}
+            </span>
+            <span class="text-xs font-semibold text-app-muted leading-4">
+              {{ 'recipes.addBannerSubtitle' | t:'Zapisz sprawdzoną recepturę w domowej bazie' }}
+            </span>
           </div>
         </div>
 
@@ -100,13 +104,15 @@
       <div class="flex items-center justify-between bg-app-brand/15 border border-app-brand/30 py-2 px-3.5 rounded-2xl animate-fade-in">
         <div class="flex items-center gap-2">
           <lucide-icon name="sparkles" [size]="16" class="text-app-brand shrink-0"></lucide-icon>
-          <span class="text-xs font-bold text-app-brand">Gotujesz z wybranych produktów z magazynu</span>
+          <span class="text-xs font-bold text-app-brand">
+            {{ 'recipes.wandFilter' | t:'Gotujesz z wybranych produktów z magazynu' }}
+          </span>
         </div>
         <button 
           type="button" 
           class="text-xs text-app-text font-bold bg-app-surface hover:brightness-105 px-2.5 py-1 rounded-full border border-app-border cursor-pointer transition-all active:scale-95 shadow-2xs"
           (click)="clearSelectedItemsFilter()">
-          Pokaż wszystkie ✕
+          {{ 'recipes.showAll' | t:'Pokaż wszystkie ✕' }}
         </button>
       </div>
     }
@@ -121,22 +127,22 @@
         </lucide-icon>
         <h2 class="m-0 text-xl font-bold text-app-text leading-7">
           @if (selectedItemsFilter()) {
-            Dania z zaznaczonych produktów
+            {{ 'recipes.headerWand' | t:'Dania z zaznaczonych produktów' }}
           } @else if (searchQuery()) {
-            Wyniki wyszukiwania
+            {{ 'recipes.headerSearch' | t:'Wyniki wyszukiwania' }}
           } @else if (activeScope() === 'favorites') {
-            Twoje ulubione dania
+            {{ 'recipes.headerFavorites' | t:'Twoje ulubione dania' }}
           } @else if (activeScope() === 'custom') {
-            Przepisy z domowej bazy
+            {{ 'recipes.headerCustom' | t:'Przepisy z domowej bazy' }}
           } @else {
-            Zrób z tego, co masz
+            {{ 'recipes.headerDefault' | t:'Zrób z tego, co masz' }}
           }
         </h2>
       </div>
 
       @if (isLoading()) {
         <div class="text-center py-12 px-4 text-xs font-semibold text-app-muted animate-pulse">
-          Łączenie z bazą danych i dopasowywanie przepisów...
+          {{ 'recipes.loading' | t:'Łączenie z bazą danych i dopasowywanie przepisów...' }}
         </div>
       } @else if (errorMessage()) {
         <div class="p-3.5 rounded-2xl bg-rose-500/10 text-rose-500 border border-rose-500/20 text-center text-xs font-bold">
@@ -157,18 +163,20 @@
           } @empty {
             <div class="text-center py-12 px-4 text-xs font-medium text-app-muted leading-relaxed col-span-2">
               @if (activeScope() === 'custom') {
-                Nie masz jeszcze własnych przepisów. Kliknij kafelek powyżej, aby dodać swój pierwszy przepis!
+                {{ 'recipes.emptyCustom' | t:'Nie masz jeszcze własnych przepisów. Kliknij kafelek powyżej, aby dodać swój pierwszy przepis!' }}
               } @else if (activeScope() === 'favorites') {
-                Nie masz jeszcze zapisanych ulubionych dań.
+                {{ 'recipes.emptyFavorites' | t:'Nie masz jeszcze zapisanych ulubionych dań.' }}
               } @else {
-                Brak dań spełniających wybrane kryteria.
+                {{ 'recipes.emptyDefault' | t:'Brak dań spełniających wybrane kryteria.' }}
               }
             </div>
           }
 
           <div #scrollSentinel class="h-5 w-full col-span-2 flex justify-center items-center">
             @if (isLoadingMore()) {
-              <div class="text-[11.5px] font-semibold text-app-muted py-2">Ładowanie kolejnych przepisów...</div>
+              <div class="text-[11.5px] font-semibold text-app-muted py-2">
+                {{ 'recipes.loadingMore' | t:'Ładowanie kolejnych przepisów...' }}
+              </div>
             }
           </div>
         </div>
@@ -220,25 +228,23 @@
     <div class="fixed inset-0 z-[120] bg-black/65 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" (click)="recipeForShoppingList.set(null)">
       <div class="w-full max-w-[380px] bg-app-surface border border-app-border rounded-[32px] p-6 shadow-2xl flex flex-col items-center text-center animate-slide-up" (click)="$event.stopPropagation()">
         
-        <!-- Odznaka koszyka -->
         <div class="w-14 h-14 rounded-full bg-app-brand/20 border border-app-brand/35 flex items-center justify-center mb-3 shadow-inner">
           <lucide-icon name="shopping-basket" [size]="24" class="text-app-brand"></lucide-icon>
         </div>
 
         <span class="text-[10px] font-extrabold uppercase tracking-widest text-app-brand bg-app-brand/15 px-3 py-1 rounded-full mb-2">
-          Inteligentna Spiżarnia
+          {{ 'recipes.modalBadge' | t:'Inteligentna Spiżarnia' }}
         </span>
 
         <h3 class="text-xl font-extrabold text-app-text m-0">
-          Uzupełnij brakujące składniki
+          {{ 'recipes.modalTitle' | t:'Uzupełnij brakujące składniki' }}
         </h3>
 
         <p class="text-xs text-app-muted mt-1.5 mb-4 leading-relaxed">
-          Do przygotowania <strong>„{{ r.title }}”</strong> brakuje Ci 
-          <span class="text-amber-500 font-bold">{{ r.missingIngredients.length }} pozycji</span>. Czy chcesz przenieść je do listy zakupów?
+          {{ 'recipes.modalDescPart1' | t:'Do przygotowania' }} <strong>„{{ r.title }}”</strong> {{ 'recipes.modalDescPart2' | t:'brakuje Ci' }} 
+          <span class="text-amber-500 font-bold">{{ r.missingIngredients.length }}</span> {{ 'recipes.modalDescPart3' | t:'pozycji. Czy chcesz przenieść je do listy zakupów?' }}
         </p>
 
-        <!-- Lista brakujących produktów -->
         <div class="w-full bg-app-surface-variant border border-app-border rounded-2xl p-3 flex flex-col gap-2 max-h-40 overflow-y-auto mb-5 text-left scrollbar-none shadow-2xs">
           @for (m of r.missingIngredients; track m.productId) {
             <div class="flex items-center justify-between text-xs py-1 border-b border-app-border/40 last:border-none">
@@ -251,13 +257,12 @@
           }
         </div>
 
-        <!-- Przyciski akcji -->
         <div class="flex w-full gap-2.5">
           <button 
             type="button" 
             class="flex-1 h-11 rounded-full border border-app-border bg-app-surface hover:bg-app-surface-variant text-app-text text-xs font-bold cursor-pointer active:scale-95 transition-all"
             (click)="recipeForShoppingList.set(null)">
-            Nie teraz
+            {{ 'recipes.modalCancel' | t:'Nie teraz' }}
           </button>
 
           <button 
@@ -265,7 +270,7 @@
             class="flex-1 h-11 rounded-full bg-app-brand hover:brightness-110 active:scale-95 text-white text-xs font-bold border-none shadow-sm flex items-center justify-center gap-1.5 cursor-pointer transition-all"
             (click)="confirmAddMissingToShoppingList(r)">
             <lucide-icon name="plus" [size]="14"></lucide-icon>
-            <span>Dodaj do listy</span>
+            <span>{{ 'recipes.modalConfirm' | t:'Dodaj do listy' }}</span>
           </button>
         </div>
 

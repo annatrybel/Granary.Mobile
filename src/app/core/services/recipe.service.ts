@@ -4,10 +4,10 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
-export type { 
-  RecipeMatchDto, 
-  RecipeDetailDto, 
-  VoteRecipeRequest, 
+export type {
+  RecipeMatchDto,
+  RecipeDetailDto,
+  VoteRecipeRequest,
   VoteResultDto,
   CreateCustomRecipePayload,
   RecipeQueryParams,
@@ -15,10 +15,10 @@ export type {
   CatalogProductDto
 } from '../../features/recipes/models/recipe.models';
 
-import { 
-  RecipeMatchDto, 
-  RecipeDetailDto, 
-  VoteRecipeRequest, 
+import {
+  RecipeMatchDto,
+  RecipeDetailDto,
+  VoteRecipeRequest,
   VoteResultDto,
   CreateCustomRecipePayload,
   RecipeQueryParams,
@@ -164,5 +164,12 @@ export class RecipeService {
     return this.http.put<any>(`${this.baseUrl}/${recipeId}`, payload).pipe(
       map(res => res?.data ?? res?.result ?? res)
     );
-  }  
+  }
+
+  generateRecipeImage(title: string): Observable<{ success: boolean; imageUrl: string; message?: string }> {
+    return this.http.post<{ success: boolean; imageUrl: string; message?: string }>(
+      `${environment.apiBaseUrl}/recipes/generate-image`,
+      { title }
+    );
+  }
 }

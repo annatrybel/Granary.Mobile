@@ -12,11 +12,13 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { RecipeDetailDto } from '../../models/recipe.models';
 import { RecipeService } from '../../../../core/services/recipe.service';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
+import { TranslationService } from '../../../../core/services/translation.service';
 
 @Component({
   selector: 'app-recipe-detail-sheet',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipe-detail-sheet.component.html',
   styleUrl: './recipe-detail-sheet.component.scss'
@@ -24,6 +26,7 @@ import { RecipeService } from '../../../../core/services/recipe.service';
 export class RecipeDetailSheetComponent {
   private readonly recipeService = inject(RecipeService);
   private readonly cdr = inject(ChangeDetectorRef);
+ protected readonly translationService = inject(TranslationService);
 
   recipe = input.required<RecipeDetailDto>();
   isFavorite = input<boolean>(false);
@@ -51,19 +54,25 @@ export class RecipeDetailSheetComponent {
     return r?.calories ?? r?.caloriesKcal ?? r?.kcal ?? null;
   });
 
-  metaItems = computed(() => {
+   metaItems = computed(() => {
     const r = this.recipe();
     if (!r) return [];
+
+    const minLabel = this.translationService.translate('common.min', 'min');
+    const servingsLabel = this.translationService.translate('common.servingsPlural', 'porcje');
+
     const items = [
-      { icon: 'clock', text: `${r.prepTimeMinutes} min` },
-      { icon: 'users', text: `${r.servings} porcje` }
+      { icon: 'clock', text: `${r.prepTimeMinutes} ${minLabel}` },
+      { icon: 'users', text: `${r.servings} ${servingsLabel}` }
     ];
+
     const kcal = this.caloriesCount();
     if (kcal) {
       items.push({ icon: 'flame', text: `${kcal} kcal` });
     }
     return items;
   });
+
 
   instructionSteps = computed(() => {
     const raw = (this.recipe()?.instructions || '').trim();
