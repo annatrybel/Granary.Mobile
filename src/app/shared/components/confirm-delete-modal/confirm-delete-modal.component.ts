@@ -1,11 +1,12 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-confirm-delete-modal',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="fixed inset-0 z-[120] bg-black/65 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in" (click)="cancel.emit()">
@@ -15,10 +16,12 @@ import { LucideAngularModule } from 'lucide-angular';
           <lucide-icon name="trash-2" [size]="20"></lucide-icon>
         </div>
 
-        <h3 class="text-base font-bold text-app-text m-0">Usunąć produkt?</h3>
+        <h3 class="text-base font-bold text-app-text m-0">
+          {{ 'confirmModal.title' | t:'Usunąć produkt?' }}
+        </h3>
         
         <p class="text-xs text-app-muted mt-1.5 mb-5 leading-relaxed">
-          Czy na pewno chcesz usunąć <strong class="text-app-text font-bold">„{{ productName() }}”</strong> {{ contextText() }}?
+          {{ 'confirmModal.descPrefix' | t:'Czy na pewno chcesz usunąć' }} <strong class="text-app-text font-bold">„{{ productName() }}”</strong> {{ contextText() }}?
         </p>
 
         <div class="flex w-full gap-2.5">
@@ -26,14 +29,14 @@ import { LucideAngularModule } from 'lucide-angular';
             type="button" 
             class="flex-1 h-10 rounded-full border border-app-border bg-app-surface-variant hover:brightness-95 text-app-text text-xs font-bold transition-all cursor-pointer" 
             (click)="cancel.emit()">
-            Anuluj
+            {{ 'confirmModal.cancel' | t:'Anuluj' }}
           </button>
           
           <button 
             type="button" 
             class="flex-1 h-10 rounded-full border-none bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer" 
             (click)="confirm.emit()">
-            Usuń
+            {{ 'confirmModal.confirm' | t:'Usuń' }}
           </button>
         </div>
       </div>

@@ -2,11 +2,12 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { ShoppingListItem } from '../../models/shopping-list.models';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe'; 
 
 @Component({
   selector: 'app-shopping-item-card',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslatePipe], 
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article 
@@ -70,7 +71,7 @@ import { ShoppingListItem } from '../../models/shopping-list.models';
           type="button" 
           class="p-1 flex items-center justify-center text-app-muted hover:text-rose-500 transition-colors cursor-pointer border-none bg-transparent active:scale-90"
           (click)="delete.emit()" 
-          title="Usuń pozycję">
+          [title]="'itemCard.deleteTitle' | t:'Usuń pozycję'">
           <lucide-icon name="trash-2" [size]="15"></lucide-icon>
         </button>
       </div>

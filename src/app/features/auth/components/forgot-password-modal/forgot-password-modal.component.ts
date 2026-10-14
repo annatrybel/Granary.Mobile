@@ -2,11 +2,12 @@ import { Component, input, output, signal, inject, OnInit, ChangeDetectionStrate
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../../../core/services/auth.service';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-forgot-password-modal',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './forgot-password-modal.component.html',
   styleUrl: './forgot-password-modal.component.scss'

@@ -1,9 +1,20 @@
-import { Component, signal, computed, inject, OnInit, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { 
+  Component, 
+  signal, 
+  computed, 
+  inject, 
+  OnInit, 
+  effect,
+  untracked,
+  ChangeDetectionStrategy, 
+  HostListener 
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular'; // USUNIĘTO FormsModule!
+import { LucideAngularModule } from 'lucide-angular';
 
 import { ShoppingListService } from '../../core/services/shopping-list.service';
 import { PantryService } from '../../core/services/pantry.service';
+import { TranslationService } from '../../core/services/translation.service';
 import { ProductItem } from '../../core/db/app-database';
 import { 
   ShoppingListItem, 
@@ -17,6 +28,7 @@ import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-del
 import { CatalogSearchBarComponent } from '../../shared/components/catalog-search-bar/catalog-search-bar.component';
 import { RestockSuggestionsComponent } from './components/restock-suggestions/restock-suggestions.component';
 import { ShoppingItemCardComponent } from './components/shopping-item-card/shopping-item-card.component';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-shopping-list',
@@ -27,7 +39,8 @@ import { ShoppingItemCardComponent } from './components/shopping-item-card/shopp
     ConfirmDeleteModalComponent,
     CatalogSearchBarComponent,
     RestockSuggestionsComponent,
-    ShoppingItemCardComponent
+    ShoppingItemCardComponent,
+    TranslatePipe 
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shopping-list.component.html',
@@ -36,6 +49,7 @@ import { ShoppingItemCardComponent } from './components/shopping-item-card/shopp
 export class ShoppingListComponent implements OnInit {
   private shoppingService = inject(ShoppingListService);
   private pantryService = inject(PantryService);
+  protected translationService = inject(TranslationService);
 
   isLoading = signal<boolean>(true);
   userLists = signal<ShoppingListDto[]>([]);
@@ -51,6 +65,10 @@ export class ShoppingListComponent implements OnInit {
     const products: ProductItem[] = this.pantryService.products() || [];
     const existingNames = new Set(this.items().map(i => i.name?.trim().toLowerCase()));
 
+    const hours24Text = this.translationService.translate('dashboard.hours24', 'Zostało 24h');
+    const leftText = this.translationService.translate('dashboard.leftPrefix', 'Zostało');
+    const daysText = this.translationService.translate('common.days', 'dni');
+
     return products
       .filter(p => (p.expiryDays ?? 99) <= 7 && !existingNames.has(p.name?.trim().toLowerCase()))
       .sort((a, b) => (a.expiryDays ?? 0) - (b.expiryDays ?? 0))
@@ -58,15 +76,29 @@ export class ShoppingListComponent implements OnInit {
       .map(p => ({
         id: p.id,
         name: p.name,
-        categoryName: p.categoryName || p.category || 'Spiżarnia',
-        locationName: p.locationName || 'Spiżarnia',
+        categoryName: p.categoryName || p.category || this.translationService.translate('inventory.locPantry', 'Spiżarnia'),
+        locationName: p.locationName || this.translationService.translate('inventory.locPantry', 'Spiżarnia'),
         quantityDesc: `${p.quantity || 1} ${p.unit || 'szt.'}`,
-        timeLeftText: (p.expiryDays ?? 0) <= 1 ? 'Zostało 24h' : `Zostało ${p.expiryDays} dni`
+        timeLeftText: (p.expiryDays ?? 0) <= 1 ? hours24Text : `${leftText} ${p.expiryDays} ${daysText}`
       }));
   });
 
   checkedCount = computed<number>(() => this.items().filter(i => i.isChecked).length);
   totalCount = computed<number>(() => this.items().length);
+
+  constructor() {
+    effect(() => {
+      this.translationService.currentLang();
+      untracked(() => {
+        const cur = this.currentList();
+        if (cur) {
+          this.loadListDetails(cur.id);
+        } else {
+          this.loadLists();
+        }
+      });
+    });
+  }
 
   ngOnInit(): void {
     this.pantryService.loadInitialData();
@@ -89,7 +121,8 @@ export class ShoppingListComponent implements OnInit {
           const target = selectListId ? (lists.find(l => l.id === selectListId) || lists[0]) : lists[0];
           this.loadListDetails(target.id);
         } else {
-          this.shoppingService.createList({ name: 'Główna lista' }).subscribe(newList => {
+          const defaultName = this.translationService.translate('shopping.defaultListName', 'Główna lista');
+          this.shoppingService.createList({ name: defaultName }).subscribe(newList => {
             this.userLists.set([newList]);
             this.loadListDetails(newList.id);
           });

@@ -2,16 +2,19 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { RestockSuggestion } from '../../models/shopping-list.models';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe'; 
 
 @Component({
   selector: 'app-restock-suggestions',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslatePipe], 
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (suggestions().length > 0) {
       <section class="flex flex-col gap-2.5 w-full">
-        <h2 class="text-sm font-bold text-app-text leading-5 m-0">Sugerowane do uzupełnienia</h2>
+        <h2 class="text-sm font-bold text-app-text leading-5 m-0">
+          {{ 'suggestions.title' | t:'Sugerowane do uzupełnienia' }}
+        </h2>
         
         <div class="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
           @for (sug of suggestions(); track sug.id) {
@@ -33,7 +36,7 @@ import { RestockSuggestion } from '../../models/shopping-list.models';
                 class="flex py-1 items-center gap-1.5 text-xs font-bold text-app-brand bg-transparent border-none cursor-pointer active:scale-95 transition-transform"
                 (click)="add.emit(sug)">
                 <lucide-icon name="plus" [size]="14" class="text-app-brand"></lucide-icon>
-                <span>Dodaj do listy</span>
+                <span>{{ 'suggestions.addBtn' | t:'Dodaj do listy' }}</span>
               </button>
 
             </article>

@@ -7,6 +7,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthMode } from './models/auth.models';
 import { ForgotPasswordModalComponent } from './components/forgot-password-modal/forgot-password-modal.component';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-auth',
@@ -15,7 +16,8 @@ import { ForgotPasswordModalComponent } from './components/forgot-password-modal
     CommonModule, 
     RouterLink, 
     LucideAngularModule,
-    ForgotPasswordModalComponent 
+    ForgotPasswordModalComponent,
+    TranslatePipe
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './auth.component.html'
