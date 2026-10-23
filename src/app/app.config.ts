@@ -53,7 +53,8 @@ import {
   Send,
   Info,
   CheckCircle,
-  ChevronRight ,
+  ChevronLeft,  
+  ChevronRight,
   Link2, 
   Copy, 
   Share2,
@@ -68,14 +69,17 @@ import {
   Pencil,
   Moon,
   Sun,
-  Laptop
+  Laptop,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Sprout,
+  LayoutDashboard
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    // Rejestracja interceptora JWT:
     provideHttpClient(
       withInterceptors([authInterceptor])
     ),
@@ -125,6 +129,7 @@ export const appConfig: ApplicationConfig = {
         Send,
         Info,
         CheckCircle,
+        ChevronLeft,  
         ChevronRight,
         Link2, 
         Copy, 
@@ -140,7 +145,11 @@ export const appConfig: ApplicationConfig = {
         Pencil,
         Moon,
         Sun,
-        Laptop
+        Laptop,
+        PanelLeftClose,
+        PanelLeftOpen,
+        Sprout,
+        LayoutDashboard
       })
     )
   ],

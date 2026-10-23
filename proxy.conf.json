@@ -5,18 +5,13 @@
     "changeOrigin": true,
     "logLevel": "debug"
   },
-  "/chatHub": {
+  "/uploads": {
     "target": "https://localhost:7290",
     "secure": false,
-    "ws": true
-  },
-  "/notificationHub": {
-    "target": "https://localhost:7290",
-    "secure": false,
-    "ws": true
+    "changeOrigin": true
   },
   "/images": {
-    "target": "https://127.0.0.1:7290",
+    "target": "https://localhost:7290",
     "secure": false,
     "changeOrigin": true
   }
