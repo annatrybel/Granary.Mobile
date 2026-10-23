@@ -1,0 +1,197 @@
+<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+
+<div class="sheet-container animate-slide-up">
+
+  <div class="flex flex-col items-center px-6 pt-4 pb-2 shrink-0">
+    <div class="w-12 h-1 bg-app-border rounded-full mb-3 shrink-0"></div>
+    <div class="w-full flex items-center justify-between">
+      <h2 class="text-xl font-bold text-app-text m-0">
+        {{ 'productDetail.title' | t:'Szczegóły produktu' }}
+      </h2>
+      <button type="button"
+        class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text flex items-center justify-center border-none cursor-pointer active:scale-95 transition-all"
+        (click)="closeSheet.emit()" [attr.aria-label]="'common.close' | t:'Zamknij'">
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <div class="flex-1 min-h-0 overflow-y-auto px-6 py-2 pb-8 flex flex-col gap-5 overscroll-contain">
+
+    <div class="bg-app-surface-variant border border-app-border rounded-2xl p-2.5 flex flex-col items-center gap-2">
+
+      @if (detailImageUrl()) {
+      <div class="relative w-full h-36 rounded-xl overflow-hidden bg-app-surface border border-app-border shadow-2xs">
+        <img [src]="(detailImageUrl() | mediaUrl)!" [alt]="product().name" class="w-full h-full object-cover"
+          referrerpolicy="no-referrer"
+          (error)="$any($event.target).onerror = null; $any($event.target).src = '/icons/food-placeholder.svg'"
+          loading="lazy" />
+
+        <button type="button" (click)="removeImage()"
+          class="absolute top-2 right-2 bg-black/65 hover:bg-black/80 border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer active:scale-90 text-white transition-all shadow-xs"
+          [title]="'productDetail.removePhoto' | t:'Usuń zdjęcie'">
+          <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+        </button>
+
+        <button type="button" [disabled]="isGeneratingImage()" (click)="generateAiProductImage()"
+          class="absolute bottom-2 right-2 bg-black/65 hover:bg-black/80 border-none rounded-full px-3 h-7 flex items-center gap-1.5 cursor-pointer active:scale-90 text-white text-[11px] font-bold transition-all shadow-xs disabled:opacity-50"
+          [title]="'productDetail.regenerateAi' | t:'Wygeneruj ponownie AI'">
+          @if (isGeneratingImage()) {
+          <span
+            class="inline-block animate-spin border-2 border-white border-t-transparent rounded-full w-3.5 h-3.5"></span>
+          } @else {
+          <lucide-icon name="sparkles" [size]="12"></lucide-icon>
+          }
+          <span>AI</span>
+        </button>
+      </div>      
+      } @else {
+      <button type="button" [disabled]="isGeneratingImage()" (click)="generateAiProductImage()"
+        class="w-full bg-app-brand/15 hover:bg-app-brand/25 text-app-brand text-xs font-bold py-3.5 px-3 rounded-xl border border-app-brand/25 flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all disabled:opacity-50">
+        @if (isGeneratingImage()) {
+        <span
+          class="inline-block animate-spin border-2 border-app-brand border-t-transparent rounded-full w-4 h-4"></span>
+        <span>{{ 'productDetail.generatingAi' | t:'Generuję zdjęcie produktu przez AI...' }}</span>
+        } @else {
+        <lucide-icon name="sparkles" [size]="15"></lucide-icon>
+        <span>{{ 'productDetail.generateAiBtn' | t:'Wygeneruj zdjęcie produktu przez AI' }}</span>
+        }
+      </button>
+
+      <label
+        class="text-[11px] font-semibold text-app-muted flex items-center gap-1.5 p-1 cursor-pointer hover:text-app-text transition-colors">
+        <lucide-icon name="image" [size]="14"></lucide-icon>
+        <span>{{ 'productDetail.uploadPhoto' | t:'lub wgraj własne zdjęcie z telefonu' }}</span>
+        <input type="file" accept="image/*" class="hidden" (change)="onImageFileChange($event)" />
+      </label>
+      }
+
+      <div class="flex items-center justify-between w-full px-1 pt-1">
+        <span class="font-bold text-app-text text-base truncate">{{ product().name }}</span>
+        <span class="text-xs text-app-muted font-medium shrink-0 ml-2">
+          {{ 'productDetail.locationPrefix' | t:'Lokalizacja:' }}
+          @switch (detailLocation()) {
+          @case ('Zamrażarka') { {{ 'inventory.locFreezer' | t:'Zamrażarka' }} }
+          @case ('Spiżarnia') { {{ 'inventory.locPantry' | t:'Spiżarnia' }} }
+          @default { {{ 'inventory.locFridge' | t:'Lodówka' }} }
+          }
+        </span>
+      </div>
+
+    </div>
+
+    <!-- Wybór miejsca przechowywania -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">
+        {{ 'productDetail.storageLocation' | t:'Miejsce przechowywania' }}
+      </label>
+      <div class="grid grid-cols-3 gap-2">
+        @for (loc of locationOptions; track loc.key) {
+        <button type="button" (click)="detailLocation.set(loc.key)"
+          class="py-3 px-2 rounded-xl text-xs font-bold border flex flex-col items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+          [class.bg-app-brand]="detailLocation() === loc.key" [class.text-white]="detailLocation() === loc.key"
+          [class.border-app-brand]="detailLocation() === loc.key"
+          [class.bg-app-surface-variant]="detailLocation() !== loc.key"
+          [class.text-app-text]="detailLocation() !== loc.key" [class.border-app-border]="detailLocation() !== loc.key">
+
+          <img [src]="loc.icon" [alt]="loc.key" class="w-5 h-5 object-contain transition-all"
+            [class.brightness-0]="detailLocation() === loc.key" [class.invert]="detailLocation() === loc.key"
+            [class.dark:brightness-0]="detailLocation() !== loc.key" [class.dark:invert]="detailLocation() !== loc.key"
+            [class.dark:opacity-80]="detailLocation() !== loc.key" />
+
+          <span>
+            @switch (loc.key) {
+            @case ('Zamrażarka') { {{ 'inventory.locFreezer' | t:'Zamrażarka' }} }
+            @case ('Spiżarnia') { {{ 'inventory.locPantry' | t:'Spiżarnia' }} }
+            @default { {{ 'inventory.locFridge' | t:'Lodówka' }} }
+            }
+          </span>
+        </button>
+        }
+      </div>
+    </div>
+
+    @if (isCustomProduct) {
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">
+        {{ 'productDetail.category' | t:'Kategoria produktu' }}
+      </label>
+      <div class="bg-app-surface-variant rounded-2xl flex items-center px-4 border border-app-border">
+        <select [value]="detailCategoryName()" (change)="detailCategoryName.set($any($event.target).value)"
+          class="bg-transparent border-none outline-none font-bold text-app-text text-[13px] cursor-pointer w-full h-11">
+          @for (cat of categories(); track cat.id) {
+          <option class="bg-app-surface text-app-text" [value]="cat.name">{{ cat.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    }
+
+    <!-- Wybór ilości -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">
+        {{ 'productDetail.quantity' | t:'Ilość' }}
+      </label>
+      <div class="flex gap-3">
+        <div
+          class="flex-1 bg-app-surface-variant rounded-2xl flex items-center justify-between p-1.5 border border-app-border">
+          <button type="button" (click)="changeQuantity(-1)"
+            class="w-[38px] h-[38px] rounded-xl bg-app-surface text-app-text font-bold text-base border border-app-border shadow-xs cursor-pointer active:scale-90"
+            [attr.aria-label]="'productDetail.decreaseQty' | t:'Zmniejsz ilość'">
+            -
+          </button>
+          <span class="text-lg font-extrabold text-app-text">{{ detailQuantity() }}</span>
+          <button type="button" (click)="changeQuantity(1)"
+            class="w-[38px] h-[38px] rounded-xl bg-app-surface text-app-text font-bold text-base border border-app-border shadow-xs cursor-pointer active:scale-90"
+            [attr.aria-label]="'productDetail.increaseQty' | t:'Zwiększ ilość'">
+            +
+          </button>
+        </div>
+
+        <div class="bg-app-surface-variant rounded-2xl flex items-center px-4 border border-app-border">
+          <select [value]="detailUnit()" (change)="detailUnit.set($any($event.target).value)"
+            class="bg-transparent border-none outline-none font-bold text-app-text text-[13px] cursor-pointer h-11">
+            <option class="bg-app-surface text-app-text" value="szt.">{{ 'units.pcs' | t:'szt.' }}</option>
+            <option class="bg-app-surface text-app-text" value="L">{{ 'units.liter' | t:'litr (L)' }}</option>
+            <option class="bg-app-surface text-app-text" value="kg">{{ 'units.kg' | t:'kg' }}</option>
+            <option class="bg-app-surface text-app-text" value="g">{{ 'units.gram' | t:'gram (g)' }}</option>
+            <option class="bg-app-surface text-app-text" value="op.">{{ 'units.package' | t:'opakowanie' }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data ważności -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">
+        {{ 'productDetail.expiryDate' | t:'Data ważności' }}
+      </label>
+      <div
+        class="bg-app-surface-variant rounded-2xl p-3 px-4 flex items-center gap-3 border border-app-border focus-within:border-app-brand">
+        <lucide-icon name="clock" [size]="18" class="text-app-brand shrink-0"></lucide-icon>
+        <input type="date" [attr.lang]="translationService.currentLang()" [value]="detailExpirationDate()"
+          (input)="detailExpirationDate.set($any($event.target).value)"
+          class="bg-transparent border-none outline-none font-semibold text-sm text-app-text w-full [color-scheme:light] dark:[color-scheme:dark]" />
+      </div>
+
+      <div class="flex gap-2 mt-0.5">
+        @for (q of quickDayOptions; track q.days) {
+        <button type="button" (click)="addDaysToExpiry(q.days)"
+          class="py-1.5 px-3.5 rounded-xl bg-app-surface-variant hover:bg-app-surface text-app-text text-[11px] font-bold border border-app-border cursor-pointer active:scale-95 transition-all">
+          {{ ('productDetail.' + q.key) | t:q.label }}
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Przycisk zapisu -->
+    <div class="pt-2">
+      <button type="button" (click)="onSave()"
+        class="w-full h-12 bg-app-brand hover:brightness-110 text-white text-sm font-bold rounded-full border-none shadow-[0_4px_12px_rgba(83,101,0,0.2)] flex items-center justify-center cursor-pointer active:scale-[0.98] transition-all">
+        {{ 'productDetail.saveBtn' | t:'Zaktualizuj w spiżarni' }}
+      </button>
+    </div>
+
+  </div>
+
+</div>

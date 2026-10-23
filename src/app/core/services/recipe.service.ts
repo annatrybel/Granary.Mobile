@@ -4,17 +4,6 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
-export type {
-  RecipeMatchDto,
-  RecipeDetailDto,
-  VoteRecipeRequest,
-  VoteResultDto,
-  CreateCustomRecipePayload,
-  RecipeQueryParams,
-  PagedRecipesResult,
-  CatalogProductDto
-} from '../../features/recipes/models/recipe.models';
-
 import {
   RecipeMatchDto,
   RecipeDetailDto,
@@ -24,7 +13,7 @@ import {
   RecipeQueryParams,
   PagedRecipesResult,
   CatalogProductDto
-} from '../../features/recipes/models/recipe.models';
+} from '../../user/recipes/models/recipe.models';
 
 @Injectable({
   providedIn: 'root'
@@ -32,7 +21,7 @@ import {
 export class RecipeService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/recipes`;
-  private readonly catalogUrl = `${environment.apiBaseUrl}/catalogproducts`;
+  private readonly catalogUrl = `${environment.apiBaseUrl}/catalog-products`;
 
   getRecipes(filters: RecipeQueryParams): Observable<PagedRecipesResult> {
     let params = new HttpParams()
@@ -41,25 +30,19 @@ export class RecipeService {
       .set('pageSize', filters.pageSize.toString())
       .set('sortBy', filters.sortBy || 'match');
 
-    if (filters.query?.trim()) {
-      params = params.set('query', filters.query.trim());
-    }
+    const optionalFilters: Record<string, string | number | undefined | null> = {
+      query: filters.query?.trim(),
+      items: filters.items?.trim(),
+      maxTime: filters.maxTime,
+      mealType: filters.mealType,
+      diet: filters.diet
+    };
 
-    if (filters.items?.trim()) {
-      params = params.set('items', filters.items.trim());
-    }
-
-    if (filters.maxTime) {
-      params = params.set('maxTime', filters.maxTime.toString());
-    }
-
-    if (filters.mealType) {
-      params = params.set('mealType', filters.mealType);
-    }
-
-    if (filters.diet) {
-      params = params.set('diet', filters.diet);
-    }
+    Object.entries(optionalFilters).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        params = params.set(key, val.toString());
+      }
+    });
 
     return this.http.get<any>(this.baseUrl, { params }).pipe(
       map((res: any): PagedRecipesResult => {
@@ -69,7 +52,7 @@ export class RecipeService {
           totalCount: raw?.totalCount ?? 0,
           page: raw?.page ?? filters.page,
           pageSize: raw?.pageSize ?? filters.pageSize,
-          hasMore: raw?.hasMore ?? false
+          hasMore: raw?.hasMore ?? ((raw?.page ?? filters.page) * (raw?.pageSize ?? filters.pageSize) < (raw?.totalCount ?? 0))
         };
       })
     );
@@ -77,12 +60,8 @@ export class RecipeService {
 
   searchCatalogProducts(query?: string, categoryId?: string): Observable<CatalogProductDto[]> {
     let params = new HttpParams();
-    if (query?.trim()) {
-      params = params.set('query', query.trim());
-    }
-    if (categoryId) {
-      params = params.set('categoryId', categoryId);
-    }
+    if (query?.trim()) params = params.set('query', query.trim());
+    if (categoryId) params = params.set('categoryId', categoryId);
 
     return this.http.get<any>(this.catalogUrl, { params }).pipe(
       map((res: any): CatalogProductDto[] => {
@@ -101,12 +80,11 @@ export class RecipeService {
         return {
           id: raw?.id ?? raw?.Id ?? id,
           title: raw?.title ?? raw?.Title ?? '',
-          description: raw?.description ?? '',
           instructions: raw?.instructions ?? raw?.Instructions ?? '',
+          calories: raw?.calories ?? raw?.Calories ?? null,
           imageUrl: raw?.imageUrl ?? raw?.ImageUrl,
           prepTimeMinutes: raw?.prepTimeMinutes ?? raw?.PrepTimeMinutes ?? 15,
           servings: raw?.servings ?? raw?.Servings ?? 2,
-          calories: raw?.calories ?? null,
           isFavorite: raw?.isFavorite ?? false,
           isCustom: raw?.isCustom ?? false,
           likesCount: raw?.likesCount ?? 0,
@@ -145,11 +123,7 @@ export class RecipeService {
   }
 
   createCatalogProduct(name: string): Observable<CatalogProductDto> {
-    const payload: Partial<CatalogProductDto> = {
-      name: name.trim()
-    };
-
-    return this.http.post<any>(`${environment.apiBaseUrl}/catalog-products/custom`, payload).pipe(
+    return this.http.post<any>(`${environment.apiBaseUrl}/catalog-products/custom`, { name: name.trim() }).pipe(
       map((res: any): CatalogProductDto => res?.data ?? res?.result ?? res)
     );
   }

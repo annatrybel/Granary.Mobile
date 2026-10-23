@@ -1,0 +1,82 @@
+@if (recipe(); as r) {
+<article
+  class="bg-app-surface rounded-[20px] overflow-hidden border border-app-border shadow-xs flex flex-col h-full cursor-pointer transition-all duration-150 active:scale-[0.98]"
+  (click)="cardClick.emit()">
+
+  <div class="relative w-full h-[120px] bg-app-surface-variant overflow-hidden shrink-0">
+    <img 
+      [src]="(r.imageUrl | mediaUrl) || '/icons/food-placeholder.svg'" 
+      [alt]="r.title"
+      referrerpolicy="no-referrer" 
+      class="w-full h-full object-cover"
+      (error)="$any($event.target).onerror = null; $any($event.target).src = '/icons/food-placeholder.svg'"
+      loading="lazy" 
+    />
+
+    @if (!r.isCustom) {
+    <button type="button"
+      class="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center bg-app-surface/90 backdrop-blur-xs border border-app-border/40 shadow-xs cursor-pointer z-10 active:scale-85 transition-transform"
+      (click)="onHeartClick(r.recipeId, $event)" [title]="'recipeCard.saveFavorite' | t:'Zapisz w ulubionych'">
+      <lucide-icon name="heart" [size]="14" class="transition-colors" [class.text-rose-500]="isFavorite()"
+        [class.fill-rose-500]="isFavorite()" [class.text-app-muted]="!isFavorite()">
+      </lucide-icon>
+    </button>
+    }
+
+    @if (r.isCustom) {
+    <div class="absolute top-2 right-2 flex items-center gap-1.5 z-10">
+      <button type="button"
+        class="w-7 h-7 rounded-full flex items-center justify-center bg-app-surface/90 hover:bg-app-surface text-app-text shadow-sm border border-app-border/60 cursor-pointer active:scale-90 transition-all"
+        (click)="onEditClick(r, $event)" [title]="'recipeCard.editRecipe' | t:'Edytuj przepis'">
+        <lucide-icon name="pencil" [size]="13" class="text-app-text"></lucide-icon>
+      </button>
+
+      <button type="button"
+        class="w-7 h-7 rounded-full flex items-center justify-center bg-app-surface/90 hover:bg-rose-500/20 text-rose-500 shadow-sm border border-app-border/60 cursor-pointer active:scale-90 transition-all"
+        (click)="onDeleteClick(r, $event)" [title]="'recipeCard.deleteRecipe' | t:'Usuń przepis'">
+        <lucide-icon name="trash-2" [size]="13" class="text-rose-500"></lucide-icon>
+      </button>
+    </div>
+    }
+
+    <div
+      class="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded-full z-10 backdrop-blur-xs text-[9.5px] font-extrabold tracking-tight transition-colors shadow-2xs"
+      [class.bg-app-brand]="r.canBeCookedNow" [class.text-white]="r.canBeCookedNow"
+      [class.bg-amber-600/90]="!r.canBeCookedNow" [class.text-white]="!r.canBeCookedNow">
+      {{ r.matchPercentage }}{{ 'dashboard.badgeFromPantry' | t:'% ze spiżarni' }}
+    </div>
+  </div>
+
+  <div class="p-3 pt-2.5 flex flex-col flex-1 justify-between gap-1.5">
+    <h3 class="m-0 text-[13.5px] font-bold leading-[18px] text-app-text line-clamp-2" [title]="r.title">
+      {{ r.title }}
+    </h3>
+
+    <div class="flex items-center gap-2.5">
+      <div class="flex items-center gap-1">
+        <lucide-icon name="clock" [size]="12" class="text-app-muted shrink-0"></lucide-icon>
+        <span class="text-[10.5px] font-semibold text-app-muted">{{ r.prepTimeMinutes }} {{ 'common.min' | t:'min' }}</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <lucide-icon name="users" [size]="12" class="text-app-muted shrink-0"></lucide-icon>
+        <span class="text-[10.5px] font-semibold text-app-muted">{{ r.servings }} {{ 'common.servingsPlural' | t:'porcje' }}</span>
+      </div>
+    </div>
+
+    @if (!r.canBeCookedNow && r.missingIngredients.length > 0) {
+    <div
+      class="flex items-center justify-between bg-app-surface-variant hover:brightness-105 border border-app-border/40 py-1 px-1.5 pl-2 rounded-lg mt-0.5 cursor-pointer transition-colors"
+      (click)="onAddMissingClick($event)"
+      [title]="'recipeCard.addMissingTooltip' | t:'Dodaj brakujące do listy zakupów'">
+      <span class="text-[10px] font-bold text-rose-500">
+        {{ 'recipeCard.missingPrefix' | t:'Brakuje:' }} {{ r.missingIngredients.length }}
+      </span>
+      <div class="p-0.5 text-app-brand flex items-center justify-center">
+        <lucide-icon name="shopping-basket" [size]="14"></lucide-icon>
+      </div>
+    </div>
+    }
+  </div>
+
+</article>
+}

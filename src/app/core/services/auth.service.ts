@@ -11,14 +11,14 @@ export type {
   AuthMode,
   ResetPasswordDto,
   ForgotPasswordDto
-} from '../../features/auth/models/auth.models';
+} from '../../user/auth/models/auth.models';
 
 import { 
   LoginDto, 
   RegisterDto, 
   AuthResponseDto,
   ResetPasswordDto
-} from '../../features/auth/models/auth.models';
+} from '../../user/auth/models/auth.models';
 
 @Injectable({
   providedIn: 'root'

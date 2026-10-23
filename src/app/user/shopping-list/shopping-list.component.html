@@ -1,0 +1,188 @@
+<main class="block w-full min-h-screen bg-app-bg pt-[76px] pb-[180px] overflow-x-hidden transition-colors duration-200">
+  <div class="max-w-[560px] mx-auto px-4 flex flex-col gap-4">
+
+    <section class="flex items-center gap-2 w-full overflow-x-auto pb-1 scrollbar-none">
+      @for (list of userLists(); track list.id) {
+        <button 
+          type="button" 
+          class="h-[34px] px-4 rounded-full text-xs font-bold flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-all outline-none border cursor-pointer"
+          [class.bg-app-brand]="currentList()?.id === list.id"
+          [class.text-white]="currentList()?.id === list.id"
+          [class.border-app-brand]="currentList()?.id === list.id"
+          [class.shadow-xs]="currentList()?.id === list.id"
+          [class.bg-app-surface]="currentList()?.id !== list.id"
+          [class.text-app-text]="currentList()?.id !== list.id"
+          [class.border-app-border]="currentList()?.id !== list.id"
+          (click)="switchList(list)">
+          @if (currentList()?.id === list.id) {
+            <lucide-icon name="shopping-basket" [size]="14" class="text-white shrink-0"></lucide-icon>
+          }
+          <span>{{ list.name }}</span>
+        </button>
+      }
+
+      <button 
+        type="button" 
+        class="h-[34px] px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 whitespace-nowrap border border-dashed border-app-border bg-app-surface/60 text-app-muted hover:border-app-brand hover:text-app-brand active:scale-95 transition-all cursor-pointer"
+        (click)="openNewListModal()">
+        <lucide-icon name="plus" [size]="13" class="shrink-0"></lucide-icon>
+        <span>{{ 'shopping.newListBtn' | t:'Nowa lista' }}</span>
+      </button>
+    </section>
+
+    <app-catalog-search-bar 
+      (selectProduct)="onAddCatalog($event)" 
+      (createCustom)="onAddCustom($event)" />
+
+    <app-restock-suggestions 
+      [suggestions]="suggestions()" 
+      (add)="onAddSuggestion($event)" />
+
+    <section class="flex flex-col gap-3 w-full">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <h2 class="text-base font-bold text-app-text leading-6 m-0">
+            {{ 'shopping.itemsToBuy' | t:'Artykuły do kupienia' }}
+          </h2>
+          <span class="text-xs font-bold text-app-muted">
+            {{ totalCount() }} {{ 'shopping.itemsCountSuffix' | t:'pozycje' }}
+          </span>
+        </div>
+
+        <div class="options-menu-wrapper relative">
+          <button 
+            type="button" 
+            class="w-8 h-8 rounded-full border border-app-border bg-app-surface hover:bg-app-surface-variant text-app-muted hover:text-app-text flex items-center justify-center transition-colors cursor-pointer"
+            (click)="toggleOptionsMenu($event)" 
+            [title]="'shopping.moreOptionsTitle' | t:'Więcej opcji'">
+            <lucide-icon name="more-vertical" [size]="14"></lucide-icon>
+          </button>
+
+          @if (isOptionsMenuOpen()) {
+            <div class="absolute top-10 right-0 w-64 rounded-2xl bg-app-surface border border-app-border shadow-xl z-50 p-2 flex flex-col gap-1 animate-in fade-in zoom-in-95" (click)="$event.stopPropagation()">
+              <button type="button" class="flex items-center gap-3 p-2 rounded-xl text-left hover:bg-app-surface-variant active:scale-[0.98] transition-all cursor-pointer border-none bg-transparent w-full" (click)="shareList()">
+                <div class="w-8 h-8 rounded-lg bg-app-surface-variant flex items-center justify-center shrink-0">
+                  <lucide-icon name="share-2" [size]="15" class="text-app-text"></lucide-icon>
+                </div>
+                <div class="flex flex-col min-w-0">
+                  <span class="text-xs font-bold text-app-text">{{ 'shopping.shareTitle' | t:'Wyślij listę' }}</span>
+                  <span class="text-[10px] text-app-muted">{{ 'shopping.shareDesc' | t:'SMS lub WhatsApp' }}</span>
+                </div>
+              </button>
+
+              <button type="button" class="flex items-center gap-3 p-2 rounded-xl text-left hover:bg-app-surface-variant active:scale-[0.98] transition-all cursor-pointer border-none bg-transparent w-full" (click)="clearBoughtItems()">
+                <div class="w-8 h-8 rounded-lg bg-app-surface-variant flex items-center justify-center shrink-0">
+                  <lucide-icon name="check-circle-2" [size]="15" class="text-app-text"></lucide-icon>
+                </div>
+                <div class="flex flex-col min-w-0">
+                  <span class="text-xs font-bold text-app-text">{{ 'shopping.clearBoughtTitle' | t:'Wyczyść kupione' }}</span>
+                  <span class="text-[10px] text-app-muted">{{ 'shopping.clearBoughtDesc' | t:'Usuń odznaczone z listy' }}</span>
+                </div>
+              </button>
+
+              <button type="button" class="flex items-center gap-3 p-2 rounded-xl text-left hover:bg-rose-500/10 active:scale-[0.98] transition-all cursor-pointer border-none bg-transparent w-full" (click)="deleteCurrentList()">
+                <div class="w-8 h-8 rounded-lg bg-rose-500/15 flex items-center justify-center shrink-0">
+                  <lucide-icon name="trash-2" [size]="15" class="text-rose-600 dark:text-rose-400"></lucide-icon>
+                </div>
+                <div class="flex flex-col min-w-0">
+                  <span class="text-xs font-bold text-rose-600 dark:text-rose-400">{{ 'shopping.deleteListTitle' | t:'Usuń tę listę' }}</span>
+                  <span class="text-[10px] text-rose-500/80">{{ 'shopping.deleteListDesc' | t:'Skasuj całą listę' }}</span>
+                </div>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2.5 w-full">
+        @if (isLoading()) {
+          <div class="py-8 text-center text-xs text-app-muted animate-pulse">
+            {{ 'shopping.loading' | t:'Wczytywanie listy zakupów...' }}
+          </div>
+        } @else {
+          @for (item of items(); track item.id) {
+            <app-shopping-item-card 
+              [item]="item"
+              (toggle)="onToggleCheck($event)"
+              (changeQty)="onChangeQuantity(item.id, $event)"
+              (delete)="askRemoveItem(item)" />
+          } @empty {
+            <div class="text-center py-10 px-4 text-xs font-medium text-app-muted leading-relaxed">
+              {{ 'shopping.empty' | t:'Twoja lista zakupów jest pusta. Wpisz produkt u góry lub dodaj z sugerowanych!' }}
+            </div>
+          }
+        }
+      </div>
+    </section>
+
+  </div>
+
+  @if (checkedCount() > 0) {
+    <aside class="fixed bottom-[calc(90px+env(safe-area-inset-bottom,0px))] inset-x-4 max-w-[480px] mx-auto z-40 flex flex-col items-center gap-1.5 pointer-events-none animate-slide-up">
+      <button 
+        type="button" 
+        class="pointer-events-auto w-full h-12 rounded-full bg-app-brand hover:brightness-110 active:scale-98 text-white font-bold text-sm flex items-center justify-center gap-2 border-none shadow-lg cursor-pointer transition-all"
+        (click)="moveBoughtToPantry()">
+        <lucide-icon name="package" [size]="18" class="text-white shrink-0"></lucide-icon>
+        <span>{{ 'shopping.checkoutBtn' | t:'Schowaj zakupy do magazynu' }} ({{ checkedCount() }})</span>
+      </button>
+
+      <p class="pointer-events-auto text-[11px] font-semibold text-app-muted px-3 py-0.5 rounded-full bg-app-surface/90 border border-app-border/40 backdrop-blur-md shadow-2xs m-0">
+        {{ 'shopping.checkoutHint' | t:'Produkty automatycznie trafią na właściwe półki w Twoim magazynie.' }}
+      </p>
+    </aside>
+  }
+
+  @if (isNewListModalOpen()) {
+    <div class="fixed inset-0 bg-black/65 backdrop-blur-xs z-[120] flex items-center justify-center p-4 animate-in fade-in" (click)="closeNewListModal()">
+      <div class="bg-app-surface border border-app-border rounded-3xl p-6 max-w-sm w-full shadow-2xl flex flex-col gap-4 animate-in zoom-in-95" (click)="$event.stopPropagation()">
+        
+        <div class="flex flex-col gap-1">
+          <h3 class="text-lg font-bold text-app-text m-0">
+            {{ 'shopping.modalNewTitle' | t:'Nowa lista zakupów' }}
+          </h3>
+          <p class="text-xs text-app-muted font-medium m-0">
+            {{ 'shopping.modalNewDesc' | t:'Wpisz nazwę nowej listy, np. Biedronka, Grill, Impreza.' }}
+          </p>
+        </div>
+
+        <input 
+          type="text" 
+          class="w-full h-12 bg-app-surface-variant border border-app-border rounded-2xl px-4 text-sm font-semibold text-app-text outline-none focus:border-app-brand transition-colors"
+          [placeholder]="'shopping.modalNewPlaceholder' | t:'np. Tygodniowe zakupy'"
+          [value]="newListName()"
+          (input)="newListName.set($any($event.target).value)"
+          (keydown.enter)="confirmCreateList()"
+          autofocus
+        />
+
+        <div class="flex items-center gap-2 pt-1">
+          <button 
+            type="button" 
+            class="flex-1 h-11 rounded-full bg-app-surface-variant hover:brightness-95 text-app-text text-xs font-bold transition-all border border-app-border cursor-pointer" 
+            (click)="closeNewListModal()">
+            {{ 'shopping.modalCancel' | t:'Anuluj' }}
+          </button>
+          <button 
+            type="button" 
+            class="flex-1 h-11 rounded-full bg-app-brand hover:brightness-110 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer border-none" 
+            [disabled]="!newListName().trim()" 
+            (click)="confirmCreateList()">
+            {{ 'shopping.modalCreate' | t:'Stwórz i otwórz' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  @if (itemToDelete(); as item) {
+    <div class="relative z-[120]">
+      <app-confirm-delete-modal
+        [productName]="item.name"
+        [contextText]="'shopping.deleteContext' | t:'z listy zakupów'"
+        (cancel)="cancelDelete()"
+        (confirm)="confirmDelete()" />
+    </div>
+  }
+</main>

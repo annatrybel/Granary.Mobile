@@ -5,9 +5,17 @@ import { map } from 'rxjs/operators';
 import { AppDatabase, ProductItem } from '../db/app-database';
 import { NetworkService } from './network.service';
 import { environment } from '../../../environments/environment';
-import { CategoryDto } from '../../features/inventory/models/inventory.models';
+import { CategoryDto } from '../../user/inventory/models/inventory.models';
 import { TranslationService } from './translation.service';
 
+export interface ScannedProductDto {
+  name: string;
+  categoryName: string;
+  defaultUnit: string;
+  estimatedExpiryDays: number;
+  suggestedLocation: string;
+  imageUrl?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -22,12 +30,18 @@ export class PantryService {
   readonly products = signal<ProductItem[]>([]);
   readonly categories = signal<CategoryDto[]>([]);
 
+
   constructor() {
     this.loadInitialData();
 
+    let isFirst = true;
     effect(() => {
       const currentLang = this.translationService.currentLang();
       untracked(() => {
+        if (isFirst) {
+          isFirst = false;
+          return;
+        }
         if (this.network.isOnline()) {
           this.loadInitialData();
           this.loadCategories();
@@ -95,7 +109,6 @@ export class PantryService {
       updatedAt: Date.now()
     };
 
-
     await this.db.products.add(newProduct);
     this.products.update(items => [newProduct, ...items]);
 
@@ -113,7 +126,9 @@ export class PantryService {
       location: locationEnum,
       quantity: newProduct.quantity || 1,
       unit: newProduct.unit || 'szt.',
-      expirationDate: expiryFormatted
+      expirationDate: expiryFormatted,
+      customImageUrl: newProduct.imageUrl, 
+      imageUrl: newProduct.imageUrl
     };
 
     if (newProduct.catalogProductId) {
@@ -131,7 +146,7 @@ export class PantryService {
       });
     } else {
       this.http.post(this.apiUrl, backendDto).subscribe({
-        next: () => console.log('Zapisano pomyślnie w bazie PostgreSQL!'),
+        next: () => console.log('Zapisano pomyślnie ze zdjęciem w bazie PostgreSQL!'),
         error: async (err) => {
           console.error('Błąd wysyłki, dodano do syncQueue:', err);
           await this.db.syncQueue.add({
@@ -144,7 +159,6 @@ export class PantryService {
       });
     }
   }
-
 
   async updateProduct(
     id: string,
@@ -196,17 +210,19 @@ export class PantryService {
         quantity: updates.quantity,
         unit: updates.unit,
         expirationDate: updates.expirationDate,
-        customImageUrl: updates.customImageUrl,   
-        customCategoryId: updates.categoryId     
+        customImageUrl: updates.customImageUrl,
+        customCategoryId: updates.categoryId
       };
 
       this.http.put(`${this.apiUrl}/${id}`, backendDto).subscribe({
         next: (res: any) => {
-          console.log('Zaktualizowano produkt na backendzie!', res);
-          if (res?.data?.imageUrl) {
-            this.db.products.update(id, { imageUrl: res.data.imageUrl });
+          const serverItem = res?.data ?? res;
+          const newImageUrl = serverItem?.imageUrl;
+
+          if (newImageUrl) {
+            this.db.products.update(id, { imageUrl: newImageUrl });
             this.products.update(items =>
-              items.map(p => p.id === id ? { ...p, imageUrl: res.data.imageUrl } : p)
+              items.map(p => p.id === id ? { ...p, imageUrl: newImageUrl } : p)
             );
           }
         },
@@ -262,6 +278,15 @@ export class PantryService {
     return this.http.post<{ success: boolean; imageUrl: string; message?: string }>(
       `${environment.apiBaseUrl}/pantry/items/generate-product-image`,
       { name }
+    );
+  }
+
+  recognizeProductFromImage(file: File): Observable<ScannedProductDto> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    return this.http.post<any>(`${environment.apiBaseUrl}/catalog-products/recognize-image`, formData).pipe(
+      map(res => res?.data ?? res)
     );
   }
 }

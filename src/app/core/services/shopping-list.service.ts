@@ -11,7 +11,7 @@ import type {
   UpdateShoppingItemDto,
   BulkTransferToPantryDto,
   BulkTransferResultDto
-} from '../../features/shopping-list/models/shopping-list.models';
+} from '../../user/shopping-list/models/shopping-list.models';
 
 export type {
   ShoppingListDto,

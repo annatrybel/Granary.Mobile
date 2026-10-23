@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { UserProfileDto, UpdateProfileResponseDto } from '../../features/profile/models/profile.models';
+import { UserProfileDto, UpdateProfileResponseDto } from '../../user/profile/models/profile.models';
 
 export interface ContactMessageDto {
   name: string;
@@ -11,12 +11,60 @@ export interface ContactMessageDto {
   message: string;
 }
 
+export interface NotificationDto {
+  id: string;
+  pantryItemId?: string;
+  productName: string;
+  daysRemaining: number;
+  isRead: boolean;
+  createdAtUtc: string;
+}
+
+export interface SavePushSubscriptionDto {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ProfileService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiBaseUrl}/profile`; 
+  private readonly baseUrl = `${environment.apiBaseUrl}/profile`;
+
+  readonly notifications = signal<NotificationDto[]>([]);
+
+  readonly unreadCount = computed(() =>
+    this.notifications().filter(n => !n.isRead).length
+  );
+
+  loadNotifications(onlyUnread: boolean = true): void {
+    this.getNotifications(onlyUnread).subscribe({
+      next: (items) => this.notifications.set(items ?? []),
+      error: (err) => console.error('Błąd pobierania powiadomień:', err)
+    });
+  }
+
+  getNotifications(onlyUnread: boolean = true): Observable<NotificationDto[]> {
+    return this.http.get<NotificationDto[]>(`${this.baseUrl}/notifications?onlyUnread=${onlyUnread}`);
+  }
+
+  markNotificationAsRead(id: string): Observable<void> {
+    // Optymistycznie usuwamy z widoku
+    this.notifications.update(list => list.filter(n => n.id !== id));
+
+    return this.http.patch<void>(`${this.baseUrl}/notifications/${id}/read`, {});
+  }
+
+  savePushSubscription(dto: SavePushSubscriptionDto): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/push-subscription`, dto);
+  }
+  updateExpiryNotifications(enabled: boolean): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/notifications-settings`, {
+      expiryNotifications: enabled
+    });
+  }
 
   getProfile(): Observable<UserProfileDto> {
     return this.http.get<UserProfileDto>(`${this.baseUrl}/me`);
@@ -35,14 +83,14 @@ export class ProfileService {
   }
 
   inviteHouseholdMember(recipientEmail: string, pantryName: string): Observable<boolean> {
-    return this.http.post<boolean>(`${this.baseUrl}/invite-member`, { 
-      recipientEmail, 
-      pantryName 
+    return this.http.post<boolean>(`${this.baseUrl}/invite-member`, {
+      recipientEmail,
+      pantryName
     });
   }
 
   sendContactMessage(dto: ContactMessageDto): Observable<void> {
-    return this.http.post<void>(`${environment.apiBaseUrl}/contact`, dto);
+    return this.http.post<void>(`${this.baseUrl}/contact`, dto);
   }
 
   logout(): Observable<any> {
