@@ -1,0 +1,58 @@
+<article
+  class="bg-app-surface rounded-[20px] border overflow-hidden flex flex-col cursor-pointer shadow-sm active:scale-[0.98] transition-all h-full"
+  [class.border-app-brand]="isSelected()" [class.ring-1]="isSelected()" [class.ring-app-brand]="isSelected()"
+  [class.border-app-border]="!isSelected()" (click)="cardClick.emit(item())">
+
+  <div class="relative h-[120px] overflow-hidden p-2 flex justify-between items-start bg-app-surface-variant shrink-0">
+    <!-- POPRAWIONE: dodano | mediaUrl oraz referrerpolicy="no-referrer" -->
+    <img [src]="(item().imageUrl | mediaUrl) || '/icons/food-placeholder.svg'" referrerpolicy="no-referrer"
+      (error)="$any($event.target).onerror = null; $any($event.target).src = '/icons/food-placeholder.svg'"
+      [alt]="item().name" class="absolute inset-0 w-full h-full object-cover z-0" loading="lazy" />
+    <!-- Wskaźnik wyboru -->
+    <div
+      class="relative z-10 w-[22px] h-[22px] rounded-full flex items-center justify-center cursor-pointer transition-colors border-[1.5px]"
+      [class.bg-app-brand]="isSelected()" [class.border-app-brand]="isSelected()"
+      [class.bg-app-surface/90]="!isSelected()" [class.border-app-border]="!isSelected()" (click)="onSelect($event)">
+      @if (isSelected()) {
+      <lucide-icon name="check" [size]="12" class="text-white"></lucide-icon>
+      }
+    </div>
+
+    <!-- Pigułka dni ważności -->
+    <div class="relative z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-xs"
+      [class.bg-[#BA1A1A]/90]="(item().expiryDays ?? 0) <= 3" [class.text-white]="(item().expiryDays ?? 0) <= 3"
+      [class.bg-app-surface/90]="(item().expiryDays ?? 0) > 3" [class.text-app-text]="(item().expiryDays ?? 0) > 3">
+      <lucide-icon name="clock" [size]="11"></lucide-icon>
+      <span>{{ item().expiryDays ?? 0 }} {{ 'common.days' | t:'dni' }}</span>
+    </div>
+  </div>
+
+  <div class="p-2.5 pb-3 flex flex-col justify-between flex-1">
+    <div>
+      <h3 class="m-0 text-[13px] font-bold text-app-text truncate" [title]="item().name">
+        {{ item().name }}
+      </h3>
+      <span class="text-[11px] text-app-muted mt-0.5 mb-2 block">
+        @switch (item().locationName) {
+        @case ('Zamrażarka') { {{ 'inventory.locFreezer' | t:'Zamrażarka' }} }
+        @case ('Spiżarnia') { {{ 'inventory.locPantry' | t:'Spiżarnia' }} }
+        @default { {{ 'inventory.locFridge' | t:'Lodówka' }} }
+        }
+      </span>
+    </div>
+
+    <!-- Pigułka ilości z koszem -->
+    <div
+      class="flex items-center justify-between bg-app-surface-variant rounded-full py-0.5 pl-2.5 pr-1.5 mt-auto border border-app-border/40">
+      <span class="text-[11px] font-bold text-app-text">
+        {{ item().quantity }} {{ item().unit || ('common.unitPcs' | t:'szt.') }}
+      </span>
+      <button type="button"
+        class="bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-rose-500/15 active:scale-90 transition-all text-rose-500"
+        (click)="onDelete($event)" [title]="'inventoryCard.deleteTooltip' | t:'Usuń ze spiżarni'">
+        <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+      </button>
+    </div>
+  </div>
+
+</article>

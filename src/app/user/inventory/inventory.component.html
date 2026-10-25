@@ -1,0 +1,90 @@
+<main class="block w-full min-h-screen bg-app-bg pt-[86px] pb-[120px] transition-colors duration-200">
+  <div class="max-w-[600px] mx-auto flex flex-col gap-4">
+
+    <!-- Pasek wyszukiwania z aparatem AI -->
+    <div class="px-5 pt-2">
+      <app-catalog-search-bar [excludePantry]="true" (selectProduct)="onSelectSuggestion($event)"
+        (createCustom)="onAddCustomProduct($event)">
+
+        <!-- Przycisk aparatu: na telefonie odpala aparat, na PC wybór pliku -->
+        <label search-actions
+          class="flex w-[38px] h-[38px] justify-center items-center rounded-full bg-app-brand/15 hover:bg-app-brand/25 border-none cursor-pointer shrink-0 ml-1 active:scale-[0.92] transition-all"
+          [title]="'inventory.scanPhoto' | t:'Zrób zdjęcie produktu (AI)'">
+          
+          @if (isAnalyzingImage()) {
+            <span class="inline-block animate-spin border-2 border-app-brand border-t-transparent rounded-full w-4 h-4"></span>
+          } @else {
+            <lucide-icon name="camera" [size]="18" class="text-app-brand"></lucide-icon>
+          }
+          
+          <!-- TO JEST CAŁA MAGIA: capture="environment" uruchamia aparat telefonu -->
+          <input 
+            type="file" 
+            accept="image/*" 
+            class="hidden" 
+            [disabled]="isAnalyzingImage()" 
+            (change)="onPhotoCaptured($event)" 
+          />
+        </label>
+
+      </app-catalog-search-bar>
+    </div>
+
+    <!-- Pływający baner informacyjny tylko podczas analizy AI -->
+    @if (isAnalyzingImage()) {
+      <div class="mx-5 p-3 rounded-2xl bg-app-brand/15 border border-app-brand/30 flex items-center gap-3 animate-fade-in shadow-xs">
+        <lucide-icon name="sparkles" [size]="18" class="text-app-brand animate-pulse"></lucide-icon>
+        <div class="flex flex-col">
+          <span class="text-xs font-bold text-app-brand">Groq AI analizuje zdjęcie...</span>
+          <span class="text-[11px] text-app-muted">Identyfikuję produkt i szacuję termin ważności</span>
+        </div>
+      </div>
+    }
+
+    <!-- Pigułki lokalizacji -->
+    <div class="flex items-center gap-2 overflow-x-auto pt-0.5 pb-1 px-5 scrollbar-none">
+      @for (loc of locationFilters; track loc.key) {
+      <button type="button"
+        class="h-[34px] px-4 rounded-full border text-xs font-bold whitespace-nowrap cursor-pointer flex items-center justify-center shrink-0 active:scale-95 transition-all outline-none"
+        [class.bg-app-brand]="selectedLocation() === loc.key" [class.text-white]="selectedLocation() === loc.key"
+        [class.border-app-brand]="selectedLocation() === loc.key" [class.shadow-xs]="selectedLocation() === loc.key"
+        [class.bg-app-surface]="selectedLocation() !== loc.key" [class.text-app-text]="selectedLocation() !== loc.key"
+        [class.border-app-border]="selectedLocation() !== loc.key" (click)="setLocation(loc.key)">
+
+        @switch (loc.key) {
+        @case ('all') { {{ 'inventory.locAll' | t:'Wszystko' }} }
+        @case ('Lodówka') { {{ 'inventory.locFridge' | t:'Lodówka' }} }
+        @case ('Zamrażarka') { {{ 'inventory.locFreezer' | t:'Zamrażarka' }} }
+        @case ('Spiżarnia') { {{ 'inventory.locPantry' | t:'Spiżarnia' }} }
+        }
+      </button>
+      }
+    </div>
+
+    <!-- Siatka produktów -->
+    <section class="grid grid-cols-2 gap-3 px-5">
+      @for (item of filteredItems(); track item.id) {
+      <app-inventory-card [item]="item" [isSelected]="isSelected(item.id)" (cardClick)="openDetails($event)"
+        (toggleSelect)="toggleSelect(item.id)" (deleteClick)="askRemoveItem(item)" />
+      } @empty {
+      <div class="col-span-2 text-center py-10 px-5 text-[13px] text-app-muted leading-5">
+        {{ 'inventory.empty' | t:'Brak produktów w wybranej lokalizacji.' }}
+      </div>
+      }
+    </section>
+
+  </div>
+
+  @if (selectedCount() > 0) {
+  <app-inventory-recipe-bar [count]="selectedCount()" [names]="selectedNames()" (generate)="generateRecipe()" />
+  }
+
+  @if (productToDelete(); as item) {
+  <app-confirm-delete-modal [productName]="item.name" [contextText]="'inventory.deleteContext' | t:'ze spiżarni'"
+    (cancel)="cancelDelete()" (confirm)="confirmDelete()" />
+  }
+
+  @if (activeProductForDetails(); as product) {
+  <app-product-detail-sheet [product]="product" (closeSheet)="closeDetails()" (save)="onSaveProductDetails($event)" />
+  }
+</main>

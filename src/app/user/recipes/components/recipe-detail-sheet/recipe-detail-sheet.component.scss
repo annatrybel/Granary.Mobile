@@ -1,0 +1,42 @@
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 20, 16, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 90;
+}
+
+.sheet-fullscreen-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--app-bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  -webkit-overflow-scrolling: touch;
+  transition: background-color 0.2s ease;
+
+  ::ng-deep lucide-icon svg {
+    display: block;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}

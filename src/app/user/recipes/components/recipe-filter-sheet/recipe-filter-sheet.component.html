@@ -1,0 +1,117 @@
+<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+
+<div class="sheet-container animate-slide-up">
+  
+  <div class="flex flex-col items-center px-6 pt-4 pb-2 shrink-0">
+    <div class="w-12 h-1 bg-app-border rounded-full mb-3 shrink-0"></div>
+    <div class="w-full flex items-center justify-between">
+      <h2 class="text-xl font-bold text-app-text m-0">{{ 'recipeFilters.title' | t:'Filtry i sortowanie' }}</h2>
+      <button type="button" (click)="closeSheet.emit()" class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text flex items-center justify-center border-none cursor-pointer active:scale-95 transition-all">✕</button>
+    </div>
+  </div>
+
+  <div class="flex-1 min-h-0 overflow-y-auto px-6 py-2 pb-8 flex flex-col gap-5 overscroll-contain">
+
+    <!-- Sortowanie -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">{{ 'recipeFilters.sortBy' | t:'Sortuj według' }}</label>
+      <div class="grid grid-cols-2 gap-2.5">
+        @for (opt of sortOptions; track opt.id) {
+          <button 
+            type="button" 
+            class="p-3 rounded-xl border text-xs flex items-center justify-between cursor-pointer outline-none active:scale-[0.98] transition-all"
+            [class.bg-app-brand/15]="sortBy() === opt.id"
+            [class.border-app-brand]="sortBy() === opt.id"
+            [class.text-app-brand]="sortBy() === opt.id"
+            [class.font-bold]="sortBy() === opt.id"
+            [class.bg-app-surface-variant]="sortBy() !== opt.id"
+            [class.border-app-border]="sortBy() !== opt.id"
+            [class.text-app-text]="sortBy() !== opt.id"
+            [class.font-medium]="sortBy() !== opt.id"
+            (click)="sortBy.set(opt.id)">
+            <span class="truncate">{{ ('recipeFilters.sort' + (opt.id === 'match' ? 'Match' : opt.id === 'time' ? 'Time' : opt.id === 'calories' ? 'Calories' : 'Rating')) | t:opt.label }}</span>
+            @if (sortBy() === opt.id) { <span>✓</span> }
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Czas -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">{{ 'recipeFilters.maxTime' | t:'Maksymalny czas' }}</label>
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        @for (t of timeOptions; track t.label) {
+          <button 
+            type="button" 
+            class="h-[34px] px-4 rounded-full border text-xs whitespace-nowrap cursor-pointer flex items-center justify-center outline-none active:scale-95 transition-all"
+            [class.bg-app-brand]="maxTime() === t.val"
+            [class.text-white]="maxTime() === t.val"
+            [class.border-app-brand]="maxTime() === t.val"
+            [class.font-bold]="maxTime() === t.val"
+            [class.shadow-xs]="maxTime() === t.val"
+            [class.bg-app-surface-variant]="maxTime() !== t.val"
+            [class.text-app-text]="maxTime() !== t.val"
+            [class.border-app-border]="maxTime() !== t.val"
+            (click)="maxTime.set(t.val)">
+            {{ ('recipeFilters.time' + (t.val === 15 ? '15' : t.val === 30 ? '30' : t.val === 45 ? '45' : 'Any')) | t:t.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Posiłek -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">{{ 'recipeFilters.mealType' | t:'Posiłek' }}</label>
+      <div class="flex flex-wrap gap-2">
+        @for (m of mealOptions; track m) {
+          <button 
+            type="button" 
+            class="h-[34px] px-4 rounded-full border text-xs whitespace-nowrap cursor-pointer flex items-center justify-center outline-none active:scale-95 transition-all"
+            [class.bg-app-brand]="mealType() === m"
+            [class.text-white]="mealType() === m"
+            [class.border-app-brand]="mealType() === m"
+            [class.font-bold]="mealType() === m"
+            [class.bg-app-surface-variant]="mealType() !== m"
+            [class.text-app-text]="mealType() !== m"
+            [class.border-app-border]="mealType() !== m"
+            (click)="setMealType(m)">
+            {{ ('category.' + (m === 'Obiad' ? 'lunch' : m === 'Śniadanie' ? 'breakfast' : m === 'Kolacja' ? 'dinner' : 'snack')) | t:m }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Preferencje i diety -->
+    <div class="flex flex-col gap-2">
+      <label class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px]">{{ 'recipeFilters.diets' | t:'Preferencje i diety' }}</label>
+      <div class="flex flex-wrap gap-2">
+        @for (d of dietOptions; track d) {
+          <button 
+            type="button" 
+            class="h-[34px] px-4 rounded-full border text-xs whitespace-nowrap cursor-pointer flex items-center justify-center outline-none active:scale-95 transition-all"
+            [class.bg-app-brand]="diet() === d"
+            [class.text-white]="diet() === d"
+            [class.border-app-brand]="diet() === d"
+            [class.font-bold]="diet() === d"
+            [class.bg-app-surface-variant]="diet() !== d"
+            [class.text-app-text]="diet() !== d"
+            [class.border-app-border]="diet() !== d"
+            (click)="setDiet(d)">
+            {{ ('diet.' + (d === 'Bez glutenu' ? 'glutenFree' : d === 'Bez laktozy' ? 'lactoseFree' : d === 'Wegańskie' ? 'vegan' : 'vegetarian')) | t:d }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-4 pt-2">
+      <button type="button" class="bg-transparent border-none text-app-muted hover:text-app-text text-[13px] font-semibold cursor-pointer py-2 px-1 transition-colors" (click)="onReset()">
+        {{ 'recipeFilters.reset' | t:'Wyczyść filtry' }}
+      </button>
+      <button type="button" (click)="onApply()" class="flex-1 h-12 bg-app-brand hover:brightness-110 text-white text-sm font-bold rounded-full border-none shadow-sm flex items-center justify-center cursor-pointer active:scale-[0.98] transition-all">
+        {{ 'recipeFilters.apply' | t:'Pokaż przepisy' }}
+      </button>
+    </div>
+
+  </div>
+
+</div>

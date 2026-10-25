@@ -1,0 +1,51 @@
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 20, 16, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 90;
+}
+
+.sheet-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 520px;
+  margin: 0 auto;
+  background: var(--app-surface); /* <-- ZASTĄPIONO SZTYWNY BIAŁY */
+  border-top: 1px solid var(--app-border);
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.25);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  max-height: 88dvh;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: background-color 0.2s ease;
+
+  ::ng-deep lucide-icon svg {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}

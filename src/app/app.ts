@@ -1,27 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
-import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
-import { filter } from 'rxjs/operators';
-import { HeaderComponent } from './layout/header.component';
-import { BottomNavComponent } from './layout/bottom-nav.component';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, BottomNavComponent],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
+  imports: [RouterOutlet],
+  templateUrl: './app.html'
 })
-export class App {
-  private router = inject(Router);
-
-  showNavigation = signal<boolean>(false);
-
-  constructor() {
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
-    ).subscribe((event: NavigationEnd) => {
-      const currentUrl = event.urlAfterRedirects || event.url;
-      this.showNavigation.set(!currentUrl.includes('/auth'));
-    });
-  }
-}
+export class App {}

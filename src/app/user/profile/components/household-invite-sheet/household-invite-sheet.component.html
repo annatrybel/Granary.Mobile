@@ -1,0 +1,135 @@
+<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+
+<div class="sheet-container animate-slide-up" (click)="$event.stopPropagation()">
+ 
+  <div class="w-12 h-1 bg-app-border rounded-full mx-auto mb-2 shrink-0"></div>
+
+  <!-- Nagłówek -->
+  <div class="flex items-center justify-between w-full">
+    <h2 class="m-0 text-xl font-bold text-app-text tracking-tight">
+      {{ 'householdInvite.title' | t:'Zaproś do spiżarni' }}
+    </h2>
+
+    <button 
+      type="button" 
+      class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border flex items-center justify-center border border-app-border/50 cursor-pointer active:scale-95 transition-all text-app-muted hover:text-app-text" 
+      (click)="closeSheet.emit()"
+      [attr.aria-label]="'common.close' | t:'Zamknij'">
+      <lucide-icon name="x" [size]="14"></lucide-icon>
+    </button>
+  </div>
+
+  <p class="text-xs text-app-muted font-medium -mt-2 mb-1">
+    {{ 'householdInvite.subtitle' | t:'Wspólnie zarządzajcie produktami i listą zakupów' }}
+  </p>
+
+  <!-- Karta z linkiem do kopiowania -->
+  <div class="p-3.5 flex flex-col gap-2.5 rounded-2xl border border-app-border bg-app-surface-variant/40">
+    <div class="flex items-center gap-1.5 text-xs font-bold text-app-text">
+      <lucide-icon name="link-2" [size]="14" class="text-app-brand"></lucide-icon>
+      <span>{{ 'householdInvite.linkTitle' | t:'Link zaproszenia' }}</span>
+    </div>
+
+    <div class="flex p-1.5 pl-3 items-center justify-between gap-2 rounded-xl border border-app-border bg-app-surface">
+      <span class="text-app-text font-mono text-[11px] truncate">{{ inviteUrl() }}</span>
+
+      <button 
+        type="button" 
+        class="px-3.5 py-2 rounded-lg bg-app-brand hover:brightness-110 active:scale-95 text-white text-[11px] font-bold border-none cursor-pointer flex items-center gap-1.5 shrink-0 transition-all shadow-2xs" 
+        (click)="copyLink()">
+        <lucide-icon [name]="isCopied() ? 'check' : 'copy'" [size]="12" class="text-white"></lucide-icon>
+        <span>{{ (isCopied() ? 'householdInvite.copiedBtn' : 'householdInvite.copyBtn') | t:(isCopied() ? 'Skopiowano' : 'Kopiuj') }}</span>
+      </button>
+    </div>
+
+    <p class="m-0 text-app-muted text-[11px] font-medium leading-relaxed">
+      {{ 'householdInvite.linkDesc' | t:'Każdy, kto otworzy link, zyska natychmiastowy dostęp do Twoich zapasów.' }}
+    </p>
+  </div>
+
+  <!-- Karta QR Kod -->
+  <div class="p-4 flex flex-col items-center gap-2 rounded-2xl border border-app-border bg-app-surface-variant/40">
+    <div class="w-32 h-32 flex items-center justify-center bg-white p-2 rounded-xl shadow-2xs border border-app-border/40">
+      @if (qrCodeUrl()) {
+        <img [src]="qrCodeUrl()" [alt]="'householdInvite.qrAlt' | t:'Kod QR zaproszenia'" class="w-full h-full object-contain" />
+      } @else {
+        <div class="w-full h-full bg-neutral-100 animate-pulse rounded-lg"></div>
+      }
+    </div>
+    <span class="text-app-muted text-center text-xs font-medium">
+      {{ 'householdInvite.qrScanPrompt' | t:'Lub daj zeskanować kod QR drugim telefonem' }}
+    </span>
+  </div>
+
+  <!-- Członkowie gospodarstwa -->
+  <div class="flex flex-col gap-2">
+    <div class="flex justify-between items-center px-1">
+      <span class="text-app-muted text-xs font-bold uppercase tracking-wider">
+        {{ 'householdInvite.currentMembers' | t:'AKTUALNI CZŁONKOWIE' }} ({{ members().length }})
+      </span>
+      <span class="text-app-brand text-[11px] font-semibold">
+        {{ 'householdInvite.synced' | t:'Zsynchronizowano' }}
+      </span>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      @for (member of members(); track member.id) {
+        <div class="flex p-3 justify-between items-center rounded-xl border border-app-border bg-app-surface shadow-2xs">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-full bg-app-brand/15 text-app-brand flex items-center justify-center text-xs font-bold shrink-0">
+              <span>{{ member.initials }}</span>
+            </div>
+            
+            <div class="flex flex-col min-w-0">
+              <span class="text-app-text text-xs font-bold truncate">{{ member.name }}</span>
+              <span class="text-app-muted text-[11px] font-medium truncate">{{ member.email }}</span>
+            </div>
+          </div>
+
+          <div class="shrink-0 ml-2">
+            @if (member.isOwner) {
+              <div class="px-2.5 py-1 rounded-full border border-app-brand/30 bg-app-brand/15 text-app-brand text-[11px] font-bold">
+                <span>{{ 'householdInvite.roleOwner' | t:'Ty (Właściciel)' }}</span>
+              </div>
+            } @else {
+              <button 
+                type="button" 
+                class="w-8 h-8 rounded-full bg-transparent hover:bg-rose-500/10 flex items-center justify-center border-none cursor-pointer transition-colors text-app-muted hover:text-rose-500 active:scale-90" 
+                (click)="askRemoveMember(member)" 
+                [title]="'householdInvite.removeMemberTooltip' | t:'Usuń ze spiżarni'">
+                <lucide-icon name="minus-circle" [size]="16"></lucide-icon>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (members().length <= 1) {
+        <p class="text-center text-xs text-app-muted py-2 m-0 leading-relaxed">
+          {{ 'householdInvite.singleMemberHint' | t:'Nie masz jeszcze podłączonych innych domowników. Prześlij im powyższy link lub pozwól zeskanować kod QR!' }}
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="pt-2 pb-safe">
+    <button 
+      type="button" 
+      class="w-full py-3.5 px-4 rounded-xl bg-app-brand hover:brightness-110 active:scale-[0.98] text-white text-xs font-bold border-none cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2" 
+      (click)="shareViaApps()">
+      <lucide-icon name="share-2" [size]="14" class="text-white"></lucide-icon>
+      <span>{{ 'householdInvite.shareBtn' | t:'Udostępnij przez inne aplikacje...' }}</span>
+    </button>
+  </div>
+
+</div>
+
+@if (memberToRemove(); as member) {
+  <div class="relative z-[120]">
+    <app-confirm-delete-modal
+      [productName]="member.name"
+      [contextText]="'householdInvite.deleteContext' | t:'z gospodarstwa domowego'"
+      (cancel)="cancelRemoveMember()"
+      (confirm)="confirmRemoveMember()" />
+  </div>
+}

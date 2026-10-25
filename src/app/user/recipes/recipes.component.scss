@@ -1,0 +1,29 @@
+.pill-icon {
+  width: 13px !important;
+  height: 13px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ::ng-deep svg {
+    width: 13px !important;
+    height: 13px !important;
+    stroke-width: 2.2px;
+    display: block;
+  }
+}
+
+lucide-icon[name="heart"].pill-icon ::ng-deep svg {
+  fill: currentColor;
+}
+
+.banner-plus-icon ::ng-deep svg {
+  stroke: #FFFFFF;
+  stroke-width: 2.5px;
+}
+
+.banner-arrow-icon ::ng-deep svg {
+  stroke: var(--app-text-muted);
+  stroke-width: 2.2px;
+}

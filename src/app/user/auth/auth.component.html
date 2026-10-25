@@ -1,0 +1,189 @@
+<main class="bg-app-bg text-app-text min-h-screen w-full flex flex-col justify-between pt-safe pb-safe px-4 py-6 transition-colors duration-200">
+  
+  <div class="w-full max-w-md mx-auto flex flex-col gap-4 my-auto">
+    
+    <!-- 1. NAGŁÓWEK -->
+    <header class="text-center pt-2">
+      <div class="w-14 h-14 rounded-2xl bg-app-brand/15 text-app-brand flex items-center justify-center mx-auto shadow-2xs">
+        <lucide-icon name="refrigerator" [size]="28" class="text-app-brand"></lucide-icon>
+      </div>
+      <h1 class="text-2xl font-extrabold text-app-text tracking-tight text-center mt-3">
+        {{ 'auth.title' | t:'Witaj w Smart Pantry' }}
+      </h1>
+      <p class="text-xs text-app-muted font-medium text-center mt-1">
+        {{ 'auth.subtitle' | t:'Twoja domowa spiżarnia i kuchnia w pełnej harmonii' }}
+      </p>
+    </header>
+
+    <!-- 2. PRZEŁĄCZNIK: LOGOWANIE / REJESTRACJA -->
+    <div class="bg-app-surface-variant p-1 rounded-full flex items-center max-w-[320px] w-full mx-auto border border-app-border/40">
+      <button 
+        type="button" 
+        (click)="setMode('login')"
+        [class.bg-app-surface]="mode() === 'login'"
+        [class.text-app-text]="mode() === 'login'"
+        [class.font-bold]="mode() === 'login'"
+        [class.shadow-xs]="mode() === 'login'"
+        [class.text-app-muted]="mode() !== 'login'"
+        class="flex-1 py-2 rounded-full text-xs text-center transition-all cursor-pointer border-none outline-none">
+        {{ 'auth.tabLogin' | t:'Zaloguj się' }}
+      </button>
+      
+      <button 
+        type="button" 
+        (click)="setMode('register')"
+        [class.bg-app-surface]="mode() === 'register'"
+        [class.text-app-text]="mode() === 'register'"
+        [class.font-bold]="mode() === 'register'"
+        [class.shadow-xs]="mode() === 'register'"
+        [class.text-app-muted]="mode() !== 'register'"
+        class="flex-1 py-2 rounded-full text-xs text-center transition-all cursor-pointer border-none outline-none">
+        {{ 'auth.tabRegister' | t:'Utwórz konto' }}
+      </button>
+    </div>
+
+    <!-- 3. KARTA FORMULARZA -->
+    <div class="bg-app-surface backdrop-blur-xl border border-app-border rounded-[28px] p-6 shadow-xl flex flex-col gap-4">
+      
+      @if (errorMessage()) {
+        <div class="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
+          <lucide-icon name="alert-circle" [size]="16" class="shrink-0"></lucide-icon>
+          <span class="flex-1 leading-snug">{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); onSubmit()">
+        
+        <!-- Pole: Imię -->
+        @if (mode() === 'register') {
+          <div class="flex flex-col gap-1.5 animate-in fade-in duration-200">
+            <label class="text-xs font-bold text-app-text flex items-center gap-1.5">
+              <lucide-icon name="user" [size]="15" class="text-app-brand"></lucide-icon>
+              {{ 'auth.nameLabel' | t:'Twoje imię' }}
+            </label>
+            <div class="h-[52px] bg-app-surface-variant border border-app-border rounded-2xl px-4 flex items-center focus-within:border-app-brand transition-colors">
+              <input 
+                type="text" 
+                [value]="name()" 
+                (input)="name.set($any($event.target).value)"
+                placeholder="np. Anna" 
+                class="w-full bg-transparent border-none text-sm text-app-text placeholder:text-app-muted font-medium outline-none" 
+                required
+              />
+            </div>
+          </div>
+        }
+
+        <!-- Pole: E-mail -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-app-text flex items-center gap-1.5">
+            <lucide-icon name="mail" [size]="15" class="text-app-brand"></lucide-icon>
+            {{ 'auth.emailLabel' | t:'Adres e-mail' }}
+          </label>
+          <div class="h-[52px] bg-app-surface-variant border border-app-border rounded-2xl px-4 flex items-center focus-within:border-app-brand transition-colors">
+            <input 
+              type="email" 
+              [value]="email()" 
+              (input)="email.set($any($event.target).value)"
+              placeholder="np. anna.kowalska@email.com" 
+              class="w-full bg-transparent border-none text-sm text-app-text placeholder:text-app-muted font-medium outline-none" 
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Pole: Hasło -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-app-text flex items-center gap-1.5">
+            <lucide-icon name="lock" [size]="15" class="text-app-brand"></lucide-icon>
+            {{ 'auth.passwordLabel' | t:'Hasło' }}
+          </label>
+          <div class="h-[52px] bg-app-surface-variant border border-app-border rounded-2xl px-4 flex items-center justify-between focus-within:border-app-brand transition-colors">
+            <input 
+              [type]="showPassword() ? 'text' : 'password'" 
+              [value]="password()" 
+              (input)="password.set($any($event.target).value)"
+              [placeholder]="'auth.passwordPlaceholder' | t:'Wpisz swoje hasło'" 
+              class="w-full bg-transparent border-none text-sm text-app-text placeholder:text-app-muted font-medium outline-none pr-2" 
+              required
+            />
+            <button 
+              type="button" 
+              (click)="togglePasswordVisibility()"
+              aria-label="Pokaż lub ukryj hasło" 
+              class="text-app-muted hover:text-app-text p-1 flex items-center justify-center transition-colors cursor-pointer border-none bg-transparent">
+              <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Opcje pomocnicze -->
+        <div class="flex items-center justify-between pt-0.5">
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-app-muted select-none">
+            <input 
+              type="checkbox" 
+              [checked]="rememberMe()" 
+              (change)="rememberMe.set($any($event.target).checked)"
+              class="w-4 h-4 rounded text-app-brand accent-app-brand border-app-border cursor-pointer" 
+            />
+            <span>{{ 'auth.rememberMe' | t:'Zapamiętaj mnie' }}</span>
+          </label>
+
+          @if (mode() === 'login') {
+            <button type="button" (click)="openForgotPassword()" class="text-xs font-bold text-app-brand hover:underline cursor-pointer bg-transparent border-none p-0">
+              {{ 'auth.forgotPassword' | t:'Nie pamiętasz hasła?' }}
+            </button>
+          }
+        </div>
+
+        <!-- Przycisk logowania / rejestracji -->
+        <button 
+          type="submit" 
+          [disabled]="isLoading()"
+          class="w-full h-[52px] bg-app-brand hover:brightness-110 active:scale-[0.98] text-white rounded-full font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all mt-1 cursor-pointer border-none disabled:opacity-70 disabled:cursor-not-allowed">
+          
+          @if (!isLoading()) {
+            <lucide-icon [name]="mode() === 'login' ? 'log-in' : 'user-plus'" [size]="16"></lucide-icon>
+            <span>
+              {{ (mode() === 'login' ? 'auth.btnLoginSubmit' : 'auth.btnRegisterSubmit') | t:(mode() === 'login' ? 'Zaloguj się do spiżarni' : 'Utwórz konto w spiżarni') }}
+            </span>
+          } @else {
+            <span class="inline-block animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
+            <span>{{ 'auth.processing' | t:'Przetwarzanie...' }}</span>
+          }
+        </button>
+      </form>
+
+      <div class="flex items-center gap-3 my-1">
+        <div class="h-px bg-app-border flex-1"></div>
+        <span class="text-[11px] font-medium text-app-muted uppercase tracking-wider">{{ 'auth.orContinueWith' | t:'lub kontynuuj przez' }}</span>
+        <div class="h-px bg-app-border flex-1"></div>
+      </div>
+
+      <!-- Przycisk Google -->
+      <button 
+        type="button" 
+        (click)="loginWithGoogle()"
+        class="w-full h-12 bg-app-surface-variant hover:brightness-105 border border-app-border rounded-2xl flex items-center justify-center gap-2.5 text-xs font-bold text-app-text active:scale-[0.98] shadow-2xs transition-all cursor-pointer">
+        <span class="font-extrabold text-app-brand text-sm leading-none">G</span>
+        <span>{{ 'auth.google' | t:'Kontynuuj z kontem Google' }}</span>
+      </button>
+
+    </div>
+
+    <!-- 4. STOPKA -->
+    <footer class="text-center pt-1 pb-2">
+      <p class="text-center text-[11px] text-app-muted font-medium leading-relaxed max-w-xs mx-auto m-0">
+        {{ 'auth.footerText' | t:'Logując się, zyskujesz bezpieczny dostęp do swojego konta domowego. Przeczytaj naszą' }} 
+        <a routerLink="/polityka-prywatnosci" class="text-app-brand underline font-bold">{{ 'auth.privacyPolicy' | t:'Politykę prywatności' }}</a>.
+      </p>
+    </footer>
+
+  </div>
+
+  @if (isForgotPasswordOpen()) {
+    <app-forgot-password-modal 
+      [initialEmail]="email()" 
+      (closeModal)="closeForgotPassword()" />
+  }
+</main>
