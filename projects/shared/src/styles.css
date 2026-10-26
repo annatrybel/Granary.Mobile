@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@source "../../admin-app/src";
+@source "../../user-app/src";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-app-bg: var(--app-bg);
+  --color-app-surface: var(--app-surface);
+  --color-app-surface-variant: var(--app-surface-variant);
+  --color-app-border: var(--app-border);
+  --color-app-text: var(--app-text);
+  --color-app-muted: var(--app-text-muted);
+  --color-app-brand: var(--app-brand);
+}
+
+:root {
+  --app-bg: #FAF9F5;
+  --app-surface: #FFFFFF;
+  --app-surface-variant: #F3F1EB;
+  --app-border: rgba(229, 229, 229, 0.9);
+  --app-text: #171717;
+  --app-text-muted: #737373;
+  --app-brand: #536500;
+}
+
+.dark {
+  --app-bg: #22251E;
+  --app-surface: #2D3128;
+  --app-surface-variant: #383D32;
+  --app-border: rgba(255, 255, 255, 0.12);
+  --app-text: #F7F8F4;
+  --app-text-muted: #B4B8AA;
+  --app-brand: #9DC400;
+}
+
+body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}

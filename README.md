@@ -1,59 +1,44 @@
-# GranaryMobile
+# Granary
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.20.
+Angular workspace with two independently deployable applications and a shared
+workspace library:
 
-## Development server
+- `projects/admin-app` — administration panel
+- `projects/user-app` — user-facing application
+- `projects/shared` — services, models, components, and utilities used by both
 
-To start a local development server, run:
+## Local development
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+The local API proxy forwards `/api`, `/uploads`, and `/images` to
+`https://localhost:7290`. Start the local backend on that address before
+starting the frontend.
 
 ```bash
-ng generate component component-name
+npm run start:user
+npm run start:admin
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Production builds
 
 ```bash
-ng generate --help
+npm run build:user
+npm run build:admin
+npm run build
 ```
 
-## Building
+The individual outputs are `dist/user-app/browser` and
+`dist/admin-app/browser`.
 
-To build the project run:
+## Vercel
 
-```bash
-ng build
-```
+Create one Vercel project for each app, using the repository root as the root
+directory. Set the build command and output directory as follows:
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+| App | Build command | Output directory |
+| --- | --- | --- |
+| User | `npm run build:user` | `dist/user-app/browser` |
+| Admin | `npm run build:admin` | `dist/admin-app/browser` |
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+`vercel.json` forwards `/api`, `/uploads`, and `/images` to
+`https://granary-api.onrender.com`; it also provides the SPA fallback for each
+deployment.

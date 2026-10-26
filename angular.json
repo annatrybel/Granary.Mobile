@@ -7,30 +7,93 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "Granary.Mobile": {
+    "admin-app": {
       "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "root": "",
-      "sourceRoot": "src",
+      "schematics": {},
+      "root": "projects/admin-app",
+      "sourceRoot": "projects/admin-app/src",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "browser": "src/main.ts",
-            "tsConfig": "tsconfig.app.json",
-            "inlineStyleLanguage": "scss",
+            "browser": "projects/admin-app/src/main.ts",
+            "tsConfig": "projects/admin-app/tsconfig.app.json",
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "projects/shared/assets"
               }
             ],
-            "styles": ["src/tailwind.css", "src/styles.scss"]
+            "styles": ["projects/shared/src/styles.css"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "admin-app:build:production"
+            },
+            "development": {
+              "buildTarget": "admin-app:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
+        }
+      }
+    },
+    "user-app": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "projects/user-app",
+      "sourceRoot": "projects/user-app/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/user-app/src/main.ts",
+            "tsConfig": "projects/user-app/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/shared/assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "projects/user-app/public"
+              }
+            ],
+            "styles": ["projects/shared/src/styles.css"]
           },
           "configurations": {
             "production": {
@@ -64,16 +127,42 @@
           },
           "configurations": {
             "production": {
-              "buildTarget": "Granary.Mobile:build:production"
+              "buildTarget": "user-app:build:production"
             },
             "development": {
-              "buildTarget": "Granary.Mobile:build:development"
+              "buildTarget": "user-app:build:development"
             }
           },
           "defaultConfiguration": "development"
         },
         "test": {
           "builder": "@angular/build:unit-test"
+        }
+      }
+    },
+    "shared": {
+      "projectType": "library",
+      "root": "projects/shared",
+      "sourceRoot": "projects/shared/src",
+      "prefix": "granary",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/shared/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/shared/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/shared/tsconfig.spec.json"
+          }
         }
       }
     }

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const SRC_DIR = path.resolve('src/app');
+const SRC_DIR = path.resolve('projects');
 const API_URL = process.env.API_URL || 'http://localhost:5000/api/translations/sync-catalog';
 const API_SECRET = process.env.DEPLOY_SECRET || ''; 
 
