@@ -15,7 +15,11 @@ export const USER_ROUTES: Routes = [
   },
   {
     path: 'login',
-    redirectTo: 'auth'
+    loadComponent: () => import('./auth/auth.component').then(m => m.AuthComponent)
+  },
+  {
+    path: 'login-success',
+    loadComponent: () => import('./auth/auth.component').then(m => m.AuthComponent)
   },
   {
     path: 'profil',
