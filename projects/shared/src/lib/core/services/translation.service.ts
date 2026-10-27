@@ -4,6 +4,11 @@ import { API_BASE_URL } from '../tokens/api-base-url.token';
 import { LanguageDto } from '../models/language.models';
 import { ProfileService } from './profile.service';
 
+const FALLBACK_LANGUAGES: LanguageDto[] = [
+  { id: 'pl', code: 'pl', name: 'Polski', flagEmoji: '🇵🇱', isDefault: true },
+  { id: 'en', code: 'en', name: 'English', flagEmoji: '🇬🇧', isDefault: false }
+];
+
 @Injectable({
   providedIn: 'root'
 })
@@ -64,10 +69,45 @@ export class TranslationService {
   }
 
   fetchLanguages(): void {
-    this.http.get<LanguageDto[]>(`${this.apiBaseUrl}/languages`).subscribe({
-      next: (langs: LanguageDto[]) => this.availableLanguages.set(langs || []),
-      error: (err: unknown) => console.warn('Błąd pobierania listy języków:', err)
+    this.http.get<unknown>(`${this.apiBaseUrl}/languages`).subscribe({
+      next: response => {
+        const languages = this.extractLanguages(response);
+        this.availableLanguages.set(languages.length > 0 ? languages : FALLBACK_LANGUAGES);
+      },
+      error: (err: unknown) => {
+        console.warn('Błąd pobierania listy języków:', err);
+        this.availableLanguages.set(FALLBACK_LANGUAGES);
+      }
     });
+  }
+
+  private extractLanguages(response: unknown): LanguageDto[] {
+    let payload = response;
+    if (!Array.isArray(payload) && typeof payload === 'object' && payload !== null) {
+      const envelope = payload as {
+        data?: unknown;
+        result?: unknown;
+        items?: unknown;
+        languages?: unknown;
+      };
+      payload = envelope.data ?? envelope.result ?? envelope.items ?? envelope.languages;
+      if (typeof payload === 'object' && payload !== null && !Array.isArray(payload)) {
+        const nested = payload as { items?: unknown; languages?: unknown };
+        payload = nested.items ?? nested.languages;
+      }
+    }
+
+    if (!Array.isArray(payload)) return [];
+
+    return payload.filter((language): language is LanguageDto =>
+      typeof language === 'object' &&
+      language !== null &&
+      typeof language.id === 'string' &&
+      typeof language.code === 'string' &&
+      typeof language.name === 'string' &&
+      typeof language.flagEmoji === 'string' &&
+      typeof language.isDefault === 'boolean'
+    );
   }
 
   private getInitialLang(): string {

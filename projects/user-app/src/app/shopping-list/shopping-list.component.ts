@@ -12,10 +12,11 @@ import {
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 
-import { ShoppingListService } from '@granary/user-app/core/services/shopping-list.service';
-import { PantryService } from '@granary/user-app/core/services/pantry.service';
+import { ShoppingListService } from '../core/services/shopping-list.service';
+import { PantryService } from '../core/services/pantry.service';
+import { SyncService } from '../core/services/sync.service';
 import { TranslationService } from '@granary/shared';
-import { ProductItem } from '@granary/user-app/core/db/app-database';
+import { ProductItem } from '../core/db/app-database';
 import { 
   ShoppingListItem, 
   RestockSuggestion, 
@@ -25,7 +26,7 @@ import {
 } from '@granary/shared';
 
 import { ConfirmDeleteModalComponent } from '@granary/shared';
-import { CatalogSearchBarComponent } from '@granary/shared';
+import { CatalogSearchBarComponent } from '../shared/components/catalog-search-bar/catalog-search-bar.component';
 import { RestockSuggestionsComponent } from './components/restock-suggestions/restock-suggestions.component';
 import { ShoppingItemCardComponent } from './components/shopping-item-card/shopping-item-card.component';
 import { TranslatePipe } from '@granary/shared';
@@ -49,9 +50,11 @@ import { TranslatePipe } from '@granary/shared';
 export class ShoppingListComponent implements OnInit {
   private shoppingService = inject(ShoppingListService);
   private pantryService = inject(PantryService);
+  private syncService = inject(SyncService);
   protected translationService = inject(TranslationService);
 
   private isFirstLangRun = true;
+  private isFirstSyncRun = true;
 
   isLoading = signal<boolean>(true);
   userLists = signal<ShoppingListDto[]>([]);
@@ -103,6 +106,21 @@ export class ShoppingListComponent implements OnInit {
         } else {
           this.loadLists();
         }
+      });
+    });
+
+    // Po wysłaniu zmian zapisanych offline lokalne ID mogły zostać zastąpione serwerowymi.
+    effect(() => {
+      this.syncService.syncVersion();
+      untracked(() => {
+        if (this.isFirstSyncRun) {
+          this.isFirstSyncRun = false;
+          return;
+        }
+
+        const cur = this.currentList();
+        this.shoppingService.getMyLists().subscribe(lists => this.userLists.set(lists));
+        if (cur) this.loadListDetails(cur.id);
       });
     });
   }

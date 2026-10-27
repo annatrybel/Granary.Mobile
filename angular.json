@@ -25,7 +25,7 @@
                 "input": "projects/shared/assets"
               }
             ],
-            "styles": ["projects/shared/src/styles.css"]
+            "styles": ["projects/admin-app/src/styles.css"]
           },
           "configurations": {
             "production": {
@@ -93,7 +93,7 @@
                 "input": "projects/user-app/public"
               }
             ],
-            "styles": ["projects/shared/src/styles.css"]
+            "styles": ["projects/user-app/src/styles.css"]
           },
           "configurations": {
             "production": {
@@ -110,7 +110,7 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "ngsw-config.json"
+              "serviceWorker": "projects/user-app/ngsw-config.json"
             },
             "development": {
               "optimization": false,

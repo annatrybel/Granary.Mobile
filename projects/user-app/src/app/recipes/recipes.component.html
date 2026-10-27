@@ -1,4 +1,4 @@
-<main class="block w-full min-h-screen bg-app-bg pt-[76px] pb-[120px] box-border overflow-x-hidden transition-colors duration-200">
+<main class="block w-full min-h-screen bg-app-bg pt-2 pb-[120px] box-border overflow-x-hidden transition-colors duration-200">
   <div class="max-w-[560px] mx-auto flex flex-col gap-4 px-4 box-border">
 
     <!-- 1. Wyszukiwarka -->
@@ -121,15 +121,16 @@
             </div>
           }
 
-          <div #scrollSentinel class="h-5 w-full col-span-2 flex justify-center items-center">
-            @if (isLoadingMore()) {
-              <div class="text-[11.5px] font-semibold text-app-muted py-2">
-                {{ 'recipes.loadingMore' | t:'Ładowanie kolejnych przepisów...' }}
-              </div>
-            }
-          </div>
         </div>
       }
+
+      <div #scrollSentinel class="h-5 w-full flex justify-center items-center">
+        @if (isLoadingMore()) {
+          <div class="text-[11.5px] font-semibold text-app-muted py-2">
+            {{ 'recipes.loadingMore' | t:'Ładowanie kolejnych przepisów...' }}
+          </div>
+        }
+      </div>
     </section>
 
   </div>

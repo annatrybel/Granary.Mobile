@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../tokens/api-base-url.token';
 import { UserProfileDto, UpdateProfileResponseDto } from '../../profile/profile.models';
 

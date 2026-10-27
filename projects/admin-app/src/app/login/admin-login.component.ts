@@ -93,7 +93,7 @@ export class AdminLoginComponent {
       next: (response) => {
         this.isLoading.set(false);
 
-        if (!this.authService.hasRole('Admin')) {
+        if (!this.authService.hasRole('Administrator')) {
           this.authService.logout();
           this.errorMessage.set('To konto nie ma uprawnień do panelu administratora.');
           return;

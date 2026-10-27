@@ -16,11 +16,3 @@ export interface StockSection {
   icon: string;
   type: 'fridge' | 'pantry' | 'freezer';
 }
-
-export interface SuggestedRecipe {
-  id: number;
-  title: string;
-  ingredientsUsed: string;
-  durationAndPortions: string;
-  imageUrl: string;
-}

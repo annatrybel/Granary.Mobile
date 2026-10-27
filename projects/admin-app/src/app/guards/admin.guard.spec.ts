@@ -30,7 +30,7 @@ describe('adminGuard', () => {
       {} as Parameters<typeof adminGuard>[1],
     ));
 
-    expect(authService.hasRole).toHaveBeenCalledWith('Admin');
+    expect(authService.hasRole).toHaveBeenCalledWith('Administrator');
     expect(result).toBe(true);
     expect(authService.logout).not.toHaveBeenCalled();
   });

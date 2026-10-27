@@ -1,9 +1,10 @@
 import { Injectable, inject, signal, effect, untracked } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AppDatabase, ProductItem } from '../db/app-database';
 import { NetworkService } from './network.service';
+import { SyncService } from './sync.service';
 import { API_BASE_URL, CategoryDto, TranslationService } from '@granary/shared';
 
 export interface ScannedProductDto {
@@ -15,12 +16,15 @@ export interface ScannedProductDto {
   imageUrl?: string;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 @Injectable({
   providedIn: 'root'
 })
 export class PantryService {
   private db = inject(AppDatabase);
   private network = inject(NetworkService);
+  private sync = inject(SyncService);
   private http = inject(HttpClient);
   private translationService = inject(TranslationService);
   private readonly apiBaseUrl = inject(API_BASE_URL);
@@ -29,13 +33,12 @@ export class PantryService {
   readonly products = signal<ProductItem[]>([]);
   readonly categories = signal<CategoryDto[]>([]);
 
-
   constructor() {
     this.loadInitialData();
 
     let isFirst = true;
     effect(() => {
-      const currentLang = this.translationService.currentLang();
+      this.translationService.currentLang();
       untracked(() => {
         if (isFirst) {
           isFirst = false;
@@ -47,116 +50,78 @@ export class PantryService {
         }
       });
     });
+
+    let isFirstSync = true;
+    effect(() => {
+      this.sync.syncVersion();
+      untracked(() => {
+        if (isFirstSync) {
+          isFirstSync = false;
+          return;
+        }
+        void this.reloadFromDb();
+      });
+    });
   }
 
   async loadInitialData(): Promise<void> {
-    const localItems = await this.db.products.toArray();
-    this.products.set(localItems);
+    await this.reloadFromDb();
 
-    if (this.network.isOnline()) {
-      this.http.get<any[]>(this.apiUrl).subscribe({
-        next: async (serverItems) => {
-          if (Array.isArray(serverItems)) {
-            const mapped: ProductItem[] = serverItems.map(item => {
-              const locStr = (item.storageLocation || '').toLowerCase();
-              let polishLoc = 'Lodówka';
-              let cat = 'lodowka';
+    if (!this.network.isOnline()) return;
 
-              if (locStr.includes('freezer') || locStr.includes('zamraż')) {
-                polishLoc = 'Zamrażarka';
-                cat = 'zamrazarka';
-              } else if (locStr.includes('pantry') || locStr.includes('spiż')) {
-                polishLoc = 'Spiżarnia';
-                cat = 'spizarnia';
-              }
+    // Zmiany użytkownika muszą trafić na serwer zanim nadpiszemy je stanem z serwera.
+    await this.sync.flush();
+    if (await this.db.pendingCount('product') > 0) return;
 
-              return {
-                id: item.id,
-                catalogProductId: item.productId,
-                name: item.productName || item.name || 'Produkt',
-                category: cat,
-                categoryName: item.categoryName || 'Inne',
-                locationName: polishLoc,
-                storageLocation: item.storageLocation,
-                imageUrl: item.imageUrl,
-                quantity: item.quantity || 1,
-                unit: item.unit || 'szt.',
-                expiryDays: item.expirationDate
-                  ? Math.max(0, Math.ceil((new Date(item.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-                  : 7,
-                isSynced: true,
-                updatedAt: Date.now()
-              };
-            });
+    this.http.get<any[]>(this.apiUrl).subscribe({
+      next: async (serverItems) => {
+        if (!Array.isArray(serverItems)) return;
+        if (await this.db.pendingCount('product') > 0) return;
 
-            await this.db.products.clear();
-            await this.db.products.bulkPut(mapped);
-            this.products.set(mapped);
-          }
-        },
-        error: (err) => console.error('Błąd pobierania ze spiżarni:', err)
-      });
-    }
+        const mapped = serverItems.map(item => this.mapServerItem(item));
+        await this.db.transaction('rw', this.db.products, async () => {
+          await this.db.products.clear();
+          await this.db.products.bulkPut(mapped);
+        });
+        this.products.set(mapped.map(p => this.withFreshExpiry(p)));
+      },
+      error: (err) => console.error('Błąd pobierania ze spiżarni:', err)
+    });
   }
 
   async addProduct(product: Omit<ProductItem, 'id' | 'isSynced' | 'updatedAt'>): Promise<void> {
-    const isOnline = this.network.isOnline();
+    const expiryDays = product.expiryDays ?? 7;
+    const expirationDate = product.expirationDate ?? this.dateAfterDays(expiryDays);
+
     const newProduct: ProductItem = {
       ...product,
-      id: crypto.randomUUID(),
-      isSynced: isOnline,
+      id: this.db.newId(),
+      expiryDays,
+      expirationDate,
+      isSynced: false,
       updatedAt: Date.now()
     };
 
     await this.db.products.add(newProduct);
     this.products.update(items => [newProduct, ...items]);
 
-    const expiryFormatted = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0];
-
-    const locationEnum = newProduct.locationName === 'Zamrażarka'
-      ? 'Freezer'
-      : newProduct.locationName === 'Spiżarnia'
-        ? 'Pantry'
-        : 'Fridge';
-
-    const backendDto: any = {
-      location: locationEnum,
+    const backendDto: Record<string, unknown> = {
+      location: this.toLocationEnum(newProduct.locationName),
       quantity: newProduct.quantity || 1,
       unit: newProduct.unit || 'szt.',
-      expirationDate: expiryFormatted,
-      customImageUrl: newProduct.imageUrl, 
+      expirationDate,
+      customImageUrl: newProduct.imageUrl,
       imageUrl: newProduct.imageUrl
     };
 
     if (newProduct.catalogProductId) {
-      backendDto.productId = newProduct.catalogProductId;
+      backendDto['productId'] = newProduct.catalogProductId;
     } else {
-      backendDto.customProductName = newProduct.name;
+      backendDto['customProductName'] = newProduct.name;
     }
 
-    if (!isOnline) {
-      await this.db.syncQueue.add({
-        action: 'CREATE',
-        entity: 'product',
-        payload: backendDto,
-        createdAt: Date.now()
-      });
-    } else {
-      this.http.post(this.apiUrl, backendDto).subscribe({
-        next: () => console.log('Zapisano pomyślnie ze zdjęciem w bazie PostgreSQL!'),
-        error: async (err) => {
-          console.error('Błąd wysyłki, dodano do syncQueue:', err);
-          await this.db.syncQueue.add({
-            action: 'CREATE',
-            entity: 'product',
-            payload: backendDto,
-            createdAt: Date.now()
-          });
-        }
-      });
-    }
+    await this.db.enqueue({ action: 'CREATE', entity: 'product', entityId: newProduct.id, payload: backendDto });
+    void this.sync.flush();
   }
 
   async updateProduct(
@@ -171,13 +136,8 @@ export class PantryService {
       categoryName?: string;
     }
   ): Promise<void> {
-    const locEnum = updates.locationName === 'Zamrażarka'
-      ? 'Freezer'
-      : updates.locationName === 'Spiżarnia'
-        ? 'Pantry'
-        : 'Fridge';
-
-    const expiryDays = Math.max(0, Math.ceil((new Date(updates.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    const localId = await this.db.resolveId(id);
+    const locEnum = this.toLocationEnum(updates.locationName);
 
     const localUpdates: Partial<ProductItem> = {
       locationName: updates.locationName,
@@ -186,7 +146,8 @@ export class PantryService {
       quantity: updates.quantity,
       unit: updates.unit,
       expirationDate: updates.expirationDate,
-      expiryDays: expiryDays,
+      expiryDays: this.daysUntil(updates.expirationDate),
+      isSynced: false,
       updatedAt: Date.now()
     };
 
@@ -197,68 +158,35 @@ export class PantryService {
       localUpdates.categoryName = updates.categoryName;
     }
 
-    await this.db.products.update(id, localUpdates);
-
+    await this.db.products.update(localId, localUpdates);
     this.products.update(items =>
-      items.map(p => p.id === id ? { ...p, ...localUpdates } : p)
+      items.map(p => (p.id === localId ? { ...p, ...localUpdates } : p))
     );
 
-    if (this.network.isOnline()) {
-      const backendDto: any = {
+    await this.db.enqueue({
+      action: 'UPDATE',
+      entity: 'product',
+      entityId: localId,
+      payload: {
         location: locEnum,
         quantity: updates.quantity,
         unit: updates.unit,
         expirationDate: updates.expirationDate,
         customImageUrl: updates.customImageUrl,
         customCategoryId: updates.categoryId
-      };
-
-      this.http.put(`${this.apiUrl}/${id}`, backendDto).subscribe({
-        next: (res: any) => {
-          const serverItem = res?.data ?? res;
-          const newImageUrl = serverItem?.imageUrl;
-
-          if (newImageUrl) {
-            this.db.products.update(id, { imageUrl: newImageUrl });
-            this.products.update(items =>
-              items.map(p => p.id === id ? { ...p, imageUrl: newImageUrl } : p)
-            );
-          }
-        },
-        error: (err) => console.error('Błąd aktualizacji na backendzie:', err)
-      });
-    }
+      }
+    });
+    void this.sync.flush();
   }
+
   async deleteProduct(id: string): Promise<void> {
-    await this.db.products.delete(id);
-    this.products.update(items => items.filter(p => p.id !== id));
+    const localId = await this.db.resolveId(id);
 
-    if (this.network.isOnline()) {
-      this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-        next: () => console.log('Usunięto z bazy PostgreSQL!'),
-        error: (err) => console.error('Błąd usuwania z backendu:', err)
-      });
-    } else {
-      await this.db.syncQueue.add({
-        action: 'DELETE',
-        entity: 'product',
-        payload: { id },
-        createdAt: Date.now()
-      });
-    }
-  }
+    await this.db.products.delete(localId);
+    this.products.update(items => items.filter(p => p.id !== localId));
 
-  getExpiringItems(days: number, limit: number): Observable<any[]> {
-    const params = new HttpParams()
-      .set('days', days.toString())
-      .set('limit', limit.toString());
-
-    return this.http.get<{ data?: any[]; result?: any[] } | any[]>(
-      `${this.apiBaseUrl}/pantry/items/expiring`,
-      { params }
-    ).pipe(
-      map((res: any) => (Array.isArray(res) ? res : res?.data ?? res?.result ?? []))
-    );
+    await this.db.enqueue({ action: 'DELETE', entity: 'product', entityId: localId, payload: { id: localId } });
+    void this.sync.flush();
   }
 
   loadCategories(): void {
@@ -287,5 +215,73 @@ export class PantryService {
     return this.http.post<any>(`${this.apiBaseUrl}/catalog-products/recognize-image`, formData).pipe(
       map(res => res?.data ?? res)
     );
+  }
+
+  private async reloadFromDb(): Promise<void> {
+    const localItems = await this.db.products.toArray();
+    this.products.set(localItems.map(p => this.withFreshExpiry(p)));
+  }
+
+  private mapServerItem(item: any): ProductItem {
+    const locStr = (item.storageLocation || '').toString().toLowerCase();
+    let polishLoc = 'Lodówka';
+    let cat = 'lodowka';
+
+    if (locStr.includes('freezer') || locStr.includes('zamraż')) {
+      polishLoc = 'Zamrażarka';
+      cat = 'zamrazarka';
+    } else if (locStr.includes('pantry') || locStr.includes('spiż')) {
+      polishLoc = 'Spiżarnia';
+      cat = 'spizarnia';
+    }
+
+    const expirationDate: string | undefined = item.expirationDate
+      ? String(item.expirationDate).slice(0, 10)
+      : undefined;
+
+    return {
+      id: item.id,
+      catalogProductId: item.productId,
+      name: item.productName || item.name || 'Produkt',
+      category: cat,
+      categoryName: item.categoryName || 'Inne',
+      categoryImageUrl: item.categoryImageUrl ?? null,
+      locationName: polishLoc,
+      storageLocation: item.storageLocation,
+      imageUrl: item.imageUrl,
+      quantity: item.quantity || 1,
+      unit: item.unit || 'szt.',
+      expirationDate,
+      expiryDays: expirationDate ? this.daysUntil(expirationDate) : 7,
+      isSynced: true,
+      updatedAt: Date.now()
+    };
+  }
+
+  /** Liczba dni do końca ważności liczona na bieżąco, żeby dane offline się nie starzały. */
+  private withFreshExpiry(product: ProductItem): ProductItem {
+    return product.expirationDate
+      ? { ...product, expiryDays: this.daysUntil(product.expirationDate) }
+      : product;
+  }
+
+  private daysUntil(isoDate: string): number {
+    const [year, month, day] = isoDate.slice(0, 10).split('-').map(Number);
+    const expiry = new Date(year, month - 1, day).getTime();
+    const today = new Date().setHours(0, 0, 0, 0);
+    return Math.max(0, Math.round((expiry - today) / DAY_MS));
+  }
+
+  private dateAfterDays(days: number): string {
+    const date = new Date(Date.now() + days * DAY_MS);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
+  }
+
+  private toLocationEnum(locationName?: string): 'Fridge' | 'Pantry' | 'Freezer' {
+    if (locationName === 'Zamrażarka') return 'Freezer';
+    if (locationName === 'Spiżarnia') return 'Pantry';
+    return 'Fridge';
   }
 }

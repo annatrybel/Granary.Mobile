@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 
-import { PantryService } from '@granary/user-app/core/services/pantry.service';
-import { ProductItem } from '@granary/user-app/core/db/app-database';
+import { PantryService } from '../core/services/pantry.service';
+import { ProductItem } from '../core/db/app-database';
 import { ProductDetailUpdatePayload, CatalogProductDto } from '@granary/shared';
 
 import { ConfirmDeleteModalComponent } from '@granary/shared';
-import { CatalogSearchBarComponent } from '@granary/shared';
+import { CatalogSearchBarComponent } from '../shared/components/catalog-search-bar/catalog-search-bar.component';
 import { InventoryCardComponent } from './components/inventory-card/inventory-card.component';
 import { InventoryRecipeBarComponent } from './components/inventory-recipe-bar/inventory-recipe-bar.component';
 import { ProductDetailSheetComponent } from './components/product-detail-sheet/product-detail-sheet.component';

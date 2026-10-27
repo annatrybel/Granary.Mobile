@@ -11,9 +11,9 @@ import {
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 
-import { ProductItem } from '@granary/user-app/core/db/app-database';
+import { ProductItem } from '../../../core/db/app-database';
 import { ProductDetailUpdatePayload } from '@granary/shared';
-import { PantryService } from '@granary/user-app/core/services/pantry.service';
+import { PantryService } from '../../../core/services/pantry.service';
 import { TranslatePipe } from '@granary/shared';
 import { TranslationService } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';

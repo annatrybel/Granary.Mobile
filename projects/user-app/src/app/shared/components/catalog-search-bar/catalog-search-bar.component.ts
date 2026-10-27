@@ -17,10 +17,7 @@ import { Subject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { API_BASE_URL } from '../../../core/tokens/api-base-url.token';
-import { CatalogProductDto } from '../../../inventory/inventory.models';
-import { TranslatePipe } from '../../pipes/translate.pipe';
-import { TranslationService } from '../../../core/services/translation.service';
+import { API_BASE_URL, CatalogProductDto, TranslatePipe, TranslationService } from '@granary/shared';
 
 @Component({
   selector: 'app-catalog-search-bar',

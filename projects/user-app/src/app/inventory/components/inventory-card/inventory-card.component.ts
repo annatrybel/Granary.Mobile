@@ -1,7 +1,7 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
-import { ProductItem } from '@granary/user-app/core/db/app-database';
+import { ProductItem } from '../../../core/db/app-database';
 import { TranslatePipe } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
 

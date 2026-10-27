@@ -13,7 +13,7 @@ import { LucideAngularModule } from 'lucide-angular';
 
 import { ProfileService } from '@granary/shared';
 import { AuthService } from '@granary/shared';
-import { ThemeService } from '@granary/user-app/core/services/theme.service';
+import { ThemeService } from '../core/services/theme.service';
 import { UserProfileDto, HouseholdMember } from '@granary/shared';
 import { HouseholdInviteSheetComponent } from './components/household-invite-sheet/household-invite-sheet.component';
 import { HelpFaqSheetComponent } from './components/help-faq-sheet/help-faq-sheet.component';

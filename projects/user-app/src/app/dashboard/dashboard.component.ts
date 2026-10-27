@@ -3,153 +3,148 @@ import {
   signal,
   computed,
   inject,
-  OnInit,
   effect,
   untracked,
-  DestroyRef,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { LucideAngularModule } from 'lucide-angular';
+import { Subject, catchError, debounceTime, of, switchMap, tap } from 'rxjs';
 
-import { PantryService } from '@granary/user-app/core/services/pantry.service';
-import { AuthService } from '@granary/shared';
-import { RecipeService } from '@granary/user-app/core/services/recipe.service';
-import { TranslationService } from '@granary/shared';
+import { PantryService } from '../core/services/pantry.service';
+import { RecipeService } from '../core/services/recipe.service';
+import { ProductItem } from '../core/db/app-database';
+import { AuthService, RecipeMatchDto, TranslatePipe, TranslationService } from '@granary/shared';
 import { ExpiringItem, StockSection } from './models/dashboard.models';
-import { RecipeMatchDto } from '@granary/shared';
-import { TranslatePipe } from '@granary/shared';
+
+type StorageKind = 'fridge' | 'pantry' | 'freezer';
+
+const EXPIRING_WITHIN_DAYS = 4;
+const EXPIRING_LIST_LIMIT = 5;
+const SUGGESTED_RECIPES_LIMIT = 3;
+
+const STORAGE_ICONS: Record<StorageKind, string> = {
+  fridge: '/icons/fridge.svg',
+  pantry: '/icons/pantry.svg',
+  freezer: '/icons/freezer.svg'
+};
+
+const STORAGE_LABELS: Record<StorageKind, { key: string; fallback: string }> = {
+  fridge: { key: 'inventory.locFridge', fallback: 'Lodówka' },
+  pantry: { key: 'inventory.locPantry', fallback: 'Spiżarnia' },
+  freezer: { key: 'inventory.locFreezer', fallback: 'Zamrażarka' }
+};
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    LucideAngularModule,
-    TranslatePipe
-  ],
+  imports: [RouterLink, LucideAngularModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent {
   private readonly pantryService = inject(PantryService);
   private readonly authService = inject(AuthService);
   private readonly recipeService = inject(RecipeService);
   protected readonly translationService = inject(TranslationService);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly cdr = inject(ChangeDetectorRef);
 
-  userName = computed(() => {
+  private readonly recipeRequests$ = new Subject<string[]>();
+
+  readonly userName = computed(() => {
     const user = this.authService.currentUser();
     const name = user?.name || user?.userName || (user?.email ? user.email.split('@')[0] : '');
     return name ? name.toUpperCase() : this.translationService.translate('dashboard.defaultUser', 'W KUCHNI');
   });
 
-  expiringItems = signal<ExpiringItem[]>([]);
-  recipes = signal<RecipeMatchDto[]>([]);
-  isLoadingRecipes = signal<boolean>(true);
+  readonly recipes = signal<RecipeMatchDto[]>([]);
+  readonly isLoadingRecipes = signal<boolean>(true);
 
   private readonly products = this.pantryService.products;
 
-  stockSections = computed<StockSection[]>(() => {
-    const all = this.products();
-    const isFridge = (p: any) => p.storageLocation === 0 || `${p.locationName}`.toLowerCase().includes('lodów') || `${p.locationName}`.toLowerCase().includes('fridge');
-    const isPantry = (p: any) => p.storageLocation === 1 || `${p.locationName}`.toLowerCase().includes('spiż') || `${p.locationName}`.toLowerCase().includes('pantry');
-    const isFreezer = (p: any) => p.storageLocation === 2 || `${p.locationName}`.toLowerCase().includes('zamraż') || `${p.locationName}`.toLowerCase().includes('freezer');
+  private readonly expiringProducts = computed(() =>
+    this.products()
+      .filter(p => (p.expiryDays ?? Number.MAX_SAFE_INTEGER) <= EXPIRING_WITHIN_DAYS)
+      .sort((a, b) => (a.expiryDays ?? 0) - (b.expiryDays ?? 0))
+  );
 
-    return [
-      {
-        title: this.translationService.translate('inventory.locFridge', 'Lodówka'),
-        count: all.filter(isFridge).length,
-        icon: '/icons/fridge.svg',
-        type: 'fridge'
-      },
-      {
-        title: this.translationService.translate('inventory.locPantry', 'Spiżarnia'),
-        count: all.filter(isPantry).length,
-        icon: '/icons/pantry.svg',
-        type: 'pantry'
-      },
-      {
-        title: this.translationService.translate('inventory.locFreezer', 'Zamrażarka'),
-        count: all.filter(isFreezer).length,
-        icon: '/icons/freezer.svg',
-        type: 'freezer'
-      }
-    ];
+  readonly expiringItems = computed<ExpiringItem[]>(() => {
+    this.translationService.currentLang();
+
+    return this.expiringProducts()
+      .slice(0, EXPIRING_LIST_LIMIT)
+      .map(product => {
+        const kind = this.storageKind(product);
+        const daysLeft = product.expiryDays ?? 0;
+
+        return {
+          id: product.id,
+          name: product.name,
+          categoryName: product.categoryName ?? '',
+          categoryIcon: product.categoryImageUrl ?? null,
+          locationName: this.storageLabel(kind),
+          locationIcon: STORAGE_ICONS[kind],
+          timeLeftText: this.formatTimeLeft(daysLeft),
+          daysLeft,
+          productImageUrl: product.imageUrl
+        };
+      });
   });
 
-  private isFirstLangRun = true;
+  readonly stockSections = computed<StockSection[]>(() => {
+    this.translationService.currentLang();
+    const all = this.products();
+
+    return (['fridge', 'pantry', 'freezer'] as const).map(type => ({
+      title: this.storageLabel(type),
+      count: all.filter(p => this.storageKind(p) === type).length,
+      icon: STORAGE_ICONS[type],
+      type
+    }));
+  });
+
+  /** Identyfikatory produktów z katalogu, które niedługo się przeterminują. */
+  private readonly expiringCatalogIds = computed(() =>
+    this.expiringProducts()
+      .map(p => p.catalogProductId)
+      .filter((id): id is string => !!id)
+      .join(',')
+  );
 
   constructor() {
+    this.recipeRequests$.pipe(
+      debounceTime(150),
+      tap(() => this.isLoadingRecipes.set(true)),
+      switchMap(ids =>
+        this.recipeService.getSuggestedRecipes(ids, SUGGESTED_RECIPES_LIMIT).pipe(
+          catchError(err => {
+            console.error('Błąd pobierania przepisów na pulpicie:', err);
+            return of<RecipeMatchDto[]>([]);
+          })
+        )
+      ),
+      takeUntilDestroyed()
+    ).subscribe(recipes => {
+      this.recipes.set(recipes);
+      this.isLoadingRecipes.set(false);
+    });
+
     effect(() => {
       this.translationService.currentLang();
-      untracked(() => {
-        if (this.isFirstLangRun) {
-          this.isFirstLangRun = false;
-          return;
-        }
-        this.loadExpiringItems();
-        this.loadZeroWasteRecipes();
-      });
+      const ids = this.expiringCatalogIds();
+      untracked(() => this.recipeRequests$.next(ids ? ids.split(',') : []));
     });
   }
 
-  ngOnInit(): void {
-    this.loadExpiringItems();
-    this.loadZeroWasteRecipes();
+  private storageKind(product: ProductItem): StorageKind {
+    const text = `${product.storageLocation ?? ''} ${product.locationName ?? ''}`.toLowerCase();
+    if (text.includes('freezer') || text.includes('zamraż') || product.storageLocation === '2') return 'freezer';
+    if (text.includes('pantry') || text.includes('spiż') || product.storageLocation === '1') return 'pantry';
+    return 'fridge';
   }
 
-  private loadExpiringItems(): void {
-    this.pantryService.getExpiringItems(4, 5)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (items: any[]) => {
-          const mapped: ExpiringItem[] = items.map(dto => ({
-            id: dto.id,
-            name: dto.productName,
-            categoryName: dto.categoryName,
-            categoryIcon: dto.categoryImageUrl,
-            locationName: this.mapLocationToString(dto.storageLocation),
-            locationIcon: this.mapLocationToIcon(dto.storageLocation),
-            timeLeftText: this.formatTimeLeft(dto.daysLeft),
-            daysLeft: dto.daysLeft,
-            productImageUrl: dto.productImageUrl
-          }));
-
-          this.expiringItems.set(mapped);
-          this.cdr.markForCheck();
-        },
-        error: (err: unknown) => console.error('Błąd pobierania wygasających produktów:', err)
-      });
-  }
-
-  private loadZeroWasteRecipes(): void {
-    this.isLoadingRecipes.set(true);
-
-    this.recipeService.getRecipes({
-      scope: 'all',
-      sortBy: 'match',
-      page: 1,
-      pageSize: 3
-    })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.recipes.set(res?.items ?? []);
-          this.isLoadingRecipes.set(false);
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          console.error('Błąd pobierania przepisów na pulpicie:', err);
-          this.isLoadingRecipes.set(false);
-          this.cdr.markForCheck();
-        }
-      });
+  private storageLabel(kind: StorageKind): string {
+    const { key, fallback } = STORAGE_LABELS[kind];
+    return this.translationService.translate(key, fallback);
   }
 
   private formatTimeLeft(days: number): string {
@@ -160,21 +155,5 @@ export class DashboardComponent implements OnInit {
     const daysLabel = this.translationService.translate('common.days', 'dni');
     const leftLabel = this.translationService.translate('dashboard.leftPrefix', 'Zostało');
     return `${leftLabel} ${days} ${daysLabel}`;
-  }
-
-  private mapLocationToString(loc: number): string {
-    switch (loc) {
-      case 1: return this.translationService.translate('inventory.locPantry', 'Spiżarnia');
-      case 2: return this.translationService.translate('inventory.locFreezer', 'Zamrażarka');
-      default: return this.translationService.translate('inventory.locFridge', 'Lodówka');
-    }
-  }
-
-  private mapLocationToIcon(loc: number): string {
-    switch (loc) {
-      case 1: return '/icons/pantry.svg';
-      case 2: return '/icons/freezer.svg';
-      default: return '/icons/fridge.svg';
-    }
   }
 }

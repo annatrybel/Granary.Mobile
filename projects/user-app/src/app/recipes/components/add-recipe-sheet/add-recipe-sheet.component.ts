@@ -12,13 +12,11 @@ import {
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 
-import { RecipeService } from '@granary/user-app/core/services/recipe.service';
+import { RecipeService } from '../../../core/services/recipe.service';
 import { CreateCustomRecipePayload, RecipeDetailDto } from '@granary/shared';
 
-import {
-  CatalogSearchBarComponent,
-  CatalogProductDto
-} from '@granary/shared';
+import { CatalogProductDto } from '@granary/shared';
+import { CatalogSearchBarComponent } from '../../../shared/components/catalog-search-bar/catalog-search-bar.component';
 import { ConfirmDeleteModalComponent } from '@granary/shared';
 
 import { TranslatePipe } from '@granary/shared';

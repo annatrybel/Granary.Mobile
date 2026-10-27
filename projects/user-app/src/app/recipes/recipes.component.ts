@@ -20,7 +20,7 @@ import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { RecipeService } from '@granary/user-app/core/services/recipe.service';
+import { RecipeService } from '../core/services/recipe.service';
 import {
   RecipeMatchDto,
   RecipeDetailDto,
@@ -43,6 +43,10 @@ interface ScopeTabOption {
   labelKey: string;
   fallbackLabel: string;
   icon?: string;
+}
+
+function isRecipeTabScope(scope: string | null): scope is RecipeTabScope {
+  return scope === 'all' || scope === 'favorites' || scope === 'custom';
 }
 
 @Component({
@@ -75,6 +79,8 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly searchSubject = new Subject<string>();
 
   private detailSub?: Subscription;
+  private detailRequestId = 0;
+  private sentinelVisible = false;
 
   readonly activeScope = signal<RecipeTabScope>('all');
   readonly searchQuery = signal<string>('');
@@ -141,6 +147,9 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const scopeParam = this.route.snapshot.queryParamMap.get('scope');
+    if (isRecipeTabScope(scopeParam)) this.activeScope.set(scopeParam);
+
     const itemsParam = this.route.snapshot.queryParamMap.get('items');
     if (itemsParam) this.selectedItemsFilter.set(itemsParam);
 
@@ -155,10 +164,8 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     if (!this.scrollSentinel?.nativeElement) return;
     this.observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !this.isLoading() && !this.isLoadingMore() && this.hasMorePages) {
-        this.currentPage++;
-        this.fetchData(false);
-      }
+      this.sentinelVisible = entry.isIntersecting;
+      this.loadMoreIfNeeded();
     }, { rootMargin: '250px' });
     this.observer.observe(this.scrollSentinel.nativeElement);
   }
@@ -171,6 +178,12 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   setScope(scope: RecipeTabScope): void {
     if (this.activeScope() === scope) return;
     this.activeScope.set(scope);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { scope: scope === 'all' ? null : scope },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
     this.resetAndReload();
   }
 
@@ -234,14 +247,22 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.isLoading.set(false);
         this.isLoadingMore.set(false);
         this.cdr.markForCheck();
+        this.loadMoreIfNeeded();
       },
       error: () => {
         if (isInitial) this.errorMessage.set('Wystąpił problem z pobraniem przepisów.');
         this.isLoading.set(false);
         this.isLoadingMore.set(false);
+        if (!isInitial) this.hasMorePages = false;
         this.cdr.markForCheck();
       }
     });
+  }
+
+  private loadMoreIfNeeded(): void {
+    if (!this.sentinelVisible || this.isLoading() || this.isLoadingMore() || !this.hasMorePages) return;
+    this.currentPage++;
+    this.fetchData(false);
   }
 
   openAddRecipe(): void {
@@ -319,6 +340,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!recipeId) return;
 
     this.detailSub?.unsubscribe();
+    const requestId = ++this.detailRequestId;
 
     this.activeRecipeDetail.set(summary ? {
       ...summary,
@@ -332,7 +354,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.detailSub = this.recipeService.getById(recipeId).subscribe({
       next: (detail) => {
-        if (this.activeRecipeDetail() !== null) {
+        if (requestId === this.detailRequestId) {
           this.activeRecipeDetail.set(detail);
           this.cdr.markForCheck();
         }
@@ -346,6 +368,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   onCloseRecipeDetail(): void {
     this.detailSub?.unsubscribe();
     this.detailSub = undefined;
+    this.detailRequestId++;
 
     this.activeRecipeDetail.set(null);
 

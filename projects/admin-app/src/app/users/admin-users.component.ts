@@ -23,7 +23,6 @@ export class AdminUsersComponent implements OnInit {
   readonly searchQuery = signal<string>('');
   readonly pageIndex = signal<number>(0); // 0-based dla backendu (Start = pageIndex * pageSize)
   readonly pageSize = signal<number>(10);
-  private drawCounter = 0;
 
   ngOnInit(): void {
     this.loadUsers();

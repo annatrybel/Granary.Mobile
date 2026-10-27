@@ -1,4 +1,4 @@
-<main class="w-full min-h-screen bg-app-bg pt-[86px] pb-[110px] overflow-x-hidden transition-colors duration-200">
+<main class="w-full min-h-screen bg-app-bg pt-2 pb-[110px] overflow-x-hidden transition-colors duration-200">
   <div class="max-w-[480px] mx-auto px-4 flex flex-col gap-5">
 
     <!-- 1. Nagłówek -->
@@ -147,6 +147,13 @@
               <lucide-icon name="chevron-right" [size]="16" class="text-app-brand"></lucide-icon>
             </div>
           </article>
+        } @empty {
+          @if (!isLoadingRecipes()) {
+            <div class="w-full bg-app-surface border border-dashed border-app-brand/40 p-4 rounded-[20px] flex flex-col items-center text-center gap-0.5">
+              <span class="text-sm font-semibold text-app-text">{{ 'dashboard.noRecipesTitle' | t:'Brak propozycji przepisów' }}</span>
+              <span class="text-xs text-app-muted">{{ 'dashboard.noRecipesDesc' | t:'Dodaj produkty do magazynu, a podpowiemy, co z nich ugotować.' }}</span>
+            </div>
+          }
         }
       </div>
     </section>
