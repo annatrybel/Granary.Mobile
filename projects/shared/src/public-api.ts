@@ -5,6 +5,8 @@ export * from './lib/core/services/auth.service';
 export * from './lib/core/services/profile.service';
 export * from './lib/core/services/translation.service';
 export * from './lib/core/tokens/api-base-url.token';
+export * from './lib/core/tokens/app-config.token';
+export * from './lib/core/tokens/logout-cleanup.token';
 export * from './lib/core/tokens/media-base-url.token';
 export * from './lib/inventory/inventory.models';
 export * from './lib/profile/profile.models';

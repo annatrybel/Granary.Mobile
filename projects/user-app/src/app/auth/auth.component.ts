@@ -41,10 +41,15 @@ export class AuthComponent implements OnInit {
   errorMessage = signal<string | null>(null);
 
   ngOnInit(): void {
-    const token = this.route.snapshot.queryParamMap.get('token');
+    // Prefer the URL fragment (never sent to servers or logged); the query is kept for older backends.
+    const fragmentParams = new URLSearchParams(this.route.snapshot.fragment ?? '');
+    const token = fragmentParams.get('token') ?? this.route.snapshot.queryParamMap.get('token');
     if (token) {
-      this.authService.setToken(token);
-      this.router.navigate(['/pulpit']);
+      if (this.authService.completeExternalLogin(token)) {
+        this.router.navigate(['/pulpit'], { replaceUrl: true });
+      } else {
+        this.router.navigate(['/auth'], { replaceUrl: true });
+      }
       return;
     }
 
@@ -117,7 +122,7 @@ export class AuthComponent implements OnInit {
   }
 
   loginWithGoogle(): void {
-    window.location.href = '/api/authentication/external-login?provider=Google';
+    this.authService.startExternalLogin('Google');
   }
 
   openForgotPassword(): void {

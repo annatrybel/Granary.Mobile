@@ -9,7 +9,7 @@
     "build": "npm run build:shared && ng build admin-app && ng build user-app",
     "build:shared": "ng build shared",
     "build:admin": "npm run build:shared && ng build admin-app",
-    "build:user": "npm run build:shared && ng build user-app",
+    "build:user": "npm run build:shared && ng build user-app && node scripts/write-runtime-config.mjs user-app",
     "test": "npm run build:shared && ng test shared --watch=false && ng test admin-app --watch=false && ng test user-app --watch=false",
     "sync:translations": "node scripts/sync-translations.mjs",
     "i18n:sync": "node scripts/sync-translations.mjs"

@@ -10,7 +10,8 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
-import { authInterceptor } from '@granary/shared';
+import { authInterceptor, provideAppConfig, LOGOUT_CLEANUP } from '@granary/shared';
+import { AppDatabase } from './core/db/app-database';
 import { SyncService } from './core/services/sync.service';
 
 import {
@@ -89,6 +90,19 @@ const APP_ICONS = {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideAppConfig(),
+    // Czyści dane offline poprzedniego użytkownika (w tym kolejkę synchronizacji) przy wylogowaniu.
+    {
+      provide: LOGOUT_CLEANUP,
+      multi: true,
+      useFactory: () => {
+        const db = inject(AppDatabase);
+        return async () => {
+          await db.delete();
+          await db.open();
+        };
+      }
+    },
     provideRouter(routes),
     provideHttpClient(
       withInterceptors([authInterceptor])

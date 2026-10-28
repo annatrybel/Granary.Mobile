@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { API_BASE_URL } from '../tokens/api-base-url.token';
+import { APP_CONFIG } from '../tokens/app-config.token';
+import { LOGOUT_CLEANUP } from '../tokens/logout-cleanup.token';
 
 import {
   LoginDto,
@@ -17,9 +19,13 @@ import {
 export class AuthService {
   private http = inject(HttpClient);
   private readonly apiBaseUrl = inject(API_BASE_URL);
+  private readonly config = inject(APP_CONFIG);
+  private readonly logoutCleanups = inject(LOGOUT_CLEANUP, { optional: true }) ?? [];
   
   private readonly tokenKey = 'granary_token';
   private readonly userKey = 'granary_user';
+  private readonly pendingLoginKey = 'granary_pending_external_login';
+  private readonly pendingLoginTtlMs = 10 * 60 * 1000;
 
   readonly token = signal<string | null>(localStorage.getItem(this.tokenKey));
   readonly isAuthenticated = computed<boolean>(() => !!this.token());
@@ -128,10 +134,40 @@ export class AuthService {
     return this.http.post(`${this.apiBaseUrl}/authentication/reset-password`, dto);
   }
 
+  // The OAuth correlation cookie must be set and read on the same host, so the flow
+  // has to start on the backend origin instead of going through a frontend proxy.
+  startExternalLogin(provider: string): void {
+    sessionStorage.setItem(this.pendingLoginKey, String(Date.now()));
+    const url = `${this.config.backendOrigin}${this.apiBaseUrl}/authentication/external-login`;
+    window.location.href = `${url}?provider=${encodeURIComponent(provider)}`;
+  }
+
+  /**
+   * Accepts a token returned by the external-login redirect only when this browser tab started the
+   * flow recently. This blocks login CSRF, where a crafted link would sign the user in as an attacker.
+   */
+  completeExternalLogin(token: string): boolean {
+    const startedAt = Number(sessionStorage.getItem(this.pendingLoginKey));
+    sessionStorage.removeItem(this.pendingLoginKey);
+
+    if (!startedAt || Date.now() - startedAt > this.pendingLoginTtlMs) return false;
+
+    this.setToken(token);
+    return true;
+  }
+
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
     this.token.set(null);
     this.currentUser.set(null);
+
+    for (const cleanup of this.logoutCleanups) {
+      try {
+        Promise.resolve(cleanup()).catch(() => undefined);
+      } catch {
+        // A failing cleanup must not block logout.
+      }
+    }
   }
 }
