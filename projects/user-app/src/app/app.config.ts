@@ -14,6 +14,7 @@ import { AppDatabase } from './core/db/app-database';
 import { SyncService } from './core/services/sync.service';
 import { ThemeService } from './core/services/theme.service';
 import { PwaInstallService } from './core/services/pwa-install.service';
+import { ProfilePreferencesService } from './core/services/profile-preferences.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -41,6 +42,7 @@ export const appConfig: ApplicationConfig = {
     }),
     provideAppInitializer(() => {
       inject(ThemeService);
+      inject(ProfilePreferencesService);
       inject(SyncService);
       inject(PwaInstallService);
     }),

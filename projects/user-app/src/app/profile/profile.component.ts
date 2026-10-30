@@ -19,6 +19,7 @@ import { TranslationService } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
 import { PwaInstallService } from '../core/services/pwa-install.service';
+import { ProfilePreferencesService } from '../core/services/profile-preferences.service';
 
 @Component({
   selector: 'app-profile',
@@ -39,6 +40,7 @@ export class ProfileComponent implements OnInit {
   private readonly location = inject(Location);
   private readonly router = inject(Router);
   private readonly profileService = inject(ProfileService);
+  private readonly profilePreferencesService = inject(ProfilePreferencesService);
   private readonly authService = inject(AuthService);
   protected readonly themeService = inject(ThemeService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -89,9 +91,8 @@ export class ProfileComponent implements OnInit {
   }
 
   loadUserProfile(): void {
-    this.profileService.getProfile().subscribe({
-      next: (res: any) => {
-        const data: UserProfileDto = res?.data ?? res;
+    this.profilePreferencesService.getProfile().subscribe({
+      next: (data: UserProfileDto) => {
         if (data) {
           const resolvedName = data.name || data.userName || (data.email ? data.email.split('@')[0] : 'Użytkownik');
           this.name.set(resolvedName);

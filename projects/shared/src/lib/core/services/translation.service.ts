@@ -43,6 +43,7 @@ export class TranslationService {
   setLanguage(langCode: string, syncBackend = true): void {
     this.currentLang.set(langCode);
     localStorage.setItem(this.STORAGE_LANG_KEY, langCode);
+    this.dictionary.set(this.getCachedDictionary(langCode));
 
     if (typeof document !== 'undefined') {
       document.documentElement.lang = langCode;
