@@ -1,13 +1,13 @@
 import { Component, input, output, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService, APP_ICONS } from '@granary/shared';
+import { AuthService, APP_ICONS, SwipeToCloseDirective } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 
 
 @Component({
   selector: 'app-forgot-password-modal',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, APP_ICONS],
+  imports: [CommonModule, TranslatePipe, APP_ICONS, SwipeToCloseDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './forgot-password-modal.component.html',
   styleUrl: './forgot-password-modal.component.scss'

@@ -8,7 +8,7 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ProfileService, ContactMessageDto, APP_ICONS } from '@granary/shared';
+import { ProfileService, ContactMessageDto, APP_ICONS, SwipeToCloseDirective } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 
 
@@ -25,7 +25,7 @@ interface FaqItem {
 @Component({
   selector: 'app-help-faq-sheet',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, APP_ICONS],
+  imports: [CommonModule, TranslatePipe, APP_ICONS, SwipeToCloseDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './help-faq-sheet.component.html',
   styleUrl: './help-faq-sheet.component.scss'

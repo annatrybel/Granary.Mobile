@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecipeService } from '../../../core/services/recipe.service';
-import { CreateCustomRecipePayload, RecipeDetailDto, APP_ICONS } from '@granary/shared';
+import { CreateCustomRecipePayload, RecipeDetailDto, APP_ICONS, SwipeToCloseDirective } from '@granary/shared';
 
 import { CatalogProductDto } from '@granary/shared';
 import { CatalogSearchBarComponent } from '../../../shared/components/catalog-search-bar/catalog-search-bar.component';
@@ -44,6 +44,7 @@ export interface FormStepItem {
     TranslatePipe,
     MediaUrlPipe,
     APP_ICONS,
+    SwipeToCloseDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './add-recipe-sheet.component.html',

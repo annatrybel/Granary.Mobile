@@ -12,7 +12,7 @@ import {
 import { CommonModule } from '@angular/common';
 import * as QRCode from 'qrcode';
 
-import { ConfirmDeleteModalComponent, APP_ICONS } from '@granary/shared';
+import { ConfirmDeleteModalComponent, APP_ICONS, SwipeToCloseDirective } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 import { TranslationService } from '@granary/shared';
 import { AuthService } from '@granary/shared';
@@ -29,7 +29,7 @@ export interface HouseholdDetailMember {
 @Component({
   selector: 'app-household-invite-sheet',
   standalone: true,
-  imports: [CommonModule, ConfirmDeleteModalComponent, TranslatePipe, APP_ICONS],
+  imports: [CommonModule, ConfirmDeleteModalComponent, TranslatePipe, APP_ICONS, SwipeToCloseDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './household-invite-sheet.component.html',
   styleUrl: './household-invite-sheet.component.scss'

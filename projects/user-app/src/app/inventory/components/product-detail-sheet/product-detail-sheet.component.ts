@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductItem } from '../../../core/db/app-database';
-import { ProductDetailUpdatePayload, APP_ICONS } from '@granary/shared';
+import { ProductDetailUpdatePayload, APP_ICONS, SwipeToCloseDirective } from '@granary/shared';
 import { PantryService } from '../../../core/services/pantry.service';
 import { TranslatePipe } from '@granary/shared';
 import { TranslationService } from '@granary/shared';
@@ -32,7 +32,7 @@ export interface QuickDayOption {
 @Component({
   selector: 'app-product-detail-sheet',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, MediaUrlPipe, APP_ICONS],
+  imports: [CommonModule, TranslatePipe, MediaUrlPipe, APP_ICONS, SwipeToCloseDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product-detail-sheet.component.html',
   styleUrl: './product-detail-sheet.component.scss'
@@ -70,7 +70,8 @@ export class ProductDetailSheetComponent implements OnInit {
   isGeneratingImage = signal<boolean>(false);
 
   get isCustomProduct(): boolean {
-    return !this.product().catalogProductId;
+    const item = this.product();
+    return item.isCustom !== false && !item.catalogProductId;
   }
 
   ngOnInit(): void {
@@ -115,6 +116,8 @@ export class ProductDetailSheetComponent implements OnInit {
   }
 
   generateAiProductImage(): void {
+    if (!this.isCustomProduct) return;
+
     const productName = this.product().name.trim();
     if (!productName) return;
 
@@ -156,10 +159,13 @@ export class ProductDetailSheetComponent implements OnInit {
   }
 
   removeImage(): void {
+    if (!this.isCustomProduct) return;
     this.detailImageUrl.set(null);
   }
 
   onImageFileChange(event: Event): void {
+    if (!this.isCustomProduct) return;
+
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -183,7 +189,8 @@ export class ProductDetailSheetComponent implements OnInit {
       expirationDate: this.detailExpirationDate(),
       categoryName: this.detailCategoryName(),
       categoryId: selectedCategory?.id,
-      customImageUrl: this.detailImageUrl() || undefined
+      customImageUrl: this.isCustomProduct ? this.detailImageUrl() || undefined : undefined
     });
   }
+
 }

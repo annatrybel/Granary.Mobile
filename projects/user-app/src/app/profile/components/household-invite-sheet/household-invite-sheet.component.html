@@ -1,6 +1,7 @@
 <div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
 
-<div class="sheet-container animate-slide-up" (click)="$event.stopPropagation()">
+<div class="sheet-container animate-slide-up" appSwipeToClose (appSwipeToClose)="closeSheet.emit()"
+  (click)="$event.stopPropagation()">
  
   <div class="w-12 h-1 bg-app-border rounded-full mx-auto mb-2 shrink-0"></div>
 

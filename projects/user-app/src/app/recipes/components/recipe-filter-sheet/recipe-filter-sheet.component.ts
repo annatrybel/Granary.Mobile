@@ -1,12 +1,12 @@
 import { Component, input, output, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RecipeFilters } from '@granary/shared';
+import { RecipeFilters, SwipeToCloseDirective } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 
 @Component({
   selector: 'app-recipe-filter-sheet',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, SwipeToCloseDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipe-filter-sheet.component.html',
   styleUrl: './recipe-filter-sheet.component.scss'

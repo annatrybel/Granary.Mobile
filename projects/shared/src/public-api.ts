@@ -8,6 +8,7 @@ export * from './lib/core/tokens/api-base-url.token';
 export * from './lib/core/tokens/app-config.token';
 export * from './lib/core/tokens/logout-cleanup.token';
 export * from './lib/core/tokens/media-base-url.token';
+export * from './lib/directives/swipe-to-close.directive';
 export * from './lib/inventory/inventory.models';
 export * from './lib/icons';
 export * from './lib/profile/profile.models';

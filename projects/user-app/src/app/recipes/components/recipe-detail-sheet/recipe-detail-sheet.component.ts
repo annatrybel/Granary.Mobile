@@ -9,7 +9,7 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RecipeDetailDto, APP_ICONS } from '@granary/shared';
+import { RecipeDetailDto, APP_ICONS, SwipeToCloseDirective } from '@granary/shared';
 import { RecipeService } from '../../../core/services/recipe.service';
 import { TranslatePipe } from '@granary/shared';
 import { TranslationService } from '@granary/shared';
@@ -19,7 +19,7 @@ import { MediaUrlPipe } from '@granary/shared';
 @Component({
   selector: 'app-recipe-detail-sheet',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, MediaUrlPipe, APP_ICONS],
+  imports: [CommonModule, TranslatePipe, MediaUrlPipe, APP_ICONS, SwipeToCloseDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipe-detail-sheet.component.html',
   styleUrl: './recipe-detail-sheet.component.scss'
