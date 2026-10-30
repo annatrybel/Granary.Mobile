@@ -131,7 +131,7 @@ export class PantryService {
       quantity: number;
       unit: string;
       expirationDate: string;
-      customImageUrl?: string;
+      customImageUrl?: string | null;
       categoryId?: string;
       categoryName?: string;
     }
@@ -252,7 +252,7 @@ export class PantryService {
       categoryImageUrl: item.categoryImageUrl ?? null,
       locationName: polishLoc,
       storageLocation: item.storageLocation,
-      imageUrl: item.imageUrl,
+      imageUrl: item.imageUrl ?? item.customImageUrl ?? null,
       quantity: item.quantity || 1,
       unit: item.unit || 'szt.',
       expirationDate,

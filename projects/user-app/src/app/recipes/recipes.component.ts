@@ -10,8 +10,7 @@ import {
   OnDestroy,
   ElementRef,
   ViewChild,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -29,16 +28,16 @@ import {
   RecipeTabScope,
   CreateCustomRecipePayload,
   APP_ICONS,
+  TranslatePipe,
+  TranslationService,
+  ConfirmDeleteModalComponent
 } from '@granary/shared';
-import { TranslatePipe } from '@granary/shared';
 
 import { RecipeSearchBarComponent } from './components/recipe-search-bar/recipe-search-bar.component';
 import { RecipeCardComponent } from './components/recipe-card/recipe-card.component';
 import { RecipeDetailSheetComponent } from './components/recipe-detail-sheet/recipe-detail-sheet.component';
 import { RecipeFilterSheetComponent } from './components/recipe-filter-sheet/recipe-filter-sheet.component';
 import { AddRecipeSheetComponent } from './components/add-recipe-sheet/add-recipe-sheet.component';
-import { ConfirmDeleteModalComponent } from '@granary/shared';
-import { TranslationService } from '@granary/shared';
 
 interface ScopeTabOption {
   scope: RecipeTabScope;
@@ -47,9 +46,7 @@ interface ScopeTabOption {
   icon?: string;
 }
 
-function isRecipeTabScope(scope: string | null): scope is RecipeTabScope {
-  return scope === 'all' || scope === 'favorites' || scope === 'custom';
-}
+const isScope = (s: string | null): s is RecipeTabScope => ['all', 'favorites', 'custom'].includes(s as any);
 
 @Component({
   selector: 'app-recipes',
@@ -64,7 +61,7 @@ function isRecipeTabScope(scope: string | null): scope is RecipeTabScope {
     AddRecipeSheetComponent,
     ConfirmDeleteModalComponent,
     TranslatePipe,
-    APP_ICONS,
+    APP_ICONS
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipes.component.html',
@@ -74,7 +71,6 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly recipeService = inject(RecipeService);
   private readonly shoppingListService = inject(ShoppingListService);
   private readonly translationService = inject(TranslationService);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -88,6 +84,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   private detailRequestId = 0;
   private sentinelVisible = false;
 
+  // Stany główne listy
   readonly activeScope = signal<RecipeTabScope>('all');
   readonly searchQuery = signal<string>('');
   readonly selectedItemsFilter = signal<string | null>(null);
@@ -118,6 +115,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly isFilterSheetOpen = signal<boolean>(false);
   readonly isAddRecipeOpen = signal<boolean>(false);
 
+  // Stany dodawania do listy zakupów
   readonly userShoppingLists = signal<ShoppingListDto[]>([]);
   readonly selectedShoppingListId = signal<string | null>(null);
   readonly isLoadingLists = signal<boolean>(false);
@@ -128,22 +126,14 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   private hasMorePages = true;
   private isFirstLangRun = true;
 
-  readonly activeFilters = signal<RecipeFilters>({
-    maxTime: null,
-    sortBy: 'match',
-    mealType: null,
-    diet: null
-  });
+  readonly activeFilters = signal<RecipeFilters>({ maxTime: null, sortBy: 'match', mealType: null, diet: null });
 
   constructor() {
-    this.searchSubject.pipe(
-      debounceTime(350),
-      distinctUntilChanged(),
-      takeUntilDestroyed()
-    ).subscribe(query => {
-      this.searchQuery.set(query);
-      this.resetAndReload();
-    });
+    this.searchSubject.pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe(query => {
+        this.searchQuery.set(query);
+        this.resetAndReload();
+      });
 
     effect(() => {
       this.translationService.currentLang();
@@ -159,17 +149,15 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     const scopeParam = this.route.snapshot.queryParamMap.get('scope');
-    if (isRecipeTabScope(scopeParam)) this.activeScope.set(scopeParam);
+    if (isScope(scopeParam)) this.activeScope.set(scopeParam);
 
     const itemsParam = this.route.snapshot.queryParamMap.get('items');
     if (itemsParam) this.selectedItemsFilter.set(itemsParam);
 
     this.fetchData(true);
 
-    const targetRecipeId = this.route.snapshot.queryParamMap.get('recipeId');
-    if (targetRecipeId) {
-      this.openRecipeDetail(targetRecipeId);
-    }
+    const targetId = this.route.snapshot.queryParamMap.get('recipeId');
+    if (targetId) this.openRecipeDetail(targetId);
   }
 
   ngAfterViewInit(): void {
@@ -187,15 +175,11 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.detailSub?.unsubscribe();
   }
 
+  // --- NAWIGACJA & FILTRY ---
   setScope(scope: RecipeTabScope): void {
     if (this.activeScope() === scope) return;
     this.activeScope.set(scope);
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { scope: scope === 'all' ? null : scope },
-      queryParamsHandling: 'merge',
-      replaceUrl: true
-    });
+    this.updateQuery({ scope: scope === 'all' ? null : scope });
     this.resetAndReload();
   }
 
@@ -215,15 +199,15 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   clearSelectedItemsFilter(): void {
     this.selectedItemsFilter.set(null);
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { items: null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true
-    });
+    this.updateQuery({ items: null });
     this.resetAndReload();
   }
 
+  private updateQuery(queryParams: Record<string, any>): void {
+    this.router.navigate([], { relativeTo: this.route, queryParams, queryParamsHandling: 'merge', replaceUrl: true });
+  }
+
+  // --- POBIERANIE DANYCH ---
   private resetAndReload(): void {
     this.currentPage = 1;
     this.hasMorePages = true;
@@ -242,6 +226,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
     const filters = this.activeFilters();
     this.fetchSub?.unsubscribe();
     this.initialInFlight = isInitial;
+
     this.fetchSub = this.recipeService.getRecipes({
       scope: this.activeScope(),
       query: this.searchQuery(),
@@ -260,7 +245,6 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
         else this.recipes.update(curr => [...curr, ...newItems]);
         this.isLoading.set(false);
         this.isLoadingMore.set(false);
-        this.cdr.markForCheck();
       },
       complete: () => {
         this.initialInFlight = false;
@@ -272,7 +256,6 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.isLoading.set(false);
         this.isLoadingMore.set(false);
         if (!isInitial) this.hasMorePages = false;
-        this.cdr.markForCheck();
       }
     });
   }
@@ -281,6 +264,21 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.sentinelVisible || this.initialInFlight || this.isLoading() || this.isLoadingMore() || !this.hasMorePages) return;
     this.currentPage++;
     this.fetchData(false);
+  }
+
+  // --- AKCJE PRZEPISÓW (CRUD & ULUBIONE) ---
+  toggleFavorite(recipeId: string): void {
+    if (!recipeId) return;
+    this.updateFavState(recipeId);
+
+    this.recipeService.toggleFavorite(recipeId).subscribe({
+      error: () => this.updateFavState(recipeId) // Cofnięcie stanu w razie błędu sieci
+    });
+  }
+
+  private updateFavState(id: string): void {
+    this.recipes.update(list => list.map(r => r.recipeId === id ? { ...r, isFavorite: !r.isFavorite } : r));
+    this.activeRecipeDetail.update(curr => curr?.id === id ? { ...curr, isFavorite: !curr.isFavorite } : curr);
   }
 
   openAddRecipe(): void {
@@ -292,7 +290,6 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.recipeService.getById(recipe.recipeId).subscribe(detail => {
       this.recipeBeingEdited.set(detail);
       this.isAddRecipeOpen.set(true);
-      this.cdr.markForCheck();
     });
   }
 
@@ -303,9 +300,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onSaveRecipePayload(payload: CreateCustomRecipePayload): void {
     const edited = this.recipeBeingEdited();
-    const action$ = edited
-      ? this.recipeService.updateRecipe(edited.id, payload)
-      : this.recipeService.createRecipe(payload);
+    const action$ = edited ? this.recipeService.updateRecipe(edited.id, payload) : this.recipeService.createRecipe(payload);
 
     action$.subscribe(() => {
       this.closeAddOrEditRecipe();
@@ -329,10 +324,44 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.recipeService.deleteRecipe(target.recipeId).subscribe(() => {
       this.recipes.update(list => list.filter(r => r.recipeId !== target.recipeId));
       this.recipeToDelete.set(null);
-      this.cdr.markForCheck();
     });
   }
 
+  // --- MODAL SZCZEGÓŁÓW PRZEPISU ---
+  openRecipeDetail(recipeId: string, summary?: RecipeMatchDto): void {
+    if (!recipeId) return;
+    this.detailSub?.unsubscribe();
+    const reqId = ++this.detailRequestId;
+
+    this.activeRecipeDetail.set(summary ? {
+      ...summary,
+      id: summary.recipeId,
+      instructions: '',
+      isCustom: summary.isCustom ?? false,
+      likesCount: 0,
+      dislikesCount: 0,
+      ingredients: []
+    } : null);
+
+    this.detailSub = this.recipeService.getById(recipeId).subscribe({
+      next: (detail) => {
+        if (reqId === this.detailRequestId) this.activeRecipeDetail.set(detail);
+      },
+      error: () => this.detailSub = undefined
+    });
+  }
+
+  onCloseRecipeDetail(): void {
+    this.detailSub?.unsubscribe();
+    this.detailSub = undefined;
+    this.detailRequestId++;
+    this.activeRecipeDetail.set(null);
+    if (this.route.snapshot.queryParamMap.has('recipeId')) {
+      this.updateQuery({ recipeId: null });
+    }
+  }
+
+  // --- MODAL DODAWANIA DO LISTY ZAKUPÓW ---
   openShoppingListModal(recipe: RecipeMatchDto): void {
     this.recipeForShoppingList.set(recipe);
     this.isLoadingLists.set(true);
@@ -340,19 +369,10 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.shoppingListService.getMyLists().subscribe({
       next: (lists) => {
         this.userShoppingLists.set(lists || []);
-
-        const defaultList = lists?.[0];
-        if (defaultList) {
-          this.selectedShoppingListId.set(defaultList.id);
-        }
-
+        if (lists?.[0]) this.selectedShoppingListId.set(lists[0].id);
         this.isLoadingLists.set(false);
-        this.cdr.markForCheck();
       },
-      error: () => {
-        this.isLoadingLists.set(false);
-        this.cdr.markForCheck();
-      }
+      error: () => this.isLoadingLists.set(false)
     });
   }
 
@@ -369,10 +389,9 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.isAddingToShoppingList.set(true);
-
     const payload: AddShoppingItemDto[] = recipe.missingIngredients.map(item => ({
       productId: item.productId || undefined,
-      customName: !item.productId ? item.productName : undefined,
+      customName: item.productId ? undefined : item.productName,
       productName: item.productName,
       quantity: item.quantity > 0 ? item.quantity : 1,
       unit: item.unit
@@ -382,108 +401,17 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (addedCount) => {
         this.isAddingToShoppingList.set(false);
         this.recipeForShoppingList.set(null);
-        this.cdr.markForCheck();
-
-        if (addedCount === 0) {
-          alert(
-            this.translationService.translate(
-              'recipes.allAlreadyOnList',
-              'Wszystkie brakujące składniki znajdują się już na tej liście zakupów!'
-            )
-          );
-        } else {
-          alert(
-            this.translationService.translate(
-              'recipes.addedSuccess',
-              `Dodano ${addedCount} nowych pozycji do listy zakupów.`
-            )
-          );
-        }
+        alert(this.translationService.translate(
+          addedCount === 0 ? 'recipes.allAlreadyOnList' : 'recipes.addedSuccess',
+          addedCount === 0
+            ? 'Wszystkie brakujące składniki znajdują się już na tej liście zakupów!'
+            : `Dodano ${addedCount} nowych pozycji do listy zakupów.`
+        ));
       },
       error: () => {
         this.isAddingToShoppingList.set(false);
-        this.cdr.markForCheck();
-        alert(
-          this.translationService.translate(
-            'recipes.addedError',
-            'Nie udało się dodać produktów do listy zakupów.'
-          )
-        );
+        alert(this.translationService.translate('recipes.addedError', 'Nie udało się dodać produktów do listy zakupów.'));
       }
     });
-  }
-
-  toggleFavorite(recipeId: string): void {
-    if (!recipeId) return;
-
-    this.recipes.update(list => list.map(r => r.recipeId === recipeId ? { ...r, isFavorite: !r.isFavorite } : r));
-
-    this.activeRecipeDetail.update(curr => {
-      if (curr && curr.id === recipeId) {
-        return { ...curr, isFavorite: !curr.isFavorite };
-      }
-      return curr;
-    });
-
-    this.cdr.markForCheck();
-
-    this.recipeService.toggleFavorite(recipeId).subscribe({
-      error: () => {
-        this.recipes.update(list => list.map(r => r.recipeId === recipeId ? { ...r, isFavorite: !r.isFavorite } : r));
-        this.activeRecipeDetail.update(curr => {
-          if (curr && curr.id === recipeId) {
-            return { ...curr, isFavorite: !curr.isFavorite };
-          }
-          return curr;
-        });
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  openRecipeDetail(recipeId: string, summary?: RecipeMatchDto): void {
-    if (!recipeId) return;
-
-    this.detailSub?.unsubscribe();
-    const requestId = ++this.detailRequestId;
-
-    this.activeRecipeDetail.set(summary ? {
-      ...summary,
-      id: summary.recipeId,
-      instructions: '',
-      isCustom: summary.isCustom ?? false,
-      likesCount: 0,
-      dislikesCount: 0,
-      ingredients: []
-    } : null);
-
-    this.detailSub = this.recipeService.getById(recipeId).subscribe({
-      next: (detail) => {
-        if (requestId === this.detailRequestId) {
-          this.activeRecipeDetail.set(detail);
-          this.cdr.markForCheck();
-        }
-      },
-      error: () => {
-        this.detailSub = undefined;
-      }
-    });
-  }
-
-  onCloseRecipeDetail(): void {
-    this.detailSub?.unsubscribe();
-    this.detailSub = undefined;
-    this.detailRequestId++;
-
-    this.activeRecipeDetail.set(null);
-
-    if (this.route.snapshot.queryParamMap.has('recipeId')) {
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { recipeId: null },
-        queryParamsHandling: 'merge',
-        replaceUrl: true
-      });
-    }
   }
 }

@@ -20,14 +20,13 @@
 
     <div class="bg-app-surface-variant border border-app-border rounded-2xl p-2.5 flex flex-col items-center gap-2">
 
-      @if (detailImageUrl()) {
       <div class="relative w-full h-36 rounded-xl overflow-hidden bg-app-surface border border-app-border shadow-2xs">
-        <img [src]="(detailImageUrl() | mediaUrl)!" [alt]="product().name" class="w-full h-full object-cover"
+        <img [src]="(detailImageUrl() | mediaUrl) || '/icons/food-placeholder.svg'" [alt]="product().name" class="w-full h-full object-cover"
           referrerpolicy="no-referrer"
           (error)="$any($event.target).onerror = null; $any($event.target).src = '/icons/food-placeholder.svg'"
           loading="lazy" />
 
-        @if (isCustomProduct) {
+        @if (isCustomProduct && detailImageUrl()) {
         <button type="button" (click)="removeImage()"
           class="absolute top-2 right-2 bg-black/65 hover:bg-black/80 border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer active:scale-90 text-white transition-all shadow-xs"
           [title]="'productDetail.removePhoto' | t:'Usuń zdjęcie'">
@@ -47,8 +46,8 @@
         </button>
         }
       </div>      
-      } @else {
-      @if (isCustomProduct) {
+
+      @if (isCustomProduct && !detailImageUrl()) {
       <button type="button" [disabled]="isGeneratingImage()" (click)="generateAiProductImage()"
         class="w-full bg-app-brand/15 hover:bg-app-brand/25 text-app-brand text-xs font-bold py-3.5 px-3 rounded-xl border border-app-brand/25 flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all disabled:opacity-50">
         @if (isGeneratingImage()) {
@@ -61,7 +60,6 @@
         }
       </button>
 
-      }
       }
 
       @if (isCustomProduct) {

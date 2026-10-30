@@ -30,7 +30,7 @@ export interface QuickDayOption {
 export interface ProductDetailSheetSavePayload extends ProductDetailUpdatePayload {
   categoryName?: string;
   categoryId?: string;
-  customImageUrl?: string;
+  customImageUrl?: string | null;
 }
 
 @Component({
@@ -73,17 +73,12 @@ export class ProductDetailSheetComponent implements OnInit {
   detailImageUrl = signal<string | null>(null);
   isGeneratingImage = signal<boolean>(false);
 
- get isCustomProduct(): boolean {
-  const item = this.product();
-  if (!item) return false;
+  get isCustomProduct(): boolean {
+    const item = this.product();
 
-  if (item.isCustom === true) return true;
-  if (item.isCustom === false) return false;
-
-  if (item.categoryName === 'Inne' || item.category === 'ogolne') return true;
-
-  return !item.catalogProductId;
-}
+    if (item.isCustom !== undefined) return item.isCustom;
+    return !item.catalogProductId;
+  }
 
   ngOnInit(): void {
     if (this.categories().length === 0) {
@@ -137,28 +132,12 @@ export class ProductDetailSheetComponent implements OnInit {
     this.pantryService.generateProductImage(productName).subscribe({
       next: (res) => {
         if (res.success && res.imageUrl) {
-          // Upewniamy się, że pre-loading w obiekcie Image() odpytuje /uploads/...
-          const resolvedSrc = res.imageUrl.startsWith('http') || res.imageUrl.startsWith('data:')
-            ? res.imageUrl
-            : `/uploads/${res.imageUrl.replace(/^\/?(uploads\/)?/, '')}`;
-
-          const img = new Image();
-          img.onload = () => {
-            // Zapisujemy czysty klucz zwrócony z backendu (szablon HTML użyje MediaUrlPipe)
-            this.detailImageUrl.set(res.imageUrl);
-            this.isGeneratingImage.set(false); 
-            this.cdr.markForCheck();
-          };
-          img.onerror = () => {
-            this.isGeneratingImage.set(false);
-            alert('Błąd wczytywania wygenerowanego zdjęcia.');
-            this.cdr.markForCheck();
-          };
-          img.src = resolvedSrc;
+          this.detailImageUrl.set(res.imageUrl);
         } else {
-          this.isGeneratingImage.set(false);
-          this.cdr.markForCheck();
+          alert(res.message || 'Nie udało się wygenerować zdjęcia produktu.');
         }
+        this.isGeneratingImage.set(false);
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.isGeneratingImage.set(false);
@@ -177,11 +156,16 @@ export class ProductDetailSheetComponent implements OnInit {
   onImageFileChange(event: Event): void {
     if (!this.isCustomProduct) return;
 
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        this.detailImageUrl.set(e.target?.result as string);
+        if (typeof e.target?.result === 'string') {
+          this.detailImageUrl.set(e.target.result);
+        }
         this.cdr.markForCheck();
       };
       reader.readAsDataURL(file);
@@ -200,7 +184,7 @@ export class ProductDetailSheetComponent implements OnInit {
       expirationDate: this.detailExpirationDate(),
       categoryName: this.detailCategoryName(),
       categoryId: selectedCategory?.id,
-      customImageUrl: this.isCustomProduct ? this.detailImageUrl() || undefined : undefined
+      customImageUrl: this.isCustomProduct ? this.detailImageUrl() : undefined
     });
   }
 
