@@ -128,20 +128,22 @@ export class InventoryComponent {
   }
 
   onAddCustomProduct(name?: string): void {
-    const customName = (name || '').trim();
-    if (!customName) return;
+  const customName = (name || '').trim();
+  if (!customName) return;
 
-    this.pantryService.addProduct({
-      name: customName,
-      category: 'ogolne',
-      categoryName: 'Inne',
-      locationName: this.selectedLocation() !== 'all' ? this.selectedLocation() : 'Lodówka',
-      imageUrl: null,
-      quantity: 1,
-      unit: 'szt.',
-      expiryDays: 7
-    });
-  }
+  this.pantryService.addProduct({
+    name: customName,
+    isCustom: true, 
+    catalogProductId: null,
+    category: 'ogolne',
+    categoryName: 'Inne',
+    locationName: this.selectedLocation() !== 'all' ? this.selectedLocation() : 'Lodówka',
+    imageUrl: null,
+    quantity: 1,
+    unit: 'szt.',
+    expiryDays: 7
+  });
+}
 
   isSelected(id: string): boolean {
     return this.selectedIds().has(id);

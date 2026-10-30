@@ -16,8 +16,6 @@ import { TranslatePipe } from '@granary/shared';
 import { TranslationService } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
 
-
-
 export interface LocationOption {
   key: 'Lodówka' | 'Zamrażarka' | 'Spiżarnia';
   icon: string;
@@ -75,10 +73,17 @@ export class ProductDetailSheetComponent implements OnInit {
   detailImageUrl = signal<string | null>(null);
   isGeneratingImage = signal<boolean>(false);
 
-  get isCustomProduct(): boolean {
-    const item = this.product();
-    return item.isCustom === true || (item.isCustom !== false && !item.catalogProductId);
-  }
+ get isCustomProduct(): boolean {
+  const item = this.product();
+  if (!item) return false;
+
+  if (item.isCustom === true) return true;
+  if (item.isCustom === false) return false;
+
+  if (item.categoryName === 'Inne' || item.category === 'ogolne') return true;
+
+  return !item.catalogProductId;
+}
 
   ngOnInit(): void {
     if (this.categories().length === 0) {
