@@ -223,6 +223,7 @@ export class PantryService {
   }
 
   private mapServerItem(item: any): ProductItem {
+    const catalogProductId = item.catalogProductId ?? item.productId ?? null;
     const locStr = (item.storageLocation || '').toString().toLowerCase();
     let polishLoc = 'Lodówka';
     let cat = 'lodowka';
@@ -241,7 +242,10 @@ export class PantryService {
 
     return {
       id: item.id,
-      catalogProductId: item.productId,
+      catalogProductId,
+      isCustom: typeof item.isCustom === 'boolean'
+        ? item.isCustom
+        : Boolean(item.customProductName) || !catalogProductId,
       name: item.productName || item.name || 'Produkt',
       category: cat,
       categoryName: item.categoryName || 'Inne',

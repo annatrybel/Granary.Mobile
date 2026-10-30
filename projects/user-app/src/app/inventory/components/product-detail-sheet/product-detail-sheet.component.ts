@@ -77,7 +77,7 @@ export class ProductDetailSheetComponent implements OnInit {
 
   get isCustomProduct(): boolean {
     const item = this.product();
-    return item.isCustom !== false && !item.catalogProductId;
+    return item.isCustom === true || (item.isCustom !== false && !item.catalogProductId);
   }
 
   ngOnInit(): void {

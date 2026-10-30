@@ -31,7 +31,7 @@
         <button type="button" (click)="removeImage()"
           class="absolute top-2 right-2 bg-black/65 hover:bg-black/80 border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer active:scale-90 text-white transition-all shadow-xs"
           [title]="'productDetail.removePhoto' | t:'Usuń zdjęcie'">
-          <svg lucideTrash [size]="14"></svg>
+          <svg lucideX [size]="14"></svg>
         </button>
 
         <button type="button" [disabled]="isGeneratingImage()" (click)="generateAiProductImage()"
