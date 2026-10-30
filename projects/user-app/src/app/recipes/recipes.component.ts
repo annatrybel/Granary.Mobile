@@ -14,19 +14,21 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RecipeService } from '../core/services/recipe.service';
+import { ShoppingListService, ShoppingListDto, AddShoppingItemDto } from '../core/services/shopping-list.service';
 import {
   RecipeMatchDto,
   RecipeDetailDto,
   RecipeFilters,
   RecipeTabScope,
-  CreateCustomRecipePayload
+  CreateCustomRecipePayload,
+  APP_ICONS,
 } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 
@@ -54,14 +56,15 @@ function isRecipeTabScope(scope: string | null): scope is RecipeTabScope {
   standalone: true,
   imports: [
     CommonModule,
-    LucideAngularModule,
+    FormsModule,
     RecipeSearchBarComponent,
     RecipeCardComponent,
     RecipeDetailSheetComponent,
     RecipeFilterSheetComponent,
     AddRecipeSheetComponent,
     ConfirmDeleteModalComponent,
-    TranslatePipe
+    TranslatePipe,
+    APP_ICONS,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipes.component.html',
@@ -69,6 +72,7 @@ function isRecipeTabScope(scope: string | null): scope is RecipeTabScope {
 })
 export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly recipeService = inject(RecipeService);
+  private readonly shoppingListService = inject(ShoppingListService);
   private readonly translationService = inject(TranslationService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
@@ -79,6 +83,8 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly searchSubject = new Subject<string>();
 
   private detailSub?: Subscription;
+  private fetchSub?: Subscription;
+  private initialInFlight = false;
   private detailRequestId = 0;
   private sentinelVisible = false;
 
@@ -111,6 +117,11 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly recipeForShoppingList = signal<RecipeMatchDto | null>(null);
   readonly isFilterSheetOpen = signal<boolean>(false);
   readonly isAddRecipeOpen = signal<boolean>(false);
+
+  readonly userShoppingLists = signal<ShoppingListDto[]>([]);
+  readonly selectedShoppingListId = signal<string | null>(null);
+  readonly isLoadingLists = signal<boolean>(false);
+  readonly isAddingToShoppingList = signal<boolean>(false);
 
   private currentPage = 1;
   private readonly pageSize = 20;
@@ -172,6 +183,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.observer?.disconnect();
+    this.fetchSub?.unsubscribe();
     this.detailSub?.unsubscribe();
   }
 
@@ -228,7 +240,9 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const filters = this.activeFilters();
-    this.recipeService.getRecipes({
+    this.fetchSub?.unsubscribe();
+    this.initialInFlight = isInitial;
+    this.fetchSub = this.recipeService.getRecipes({
       scope: this.activeScope(),
       query: this.searchQuery(),
       items: this.selectedItemsFilter() || undefined,
@@ -247,10 +261,14 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.isLoading.set(false);
         this.isLoadingMore.set(false);
         this.cdr.markForCheck();
+      },
+      complete: () => {
+        this.initialInFlight = false;
         this.loadMoreIfNeeded();
       },
       error: () => {
-        if (isInitial) this.errorMessage.set('Wystąpił problem z pobraniem przepisów.');
+        this.initialInFlight = false;
+        if (isInitial && this.recipes().length === 0) this.errorMessage.set('Wystąpił problem z pobraniem przepisów.');
         this.isLoading.set(false);
         this.isLoadingMore.set(false);
         if (!isInitial) this.hasMorePages = false;
@@ -260,7 +278,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadMoreIfNeeded(): void {
-    if (!this.sentinelVisible || this.isLoading() || this.isLoadingMore() || !this.hasMorePages) return;
+    if (!this.sentinelVisible || this.initialInFlight || this.isLoading() || this.isLoadingMore() || !this.hasMorePages) return;
     this.currentPage++;
     this.fetchData(false);
   }
@@ -317,20 +335,107 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   openShoppingListModal(recipe: RecipeMatchDto): void {
     this.recipeForShoppingList.set(recipe);
+    this.isLoadingLists.set(true);
+
+    this.shoppingListService.getMyLists().subscribe({
+      next: (lists) => {
+        this.userShoppingLists.set(lists || []);
+
+        const defaultList = lists?.[0];
+        if (defaultList) {
+          this.selectedShoppingListId.set(defaultList.id);
+        }
+
+        this.isLoadingLists.set(false);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isLoadingLists.set(false);
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   confirmAddMissingToShoppingList(recipe: RecipeMatchDto): void {
-    alert(`Dodano ${recipe.missingIngredients.length} pozycji do Twojej listy zakupów!`);
-    this.recipeForShoppingList.set(null);
+    const listId = this.selectedShoppingListId();
+    if (!listId) {
+      alert(this.translationService.translate('recipes.chooseListAlert', 'Wybierz listę zakupów!'));
+      return;
+    }
+
+    if (!recipe.missingIngredients?.length) {
+      this.recipeForShoppingList.set(null);
+      return;
+    }
+
+    this.isAddingToShoppingList.set(true);
+
+    const payload: AddShoppingItemDto[] = recipe.missingIngredients.map(item => ({
+      productId: item.productId || undefined,
+      customName: !item.productId ? item.productName : undefined,
+      productName: item.productName,
+      quantity: item.quantity > 0 ? item.quantity : 1,
+      unit: item.unit
+    }));
+
+    this.shoppingListService.addItemsBulk(listId, payload).subscribe({
+      next: (addedCount) => {
+        this.isAddingToShoppingList.set(false);
+        this.recipeForShoppingList.set(null);
+        this.cdr.markForCheck();
+
+        if (addedCount === 0) {
+          alert(
+            this.translationService.translate(
+              'recipes.allAlreadyOnList',
+              'Wszystkie brakujące składniki znajdują się już na tej liście zakupów!'
+            )
+          );
+        } else {
+          alert(
+            this.translationService.translate(
+              'recipes.addedSuccess',
+              `Dodano ${addedCount} nowych pozycji do listy zakupów.`
+            )
+          );
+        }
+      },
+      error: () => {
+        this.isAddingToShoppingList.set(false);
+        this.cdr.markForCheck();
+        alert(
+          this.translationService.translate(
+            'recipes.addedError',
+            'Nie udało się dodać produktów do listy zakupów.'
+          )
+        );
+      }
+    });
   }
 
   toggleFavorite(recipeId: string): void {
     if (!recipeId) return;
+
     this.recipes.update(list => list.map(r => r.recipeId === recipeId ? { ...r, isFavorite: !r.isFavorite } : r));
+
+    this.activeRecipeDetail.update(curr => {
+      if (curr && curr.id === recipeId) {
+        return { ...curr, isFavorite: !curr.isFavorite };
+      }
+      return curr;
+    });
+
+    this.cdr.markForCheck();
 
     this.recipeService.toggleFavorite(recipeId).subscribe({
       error: () => {
         this.recipes.update(list => list.map(r => r.recipeId === recipeId ? { ...r, isFavorite: !r.isFavorite } : r));
+        this.activeRecipeDetail.update(curr => {
+          if (curr && curr.id === recipeId) {
+            return { ...curr, isFavorite: !curr.isFavorite };
+          }
+          return curr;
+        });
         this.cdr.markForCheck();
       }
     });

@@ -20,7 +20,7 @@ export class AdminUsersService {
   getUsers(page = 1, pageSize = 10, search = '') {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (search) params = params.set('search', search);
-    return this.http.get<PagedResult<UserDto>>(this.url, { params });
+    return this.http.get<PagedResult<UserDto>>(`${this.url}/get-all-users`, { params });
   }
 
   lockUser = (id: string) => this.http.post(`${this.url}/lock-user/${id}`, {});

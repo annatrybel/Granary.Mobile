@@ -16,12 +16,13 @@
       "installMode": "prefetch",
       "resources": {
         "files": [
-          "/favicon.ico",
           "/index.html",
           "/manifest.webmanifest",
           "/*.css",
           "/*.js",
-          "/icons/app-icon*.svg"
+          "/icons/app-icon*.svg",
+          "/icons/icon-*.png",
+          "/icons/apple-touch-icon.png"
         ]
       }
     },

@@ -36,21 +36,63 @@ export class RecipeService {
   private readonly catalogUrl = `${this.apiBaseUrl}/catalog-products`;
 
   getRecipes(filters: RecipeQueryParams): Observable<PagedRecipesResult> {
-    return defer(async () => {
-      if (this.network.isOnline()) {
-        if (await this.db.pendingCount() > 0) await this.sync.flush();
+    return new Observable<PagedRecipesResult>(subscriber => {
+      let cancelled = false;
+
+      void (async () => {
         try {
-          const result = await firstValueFrom(this.fetchRecipes(filters));
-          if ((await this.db.pendingCount('recipe')) === 0) {
-            await this.cacheRecipes(result.items);
+          let emittedCached = false;
+          if (this.canShowCachedFirst(filters)) {
+            const cached = await this.getLocalRecipes(filters);
+            if (cancelled) return;
+            if (cached.items.length > 0) {
+              subscriber.next(cached);
+              emittedCached = true;
+            }
           }
-          return result;
+
+          if (this.network.isOnline()) {
+            if (await this.db.pendingCount() > 0) await this.sync.flush();
+            try {
+              const result = await firstValueFrom(this.fetchRecipes(filters));
+              if ((await this.db.pendingCount('recipe')) === 0) {
+                await this.cacheRecipes(result.items);
+              }
+              if (cancelled) return;
+              subscriber.next(result);
+              subscriber.complete();
+              return;
+            } catch (error) {
+              if (!this.isNetworkError(error)) {
+                if (emittedCached) subscriber.complete();
+                else subscriber.error(error);
+                return;
+              }
+            }
+          }
+
+          if (cancelled) return;
+          if (!emittedCached) subscriber.next(await this.getLocalRecipes(filters));
+          subscriber.complete();
         } catch (error) {
-          if (!this.isNetworkError(error)) throw error;
+          subscriber.error(error);
         }
-      }
-      return this.getLocalRecipes(filters);
+      })();
+
+      return () => {
+        cancelled = true;
+      };
     });
+  }
+
+  private canShowCachedFirst(filters: RecipeQueryParams): boolean {
+    return filters.page === 1
+      && !filters.query?.trim()
+      && !filters.items?.trim()
+      && !filters.mealType
+      && !filters.diet
+      && !filters.maxTime
+      && (filters.sortBy ?? 'match') === 'match';
   }
 
   /**
@@ -329,7 +371,12 @@ export class RecipeService {
         recipes.sort((a, b) => (a.calories ?? Infinity) - (b.calories ?? Infinity));
         break;
       default:
-        recipes.sort((a, b) => b.matchPercentage - a.matchPercentage);
+        recipes.sort((a, b) =>
+          Number(b.canBeCookedNow) - Number(a.canBeCookedNow) ||
+          (b.expiringIngredientsSaved ?? 0) - (a.expiringIngredientsSaved ?? 0) ||
+          b.matchPercentage - a.matchPercentage ||
+          a.title.localeCompare(b.title)
+        );
     }
 
     const start = (filters.page - 1) * filters.pageSize;

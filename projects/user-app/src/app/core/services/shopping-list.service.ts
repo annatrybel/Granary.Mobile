@@ -44,36 +44,77 @@ export class ShoppingListService {
   private readonly baseUrl = `${this.apiBaseUrl}/shopping-lists`;
 
   getMyLists(): Observable<ShoppingListDto[]> {
-    return defer(async () => {
-      if (await this.canPullFromServer()) {
-        try {
-          const lists = await firstValueFrom(this.http.get<ShoppingListDto[]>(this.baseUrl));
-          await this.replaceCache(lists ?? []);
-        } catch {
-          // brak sieci lub błąd serwera: korzystamy z danych lokalnych
-        }
-      }
+    return new Observable<ShoppingListDto[]>(subscriber => {
+      let cancelled = false;
 
-      const lists = await this.db.shoppingLists.toArray();
-      return lists.sort((a, b) => (a.createdAt ?? '').localeCompare(b.createdAt ?? ''));
+      void (async () => {
+        try {
+          const cached = await this.readLocalLists();
+          if (cancelled) return;
+          if (cached.length > 0) subscriber.next(cached);
+
+          let refreshed = false;
+          if (await this.canPullFromServer()) {
+            try {
+              const lists = await firstValueFrom(this.http.get<ShoppingListDto[]>(this.baseUrl));
+              await this.replaceCache(lists ?? []);
+              refreshed = true;
+            } catch {
+              // brak sieci lub błąd serwera: korzystamy z danych lokalnych
+            }
+          }
+
+          if (cancelled) return;
+          if (refreshed) subscriber.next(await this.readLocalLists());
+          else if (cached.length === 0) subscriber.next([]);
+          subscriber.complete();
+        } catch (error) {
+          subscriber.error(error);
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+      };
     });
   }
 
   getListDetails(listId: string): Observable<ShoppingListDto> {
-    return defer(async () => {
-      if (await this.canPullFromServer()) {
+    return new Observable<ShoppingListDto>(subscriber => {
+      let cancelled = false;
+
+      void (async () => {
         try {
           const id = await this.db.resolveId(listId);
-          const dto = await firstValueFrom(this.http.get<ShoppingListDto>(`${this.baseUrl}/${id}`));
-          await this.db.shoppingLists.put(this.toOfflineList(dto, await this.db.shoppingLists.get(id)));
-        } catch {
-          // brak sieci lub błąd serwera: korzystamy z danych lokalnych
-        }
-      }
+          const cached = await this.db.shoppingLists.get(id);
+          if (cancelled) return;
+          const emittedCached = !!cached && cached.items.length > 0;
+          if (emittedCached && cached) subscriber.next(cached);
 
-      const list = await this.db.shoppingLists.get(await this.db.resolveId(listId));
-      if (!list) throw new Error(`Nie znaleziono listy zakupów ${listId}`);
-      return list;
+          let refreshed = false;
+          if (await this.canPullFromServer()) {
+            try {
+              const dto = await firstValueFrom(this.http.get<ShoppingListDto>(`${this.baseUrl}/${id}`));
+              await this.db.shoppingLists.put(this.toOfflineList(dto, await this.db.shoppingLists.get(id)));
+              refreshed = true;
+            } catch {
+              // brak sieci lub błąd serwera: korzystamy z danych lokalnych
+            }
+          }
+
+          if (cancelled) return;
+          const latest = await this.db.shoppingLists.get(await this.db.resolveId(listId));
+          if (!latest) throw new Error(`Nie znaleziono listy zakupów ${listId}`);
+          if (refreshed || !emittedCached) subscriber.next(latest);
+          subscriber.complete();
+        } catch (error) {
+          subscriber.error(error);
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+      };
     });
   }
 
@@ -92,7 +133,6 @@ export class ShoppingListService {
       await this.db.enqueue({ action: 'CREATE', entity: 'shoppingList', entityId: list.id, payload: dto });
       await this.sync.flush();
 
-      // Po synchronizacji lista może mieć już identyfikator nadany przez serwer.
       return (await this.db.shoppingLists.get(await this.db.resolveId(list.id))) ?? list;
     });
   }
@@ -125,6 +165,71 @@ export class ShoppingListService {
       await this.db.enqueue({ action: 'CREATE', entity: 'shoppingItem', entityId: item.id, parentId, payload: dto });
       void this.sync.flush();
       return item;
+    });
+  }
+
+  /**
+   * Dodaje wiele produktów do listy.
+   * Jeśli dany produkt już znajduje się na liście (sprawdzane po productId lub nazwie), zostaje pominięty.
+   */
+  // projects/user-app/src/app/core/services/shopping-list.service.ts
+
+  addItemsBulk(listId: string, dtos: AddShoppingItemDto[]): Observable<number> {
+    return defer(async () => {
+      const parentId = await this.db.resolveId(listId);
+      let addedCount = 0;
+      const itemsToSync: AddShoppingItemDto[] = [];
+
+      await this.modifyList(parentId, list => {
+        const updatedItems = [...list.items];
+
+        for (const dto of dtos) {
+          const name = (dto.customName || dto.productName || '').trim().toLowerCase();
+
+          // BEZPIECZNE SPRAWDZENIE (zabezpieczone przed undefined):
+          const alreadyExists = updatedItems.some(i => {
+            if (dto.productId && i.productId === dto.productId) return true;
+            const currentName = (i.name || i.productName || '').trim().toLowerCase();
+            return !dto.productId && currentName === name;
+          });
+
+          if (alreadyExists) {
+            continue; // Pomijamy istniejący produkt
+          }
+
+          const newItem: ShoppingItemDto = {
+            id: this.db.newId(),
+            productId: dto.productId ?? null,
+            name: dto.customName || dto.productName || '',
+            productName: dto.productName || dto.customName || '',
+            categoryName: dto.categoryName || 'Inne',
+            quantity: dto.quantity > 0 ? dto.quantity : 1,
+            unit: dto.unit || 'szt.',
+            isBought: false
+          };
+
+          updatedItems.unshift(newItem);
+          itemsToSync.push(dto);
+          addedCount++;
+        }
+
+        return {
+          ...list,
+          items: updatedItems
+        };
+      });
+
+      if (itemsToSync.length > 0) {
+        await this.db.enqueue({
+          action: 'BULK_ADD',
+          entity: 'shoppingItem',
+          parentId,
+          payload: { items: itemsToSync }
+        });
+        void this.sync.flush();
+      }
+
+      return addedCount;
     });
   }
 
@@ -201,7 +306,11 @@ export class ShoppingListService {
     });
   }
 
-  /** Stan z serwera nadpisuje cache tylko wtedy, gdy nie ma lokalnych zmian czekających na wysłanie. */
+  private async readLocalLists(): Promise<OfflineShoppingList[]> {
+    const lists = await this.db.shoppingLists.toArray();
+    return lists.sort((a, b) => (a.createdAt ?? '').localeCompare(b.createdAt ?? ''));
+  }
+
   private async canPullFromServer(): Promise<boolean> {
     if (!this.network.isOnline()) return false;
     await this.sync.flush();

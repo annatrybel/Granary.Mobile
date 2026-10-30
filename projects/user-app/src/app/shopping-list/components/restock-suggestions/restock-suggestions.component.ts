@@ -1,13 +1,12 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-import { RestockSuggestion } from '@granary/shared';
+import { RestockSuggestion, APP_ICONS } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared'; 
 
 @Component({
   selector: 'app-restock-suggestions',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, TranslatePipe], 
+  imports: [CommonModule, APP_ICONS, TranslatePipe], 
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (suggestions().length > 0) {
@@ -35,7 +34,7 @@ import { TranslatePipe } from '@granary/shared';
                 type="button" 
                 class="flex py-1 items-center gap-1.5 text-xs font-bold text-app-brand bg-transparent border-none cursor-pointer active:scale-95 transition-transform"
                 (click)="add.emit(sug)">
-                <lucide-icon name="plus" [size]="14" class="text-app-brand"></lucide-icon>
+                <svg lucidePlus [size]="14" class="text-app-brand" ></svg>
                 <span>{{ 'suggestions.addBtn' | t:'Dodaj do listy' }}</span>
               </button>
 

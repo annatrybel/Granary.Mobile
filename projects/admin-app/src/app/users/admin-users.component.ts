@@ -1,13 +1,15 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
 import { AdminUsersService, UserDto } from './services/admin-users.service';
+import { APP_ICONS } from '@granary/shared';
+import { AdminSearchBarComponent } from '../shared/components/admin-search-bar/admin-search-bar.component';
+
 
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule], // ⬅️ zwykły import
+  imports: [CommonModule, FormsModule, AdminSearchBarComponent, APP_ICONS],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -15,7 +15,7 @@
       class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border flex items-center justify-center border border-app-border/50 cursor-pointer active:scale-95 transition-all text-app-muted hover:text-app-text" 
       (click)="closeSheet.emit()"
       [attr.aria-label]="'common.close' | t:'Zamknij'">
-      <lucide-icon name="x" [size]="14"></lucide-icon>
+      <svg lucideX [size]="14"></svg>
     </button>
   </div>
 
@@ -26,7 +26,7 @@
   <!-- Karta z linkiem do kopiowania -->
   <div class="p-3.5 flex flex-col gap-2.5 rounded-2xl border border-app-border bg-app-surface-variant/40">
     <div class="flex items-center gap-1.5 text-xs font-bold text-app-text">
-      <lucide-icon name="link-2" [size]="14" class="text-app-brand"></lucide-icon>
+      <svg lucideLink2 [size]="14" class="text-app-brand"></svg>
       <span>{{ 'householdInvite.linkTitle' | t:'Link zaproszenia' }}</span>
     </div>
 
@@ -37,7 +37,11 @@
         type="button" 
         class="px-3.5 py-2 rounded-lg bg-app-brand hover:brightness-110 active:scale-95 text-white text-[11px] font-bold border-none cursor-pointer flex items-center gap-1.5 shrink-0 transition-all shadow-2xs" 
         (click)="copyLink()">
-        <lucide-icon [name]="isCopied() ? 'check' : 'copy'" [size]="12" class="text-white"></lucide-icon>
+        @if (isCopied()) {
+          <svg lucideCheck [size]="12" class="text-white"></svg>
+        } @else {
+          <svg lucideCopy [size]="12" class="text-white"></svg>
+        }
         <span>{{ (isCopied() ? 'householdInvite.copiedBtn' : 'householdInvite.copyBtn') | t:(isCopied() ? 'Skopiowano' : 'Kopiuj') }}</span>
       </button>
     </div>
@@ -97,7 +101,7 @@
                 class="w-8 h-8 rounded-full bg-transparent hover:bg-rose-500/10 flex items-center justify-center border-none cursor-pointer transition-colors text-app-muted hover:text-rose-500 active:scale-90" 
                 (click)="askRemoveMember(member)" 
                 [title]="'householdInvite.removeMemberTooltip' | t:'Usuń ze spiżarni'">
-                <lucide-icon name="minus-circle" [size]="16"></lucide-icon>
+                <svg lucideCircleMinus [size]="16"></svg>
               </button>
             }
           </div>
@@ -117,7 +121,7 @@
       type="button" 
       class="w-full py-3.5 px-4 rounded-xl bg-app-brand hover:brightness-110 active:scale-[0.98] text-white text-xs font-bold border-none cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2" 
       (click)="shareViaApps()">
-      <lucide-icon name="share-2" [size]="14" class="text-white"></lucide-icon>
+      <svg lucideShare2 [size]="14" class="text-white"></svg>
       <span>{{ 'householdInvite.shareBtn' | t:'Udostępnij przez inne aplikacje...' }}</span>
     </button>
   </div>

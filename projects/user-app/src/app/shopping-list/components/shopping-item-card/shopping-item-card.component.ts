@@ -1,13 +1,12 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-import { ShoppingListItem } from '@granary/shared';
+import { ShoppingListItem, APP_ICONS } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared'; 
 
 @Component({
   selector: 'app-shopping-item-card',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, TranslatePipe], 
+  imports: [CommonModule, APP_ICONS, TranslatePipe], 
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article 
@@ -26,7 +25,7 @@ import { TranslatePipe } from '@granary/shared';
           [class.border-app-border]="!item().isChecked"
           [class.bg-transparent]="!item().isChecked">
           @if (item().isChecked) {
-            <lucide-icon name="check" [size]="14"></lucide-icon>
+            <svg lucideCheck [size]="14" ></svg>
           }
         </div>
 
@@ -51,7 +50,7 @@ import { TranslatePipe } from '@granary/shared';
             class="w-6 h-6 flex items-center justify-center rounded-full bg-app-surface border border-app-border text-app-text shadow-2xs active:scale-90 transition-transform cursor-pointer"
             (click)="changeQty.emit(-1)"
             aria-label="Zmniejsz">
-            <lucide-icon name="minus" [size]="10"></lucide-icon>
+            <svg lucideMinus [size]="10" ></svg>
           </button>
           
           <span class="text-xs font-bold text-app-text px-2 select-none min-w-12 text-center">
@@ -63,7 +62,7 @@ import { TranslatePipe } from '@granary/shared';
             class="w-6 h-6 flex items-center justify-center rounded-full bg-app-surface border border-app-border text-app-text shadow-2xs active:scale-90 transition-transform cursor-pointer"
             (click)="changeQty.emit(1)"
             aria-label="Zwiększ">
-            <lucide-icon name="plus" [size]="10"></lucide-icon>
+            <svg lucidePlus [size]="10" ></svg>
           </button>
         </div>
 
@@ -72,7 +71,7 @@ import { TranslatePipe } from '@granary/shared';
           class="p-1 flex items-center justify-center text-app-muted hover:text-rose-500 transition-colors cursor-pointer border-none bg-transparent active:scale-90"
           (click)="delete.emit()" 
           [title]="'itemCard.deleteTitle' | t:'Usuń pozycję'">
-          <lucide-icon name="trash-2" [size]="15"></lucide-icon>
+          <svg lucideTrash [size]="15" ></svg>
         </button>
       </div>
 

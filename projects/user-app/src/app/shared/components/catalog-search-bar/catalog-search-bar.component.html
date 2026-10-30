@@ -1,10 +1,10 @@
 <div class="relative w-full">
-  <div class="flex h-12 px-3 pl-4 items-center w-full rounded-full border border-app-border bg-app-surface focus-within:border-app-brand shadow-2xs transition-colors box-border">
-    <lucide-icon name="search" [size]="16" class="text-app-muted shrink-0 mr-2.5"></lucide-icon>
+  <div class="flex h-12 pl-4 pr-1.5 items-center w-full rounded-full border border-app-border bg-app-surface focus-within:border-app-brand shadow-2xs transition-colors box-border">
+    <svg lucideSearch [size]="18" class="text-app-muted shrink-0 mr-2.5"></svg>
 
     <input 
       type="text" 
-      class="flex-1 min-w-0 border-none bg-transparent outline-none text-app-text text-sm font-medium placeholder:text-app-muted font-['Plus_Jakarta_Sans',sans-serif]"
+      class="flex-1 min-w-0 border-none bg-transparent outline-none text-app-text text-sm font-semibold       placeholder:text-app-muted placeholder:font-normal font-['Plus_Jakarta_Sans',sans-serif]"
       [placeholder]="placeholderKey() | t:fallbackPlaceholder()"
       [value]="searchQuery()"
       (input)="onInput($event)"
@@ -57,7 +57,7 @@
           (click)="addCustom()">
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-8 h-8 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
-              <lucide-icon name="plus" [size]="16" class="text-app-brand"></lucide-icon>
+              <svg lucidePlus [size]="16" class="text-app-brand"></svg>
             </div>
             <div class="flex flex-col min-w-0">
               <span class="text-[10px] font-bold text-app-muted uppercase tracking-[0.4px]">

@@ -1,5 +1,3 @@
-import Dexie from 'dexie';
-import { IDBKeyRange, indexedDB } from 'fake-indexeddb';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -9,9 +7,6 @@ import { AuthService, RecipeMatchDto } from '@granary/shared';
 import { AppDatabase } from '../db/app-database';
 import { NetworkService } from './network.service';
 import { RecipeService } from './recipe.service';
-
-Dexie.dependencies.indexedDB = indexedDB;
-Dexie.dependencies.IDBKeyRange = IDBKeyRange;
 
 const recipe = (id: string, matchPercentage: number, expiringIngredientsSaved: number): RecipeMatchDto => ({
   recipeId: id,

@@ -9,9 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
-
-import { ProfileService } from '@granary/shared';
+import { ProfileService, APP_ICONS } from '@granary/shared';
 import { AuthService } from '@granary/shared';
 import { ThemeService } from '../core/services/theme.service';
 import { UserProfileDto, HouseholdMember } from '@granary/shared';
@@ -20,6 +18,7 @@ import { HelpFaqSheetComponent } from './components/help-faq-sheet/help-faq-shee
 import { TranslationService } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
+import { PwaInstallService } from '../core/services/pwa-install.service';
 
 @Component({
   selector: 'app-profile',
@@ -27,11 +26,11 @@ import { MediaUrlPipe } from '@granary/shared';
   imports: [
     CommonModule,
     RouterLink,
-    LucideAngularModule,
     HouseholdInviteSheetComponent,
     HelpFaqSheetComponent,
     TranslatePipe,
-    MediaUrlPipe 
+    MediaUrlPipe,
+    APP_ICONS,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.component.html'
@@ -44,7 +43,9 @@ export class ProfileComponent implements OnInit {
   protected readonly themeService = inject(ThemeService);
   private readonly cdr = inject(ChangeDetectorRef);
   protected readonly translationService = inject(TranslationService);
+  protected readonly pwaInstall = inject(PwaInstallService);
 
+  isInstallHelpOpen = signal<boolean>(false);
   isLanguageDropdownOpen = signal<boolean>(false);
   isLoading = signal<boolean>(true);
 
@@ -99,13 +100,6 @@ export class ProfileComponent implements OnInit {
           if (data.avatarUrl) this.avatarUrl.set(data.avatarUrl);
           if (data.dietPreference) this.dietPreference.set(data.dietPreference);
           if (data.expiryNotifications !== undefined) this.expiryNotifications.set(data.expiryNotifications);
-
-          if (data.darkMode !== undefined) {
-            const currentIsDark = this.themeService.isDark();
-            if (currentIsDark !== data.darkMode) {
-              this.themeService.setTheme(data.darkMode ? 'dark' : 'light', false);
-            }
-          }
 
           this.authService.saveCurrentUser(data);
         }
@@ -231,6 +225,19 @@ export class ProfileComponent implements OnInit {
         console.error('Błąd zapisu preferencji powiadomień:', err);
       }
     });
+  }
+
+  async installApp(): Promise<void> {
+    if (this.pwaInstall.canPrompt()) {
+      const outcome = await this.pwaInstall.promptInstall();
+      if (outcome !== 'unavailable') {
+        this.isInstallHelpOpen.set(false);
+        this.cdr.markForCheck();
+        return;
+      }
+    }
+    // Brak natywnego monitu (np. iOS Safari) - pokazujemy instrukcję ręcznej instalacji.
+    this.isInstallHelpOpen.update(v => !v);
   }
 
   logout(): void {

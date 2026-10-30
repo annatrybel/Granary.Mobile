@@ -1,11 +1,9 @@
 import { Component, signal, computed, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
-
 import { PantryService } from '../core/services/pantry.service';
 import { ProductItem } from '../core/db/app-database';
-import { ProductDetailUpdatePayload, CatalogProductDto } from '@granary/shared';
+import { ProductDetailUpdatePayload, CatalogProductDto, APP_ICONS } from '@granary/shared';
 
 import { ConfirmDeleteModalComponent } from '@granary/shared';
 import { CatalogSearchBarComponent } from '../shared/components/catalog-search-bar/catalog-search-bar.component';
@@ -14,18 +12,19 @@ import { InventoryRecipeBarComponent } from './components/inventory-recipe-bar/i
 import { ProductDetailSheetComponent } from './components/product-detail-sheet/product-detail-sheet.component';
 import { TranslatePipe } from '@granary/shared';
 
+
 @Component({
   selector: 'app-inventory',
   standalone: true,
   imports: [
     CommonModule,
-    LucideAngularModule,
     ConfirmDeleteModalComponent,
     CatalogSearchBarComponent,
     InventoryCardComponent,
     InventoryRecipeBarComponent,
     ProductDetailSheetComponent,
-    TranslatePipe
+    TranslatePipe,
+    APP_ICONS,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inventory.component.html'

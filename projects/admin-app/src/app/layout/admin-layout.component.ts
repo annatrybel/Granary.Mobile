@@ -1,13 +1,13 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-import { AuthService } from '@granary/shared';
+import { AuthService, APP_ICONS } from '@granary/shared';
+
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule], // ⬅️ zwykły import
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, APP_ICONS],
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -12,17 +12,23 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { LucideAngularModule } from 'lucide-angular';
 import { Subject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { API_BASE_URL, CatalogProductDto, TranslatePipe, TranslationService } from '@granary/shared';
+import {
+  API_BASE_URL,
+  CatalogProductDto,
+  TranslatePipe,
+  TranslationService,
+  APP_ICONS,
+} from '@granary/shared';
+
 
 @Component({
   selector: 'app-catalog-search-bar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, APP_ICONS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './catalog-search-bar.component.html'
 })

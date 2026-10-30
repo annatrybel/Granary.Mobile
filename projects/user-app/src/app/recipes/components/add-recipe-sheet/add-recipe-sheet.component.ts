@@ -10,10 +10,8 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-
 import { RecipeService } from '../../../core/services/recipe.service';
-import { CreateCustomRecipePayload, RecipeDetailDto } from '@granary/shared';
+import { CreateCustomRecipePayload, RecipeDetailDto, APP_ICONS } from '@granary/shared';
 
 import { CatalogProductDto } from '@granary/shared';
 import { CatalogSearchBarComponent } from '../../../shared/components/catalog-search-bar/catalog-search-bar.component';
@@ -21,6 +19,7 @@ import { ConfirmDeleteModalComponent } from '@granary/shared';
 
 import { TranslatePipe } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
+
 
 export interface FormIngredientItem {
   id: string;
@@ -40,11 +39,11 @@ export interface FormStepItem {
   standalone: true,
   imports: [
     CommonModule,
-    LucideAngularModule,
     CatalogSearchBarComponent,
     ConfirmDeleteModalComponent,
     TranslatePipe,
-    MediaUrlPipe
+    MediaUrlPipe,
+    APP_ICONS,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './add-recipe-sheet.component.html',

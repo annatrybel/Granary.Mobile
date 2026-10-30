@@ -1,14 +1,15 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
 import { AdminProductsService, CatalogProductDto, CategoryDto } from './services/admin-products.service';
 import { AdminSearchBarComponent } from '../shared/components/admin-search-bar/admin-search-bar.component';
+import { APP_ICONS } from '@granary/shared';
+
 
 @Component({
   selector: 'app-admin-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, AdminSearchBarComponent],
+  imports: [CommonModule, FormsModule, AdminSearchBarComponent, APP_ICONS],
   templateUrl: './admin-products.component.html',
   styleUrl: './admin-products.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

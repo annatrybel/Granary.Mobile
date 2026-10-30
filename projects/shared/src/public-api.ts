@@ -9,6 +9,7 @@ export * from './lib/core/tokens/app-config.token';
 export * from './lib/core/tokens/logout-cleanup.token';
 export * from './lib/core/tokens/media-base-url.token';
 export * from './lib/inventory/inventory.models';
+export * from './lib/icons';
 export * from './lib/profile/profile.models';
 export * from './lib/recipes/recipe.models';
 export * from './lib/shared/components/confirm-delete-modal/confirm-delete-modal.component';

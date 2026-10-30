@@ -13,7 +13,9 @@ export class ThemeService {
   readonly currentMode = signal<ThemeMode>(this.getInitialMode());
 
   private readonly systemPrefersDark = signal<boolean>(
-    typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+    typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
   );
 
   readonly isDark = computed(() => {
@@ -25,34 +27,39 @@ export class ThemeService {
   });
 
   constructor() {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
       window.matchMedia('(prefers-color-scheme: dark)')
-        .addEventListener('change', (e) => this.systemPrefersDark.set(e.matches));
+        .addEventListener('change', (event) => this.systemPrefersDark.set(event.matches));
     }
 
     effect(() => {
       const darkActive = this.isDark();
       const mode = this.currentMode();
 
-      document.documentElement.classList.toggle('dark', darkActive);
-      localStorage.setItem(this.STORAGE_KEY, mode);
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.toggle('dark', darkActive);
+      }
+
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(this.STORAGE_KEY, mode);
+      }
     });
   }
 
   setTheme(mode: ThemeMode, syncBackend = true): void {
-  this.currentMode.set(mode);
+    this.currentMode.set(mode);
 
-  if (syncBackend) {
-    const isDark = mode === 'dark' || (mode === 'system' && this.systemPrefersDark());
-    this.profileService.updateDarkMode(isDark).subscribe({
-      error: (err) => console.warn('Brak połączenia z API, motyw zapisany tylko lokalnie', err)
-    });
+    if (syncBackend) {
+      const isDark = mode === 'dark' || (mode === 'system' && this.systemPrefersDark());
+      this.profileService.updateDarkMode(isDark).subscribe({
+        error: (err) => console.warn('Brak połączenia z API, motyw zapisany tylko lokalnie', err)
+      });
+    }
   }
-}
 
   private getInitialMode(): ThemeMode {
     if (typeof window === 'undefined') return 'system';
-    const stored = localStorage.getItem(this.STORAGE_KEY) as ThemeMode;
-    return stored ? stored : 'system';
+    const stored = localStorage.getItem(this.STORAGE_KEY);
+    return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
   }
 }

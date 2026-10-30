@@ -1,19 +1,18 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
-
-@Component({
+import { APP_ICONS } from '@granary/shared';
+@Component({
   selector: 'app-admin-search-bar',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, APP_ICONS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <!-- Kontener typu FLEX - ikona i pole są obok siebie, więc nigdy na siebie nie najdą -->
     <div class="flex items-center h-11 w-full bg-neutral-100/60 hover:bg-neutral-100/90 focus-within:bg-white focus-within:border-[#536500] border border-neutral-200/80 rounded-xl px-3.5 transition-all shadow-2xs">
       
       <!-- Ikonka lupy (zawsze idealnie wycentrowana pionowo z prawej marginesem) -->
-      <lucide-icon name="search" [size]="16" class="text-neutral-400 shrink-0 mr-2.5 pointer-events-none" />
+      <svg lucideSearch [size]="16" class="text-neutral-400 shrink-0 mr-2.5 pointer-events-none" ></svg>
 
       <!-- Pole tekstowe -->
       <input
@@ -22,7 +21,7 @@ import { LucideAngularModule } from 'lucide-angular';
         (input)="onInput($event)"
         (keyup.enter)="searchSubmit.emit(value())"
         [placeholder]="placeholder()"
-        class="flex-1 min-w-0 bg-transparent border-none outline-none text-xs font-medium text-neutral-900 placeholder:text-neutral-400"
+        class="flex-1 min-w-0 bg-transparent border-none outline-none text-xs font-medium text-neutral-900 placeholder:text-neutral-400 placeholder:font-normal"
       />
 
       <!-- Przycisk czyszczenia [X] widoczny tylko gdy wpisano tekst -->

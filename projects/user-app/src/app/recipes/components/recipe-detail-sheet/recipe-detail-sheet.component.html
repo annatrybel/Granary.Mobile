@@ -1,67 +1,77 @@
-<div class="sheet-backdrop animate-fade-in" (click)="$event.stopPropagation(); closeSheet.emit()"></div>
+<div class="sheet-backdrop" (click)="$event.stopPropagation(); closeSheet.emit()"></div>
 
 @if (recipe(); as r) {
-<main class="sheet-fullscreen-wrapper animate-slide-up" (click)="$event.stopPropagation()">
+<div class="sheet-container animate-slide-up" (click)="$event.stopPropagation()">
 
-  <div class="relative w-full h-[300px] shrink-0 overflow-hidden bg-app-surface-variant">
-    <img [src]="(r.imageUrl | mediaUrl) || '/icons/food-placeholder.svg'" referrerpolicy="no-referrer"
-      (error)="$any($event.target).onerror = null; $any($event.target).src = '/icons/food-placeholder.svg'"
-      [alt]="r.title" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-    <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/65 to-transparent z-[1]"></div>
-    <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/65 to-transparent z-[1]"></div>
-
-    <header class="absolute top-0 inset-x-0 p-4 flex justify-between items-center z-10 pt-safe">
+  <div class="flex flex-col items-center px-6 pt-4 pb-2 shrink-0">
+    <div class="w-12 h-1 bg-app-border rounded-full mb-3 shrink-0"></div>
+    <div class="w-full flex items-center justify-between">
+      <h2 class="text-xl font-bold text-app-text m-0">
+        {{ 'recipeDetail.title' | t:'Szczegóły przepisu' }}
+      </h2>
       <button type="button"
-        class="w-10 h-10 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10 cursor-pointer text-white active:scale-[0.92] transition-transform"
-        (click)="$event.stopPropagation(); closeSheet.emit()" [attr.aria-label]="'common.back' | t:'Wróć'">
-        <lucide-icon name="arrow-left" [size]="20"></lucide-icon>
+        class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text flex items-center justify-center border-none cursor-pointer active:scale-95 transition-all"
+        (click)="$event.stopPropagation(); closeSheet.emit()" [attr.aria-label]="'common.close' | t:'Zamknij'">
+        ✕
       </button>
-
-      @if (!r.isCustom) {
-      <button type="button"
-        class="w-10 h-10 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10 cursor-pointer active:scale-[0.92] transition-transform"
-        (click)="onFavoriteClick($event)" [attr.aria-label]="'recipes.scopeFavorites' | t:'Ulubione'">
-        <lucide-icon name="heart" [size]="20" class="transition-colors" [class.text-rose-500]="isFavorite()"
-          [class.fill-rose-500]="isFavorite()" [class.text-white]="!isFavorite()"></lucide-icon>
-      </button>
-      }
-    </header>
+    </div>
   </div>
 
-  <section
-    class="relative z-20 -mt-8 rounded-t-[36px] bg-app-surface border-t border-app-border p-6 shadow-2xl flex flex-col gap-6">
+  <div class="flex-1 min-h-0 overflow-y-auto px-6 py-2 pb-8 flex flex-col gap-5 overscroll-contain">
 
-    <div class="flex flex-col gap-2">
-      <h1 class="m-0 text-2xl font-extrabold text-app-text leading-8">
-        {{ r.title }}
-      </h1>
+    <div class="bg-app-surface-variant border border-app-border rounded-2xl p-2.5 flex flex-col gap-2">
+      <div class="relative w-full h-40 rounded-xl overflow-hidden bg-app-surface border border-app-border shadow-2xs">
+        <img [src]="(r.imageUrl | mediaUrl) || '/icons/food-placeholder.svg'" referrerpolicy="no-referrer"
+          (error)="$any($event.target).onerror = null; $any($event.target).src = '/icons/food-placeholder.svg'"
+          [alt]="r.title" class="w-full h-full object-cover" loading="lazy" />
 
-      <div class="flex flex-wrap items-center gap-2 pt-1">
-        @for (item of metaItems(); track item.icon) {
-        <div
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-app-surface-variant border border-app-border text-xs font-semibold text-app-text">
-          <lucide-icon [name]="item.icon" [size]="14" class="text-app-brand shrink-0"></lucide-icon>
-          <span>{{ item.text }}</span>
-        </div>
-        }
-
+        @if (!r.isCustom) {
         <button type="button"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer active:scale-95 transition-all outline-none"
-          [class.bg-app-brand/15]="isLiked()" [class.border-app-brand]="isLiked()" [class.text-app-brand]="isLiked()"
-          [class.bg-app-surface-variant]="!isLiked()" [class.border-app-border]="!isLiked()"
-          [class.text-app-text]="!isLiked()" (click)="toggleLike()"
-          [attr.aria-label]="'recipeDetail.likeTooltip' | t:'Polub przepis'">
-          <lucide-icon name="thumbs-up" [size]="14" class="text-app-brand shrink-0 transition-transform"
-            [class.fill-current]="isLiked()"></lucide-icon>
-          <span class="text-xs font-semibold">{{ likesCount() }}</span>
+          class="absolute top-2 right-2 w-9 h-9 rounded-full flex items-center justify-center bg-app-surface/90 hover:bg-app-surface backdrop-blur-xs border border-app-border/50 shadow-xs cursor-pointer active:scale-90 transition-all"
+          (click)="onFavoriteClick($event)" [attr.aria-label]="'recipes.scopeFavorites' | t:'Ulubione'">
+          <svg lucideHeart [size]="18"
+            [class]="isFavorite() ? 'transition-colors text-rose-500 fill-rose-500' : 'transition-colors text-app-muted fill-transparent'">
+          </svg>
         </button>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2 px-1 pt-1">
+        <h3 class="m-0 text-base font-bold text-app-text leading-6">
+          {{ r.title }}
+        </h3>
+
+        <div class="flex flex-wrap items-center gap-2">
+          @for (item of metaItems(); track item.icon) {
+          <div
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-app-surface border border-app-border text-xs font-semibold text-app-text">
+            @switch (item.icon) {
+            @case ('clock') { <svg lucideClock [size]="14" class="text-app-brand shrink-0"></svg> }
+            @case ('users') { <svg lucideUsers [size]="14" class="text-app-brand shrink-0"></svg> }
+            @case ('flame') { <svg lucideFlame [size]="14" class="text-app-brand shrink-0"></svg> }
+            }
+            <span>{{ item.text }}</span>
+          </div>
+          }
+
+          <button type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer active:scale-95 transition-all outline-none"
+            [class.bg-app-brand/15]="isLiked()" [class.border-app-brand]="isLiked()" [class.text-app-brand]="isLiked()"
+            [class.bg-app-surface]="!isLiked()" [class.border-app-border]="!isLiked()"
+            [class.text-app-text]="!isLiked()" (click)="toggleLike()"
+            [attr.aria-label]="'recipeDetail.likeTooltip' | t:'Polub przepis'">
+            <svg lucideThumbsUp [size]="14"
+              [class]="isLiked() ? 'text-app-brand shrink-0 fill-current' : 'text-app-brand shrink-0'"></svg>
+            <span class="text-xs font-semibold">{{ likesCount() }}</span>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Składniki -->
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
-        <h2 class="text-xl font-bold text-app-text m-0">{{ 'recipeDetail.ingredients' | t:'Składniki' }}</h2>
+        <h2 class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px] m-0">{{ 'recipeDetail.ingredients' | t:'Składniki' }}</h2>
         @if (r.ingredients.length) {
         <span class="text-xs font-semibold text-app-muted">{{ r.ingredients.length }} {{ 'recipeDetail.itemsCount' |
           t:'pozycji' }}</span>
@@ -81,18 +91,24 @@
             [class.bg-app-brand/15]="ing.isOwnedInPantry" [class.border-app-brand/30]="ing.isOwnedInPantry"
             [class.text-app-brand]="ing.isOwnedInPantry" [class.bg-rose-500/15]="!ing.isOwnedInPantry"
             [class.border-rose-500/30]="!ing.isOwnedInPantry" [class.text-rose-500]="!ing.isOwnedInPantry">
-            <lucide-icon [name]="ing.isOwnedInPantry ? 'check-circle-2' : 'x-circle'" [size]="14"></lucide-icon>
-            <span>{{ (ing.isOwnedInPantry ? 'recipeDetail.owned' : 'recipeDetail.missing') | t:(ing.isOwnedInPantry ? 'W magazynie' : 'Brakuje') }}</span>
+            @if (ing.isOwnedInPantry) {
+            <svg lucideCircleCheck [size]="14"></svg>
+            } @else {
+            <svg lucideCircleX [size]="14"></svg>
+            }
+            <span>{{ (ing.isOwnedInPantry ? 'recipeDetail.owned' : 'recipeDetail.missing') | t:(ing.isOwnedInPantry ? 'W
+              magazynie' : 'Brakuje') }}</span>
           </div>
         </div>
         } @empty {
-        <div class="py-6 text-center text-xs text-app-muted">{{ 'recipeDetail.loadingIngredients' | t:'Wczytywanie listy składników...' }}</div>
+        <div class="py-6 text-center text-xs text-app-muted">{{ 'recipeDetail.loadingIngredients' | t:'Wczytywanie listy
+          składników...' }}</div>
         }
       </div>
     </div>
 
-    <div class="flex flex-col gap-4 mt-2">
-      <h2 class="text-xl font-bold text-app-text m-0">{{ 'recipeDetail.instructions' | t:'Sposób przygotowania' }}</h2>
+    <div class="flex flex-col gap-3">
+      <h2 class="text-[11px] font-bold text-app-muted uppercase tracking-[0.5px] m-0">{{ 'recipeDetail.instructions' | t:'Sposób przygotowania' }}</h2>
 
       <div class="relative flex flex-col gap-5 ml-1">
         <div class="absolute left-[15px] top-3.5 bottom-3.5 w-0.5 bg-app-border z-[1]"></div>
@@ -108,22 +124,23 @@
           </div>
         </div>
         } @empty {
-        <p class="py-4 text-center text-xs text-app-muted">{{ 'recipeDetail.loadingInstructions' | t:'Wczytywanie instrukcji...' }}</p>
+        <p class="py-4 text-center text-xs text-app-muted">{{ 'recipeDetail.loadingInstructions' | t:'Wczytywanie
+          instrukcji...' }}</p>
         }
       </div>
     </div>
 
     <!-- Przycisk ugotowania -->
-    <div class="pt-4 pb-safe flex justify-center w-full">
+    <div class="pt-2 flex justify-center w-full">
       <button type="button"
-        class="w-full max-w-[400px] h-[50px] rounded-full bg-app-brand hover:brightness-110 text-white text-sm font-bold shadow-md flex items-center justify-center cursor-pointer border-none transition-all active:scale-[0.97]"
+        class="w-full h-12 rounded-full bg-app-brand hover:brightness-110 text-white text-sm font-bold shadow-[0_4px_12px_rgba(83,101,0,0.2)] flex items-center justify-center cursor-pointer border-none transition-all active:scale-[0.98]"
         (click)="cookRecipe()">
-        <lucide-icon name="utensils" [size]="20" class="text-white mr-2"></lucide-icon>
+        <svg lucideUtensils [size]="18" class="text-white mr-2"></svg>
         <span>{{ 'recipeDetail.cookBtn' | t:'Ugotowane! Odlicz z magazynu' }}</span>
       </button>
     </div>
 
-  </section>
+  </div>
 
-</main>
+</div>
 }

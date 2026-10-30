@@ -234,6 +234,9 @@ export class SyncService {
       case 'BULK_TRANSFER':
         await this.post(`${itemsUrl}/bulk-transfer`, task.payload);
         return;
+      case 'BULK_ADD':
+        await this.post(`${itemsUrl}/bulk`, (task.payload as { items: unknown[] }).items);
+        return;
     }
   }
 

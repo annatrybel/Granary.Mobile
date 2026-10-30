@@ -57,7 +57,8 @@ export type SyncAction =
   | 'BULK_DELETE'
   | 'BULK_TRANSFER'
   | 'TOGGLE_FAVORITE'
-  | 'VOTE';
+  | 'VOTE'
+  | 'BULK_ADD';
 
 export interface SyncTask<T = unknown> {
   id?: number;

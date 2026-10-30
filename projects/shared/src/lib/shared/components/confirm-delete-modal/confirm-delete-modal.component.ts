@@ -1,19 +1,20 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { APP_ICONS } from '../../../icons';
+
 
 @Component({
   selector: 'app-confirm-delete-modal',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, TranslatePipe],
+  imports: [CommonModule, APP_ICONS, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="fixed inset-0 z-[120] bg-black/65 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in" (click)="cancel.emit()">
       <div class="w-full max-w-[320px] bg-app-surface border border-app-border rounded-[28px] p-6 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95" (click)="$event.stopPropagation()">
         
         <div class="w-12 h-12 rounded-full bg-rose-500/15 flex items-center justify-center mb-3 text-rose-600 dark:text-rose-400">
-          <lucide-icon name="trash-2" [size]="20"></lucide-icon>
+          <svg lucideTrash [size]="20" ></svg>
         </div>
 
         <h3 class="text-base font-bold text-app-text m-0">

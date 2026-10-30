@@ -9,14 +9,13 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-
 import { ProductItem } from '../../../core/db/app-database';
-import { ProductDetailUpdatePayload } from '@granary/shared';
+import { ProductDetailUpdatePayload, APP_ICONS } from '@granary/shared';
 import { PantryService } from '../../../core/services/pantry.service';
 import { TranslatePipe } from '@granary/shared';
 import { TranslationService } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
+
 
 
 export interface LocationOption {
@@ -33,12 +32,7 @@ export interface QuickDayOption {
 @Component({
   selector: 'app-product-detail-sheet',
   standalone: true,
-  imports: [
-    CommonModule,
-    LucideAngularModule,
-    TranslatePipe,
-    MediaUrlPipe
-  ],
+  imports: [CommonModule, TranslatePipe, MediaUrlPipe, APP_ICONS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product-detail-sheet.component.html',
   styleUrl: './product-detail-sheet.component.scss'

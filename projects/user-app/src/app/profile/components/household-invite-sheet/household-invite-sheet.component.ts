@@ -10,13 +10,13 @@ import {
   ChangeDetectorRef 
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
 import * as QRCode from 'qrcode';
 
-import { ConfirmDeleteModalComponent } from '@granary/shared';
+import { ConfirmDeleteModalComponent, APP_ICONS } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 import { TranslationService } from '@granary/shared';
 import { AuthService } from '@granary/shared';
+
 
 export interface HouseholdDetailMember {
   id: string;
@@ -29,12 +29,7 @@ export interface HouseholdDetailMember {
 @Component({
   selector: 'app-household-invite-sheet',
   standalone: true,
-  imports: [
-    CommonModule, 
-    LucideAngularModule,
-    ConfirmDeleteModalComponent,
-    TranslatePipe
-  ],
+  imports: [CommonModule, ConfirmDeleteModalComponent, TranslatePipe, APP_ICONS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './household-invite-sheet.component.html',
   styleUrl: './household-invite-sheet.component.scss'

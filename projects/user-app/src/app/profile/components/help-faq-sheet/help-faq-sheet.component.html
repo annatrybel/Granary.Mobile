@@ -10,7 +10,7 @@
     <button type="button"
       class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border flex items-center justify-center border border-app-border/50 cursor-pointer active:scale-95 transition-all text-app-muted hover:text-app-text"
       (click)="closeSheet.emit()" [attr.aria-label]="'common.close' | t:'Zamknij'">
-      <lucide-icon name="x" [size]="14"></lucide-icon>
+      <svg lucideX [size]="14"></svg>
     </button>
   </div>
 
@@ -56,7 +56,7 @@
 
             <div class="shrink-0 text-app-brand transition-transform duration-200"
               [class.rotate-90]="expandedFaqId() === item.id">
-              <lucide-icon name="chevron-right" [size]="16" class="text-app-brand"></lucide-icon>
+              <svg lucideChevronRight [size]="16" class="text-app-brand"></svg>
             </div>
           </div>
 
@@ -91,7 +91,7 @@
       @if (isSuccess()) {
       <div
         class="p-4 rounded-2xl bg-app-brand/15 border border-app-brand/30 flex flex-col items-center text-center gap-2 animate-in fade-in">
-        <lucide-icon name="check-circle" [size]="28" class="text-app-brand"></lucide-icon>
+        <svg lucideCircleCheck [size]="28" class="text-app-brand"></svg>
         <span class="text-sm font-bold text-app-text">
           {{ 'contact.successTitle' | t:'Wiadomość została wysłana!' }}
         </span>
@@ -155,7 +155,7 @@
           <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
           <span>{{ 'contact.sending' | t:'Wysyłanie wiadomości...' }}</span>
           } @else {
-          <lucide-icon name="send" [size]="14" class="text-white"></lucide-icon>
+          <svg lucideSend [size]="14" class="text-white"></svg>
           <span>{{ 'contact.submitBtn' | t:'Wyślij wiadomość' }}</span>
           }
         </button>

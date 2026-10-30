@@ -1,37 +1,44 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-import { TranslatePipe } from '@granary/shared';
+import { TranslatePipe, APP_ICONS } from '@granary/shared';
+
 
 @Component({
   selector: 'app-recipe-search-bar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, TranslatePipe],
+  imports: [CommonModule, APP_ICONS, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="figma-search-section">
-      <div class="figma-input-wrapper">
-        <lucide-icon name="search" class="w-4.5 h-4.5 text-[#757962] mr-3 shrink-0"></lucide-icon>
+    <div class="flex h-12 pl-4 pr-1.5 items-center w-full rounded-full border border-app-border bg-app-surface focus-within:border-app-brand shadow-2xs transition-colors box-border">
+      <svg lucideSearch [size]="18" class="text-app-muted shrink-0 mr-2.5"></svg>
 
-        <input 
-          type="text" 
-          class="figma-text-input" 
-          [placeholder]="'recipes.searchPlaceholder' | t:'Szukaj dania lub składnika...'" 
-          [value]="searchQuery()"
-          (input)="queryChange.emit($any($event.target).value)"
-        />
+      <input
+        type="text"
+        class="flex-1 min-w-0 border-none bg-transparent outline-none text-app-text text-sm font-semibold         placeholder:text-app-muted placeholder:font-normal font-['Plus_Jakarta_Sans',sans-serif]"
+        [placeholder]="'recipes.searchPlaceholder' | t:'Szukaj dania lub składnika...'"
+        [value]="searchQuery()"
+        (input)="queryChange.emit($any($event.target).value)"
+      />
 
-        @if (searchQuery()) {
-          <button type="button" class="clear-btn" (click)="queryChange.emit('')">✕</button>
-        }
-
-        <button type="button" class="inline-filter-btn" (click)="openFilters.emit()" [title]="'recipeFilters.buttonTooltip' | t:'Filtry'">
-          <lucide-icon name="sliders-horizontal" class="w-4 h-4 text-app-brand"></lucide-icon>
+      @if (searchQuery()) {
+        <button
+          type="button"
+          class="bg-transparent border-none text-app-muted hover:text-app-text text-xs cursor-pointer p-1 flex items-center justify-center transition-colors"
+          (click)="queryChange.emit('')"
+          [title]="'search.clearTitle' | t:'Wyczyść'">
+          ✕
         </button>
-      </div>
+      }
+
+      <button
+        type="button"
+        class="flex w-9 h-9 justify-center items-center rounded-full bg-app-brand/15 hover:bg-app-brand/25 border-none cursor-pointer shrink-0 ml-1 active:scale-[0.92] transition-all"
+        (click)="openFilters.emit()"
+        [title]="'recipeFilters.buttonTooltip' | t:'Filtry'">
+        <svg lucideSlidersHorizontal [size]="18" class="text-app-brand"></svg>
+      </button>
     </div>
-  `,
-  styleUrls: ['./recipe-search-bar.component.scss']
+  `
 })
 export class RecipeSearchBarComponent {
   searchQuery = input<string>('');

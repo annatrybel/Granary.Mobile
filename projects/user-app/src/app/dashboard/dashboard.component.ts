@@ -9,14 +9,14 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LucideAngularModule } from 'lucide-angular';
 import { Subject, catchError, debounceTime, of, switchMap, tap } from 'rxjs';
 
 import { PantryService } from '../core/services/pantry.service';
 import { RecipeService } from '../core/services/recipe.service';
 import { ProductItem } from '../core/db/app-database';
-import { AuthService, RecipeMatchDto, TranslatePipe, TranslationService } from '@granary/shared';
+import { AuthService, RecipeMatchDto, TranslatePipe, TranslationService, APP_ICONS } from '@granary/shared';
 import { ExpiringItem, StockSection } from './models/dashboard.models';
+
 
 type StorageKind = 'fridge' | 'pantry' | 'freezer';
 
@@ -38,7 +38,7 @@ const STORAGE_LABELS: Record<StorageKind, { key: string; fallback: string }> = {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, LucideAngularModule, TranslatePipe],
+  imports: [RouterLink, TranslatePipe, APP_ICONS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html'
 })

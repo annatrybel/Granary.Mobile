@@ -2,14 +2,14 @@ import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@ang
 import { Router, NavigationEnd, RouterLink } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LucideAngularModule } from 'lucide-angular'; 
-import { TranslatePipe } from '@granary/shared';
+import { TranslatePipe, APP_ICONS } from '@granary/shared';
 import { ProfileService } from '@granary/shared';
+
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, LucideAngularModule, TranslatePipe], 
+  imports: [RouterLink, APP_ICONS, TranslatePipe], 
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="fixed top-0 inset-x-0 z-50 bg-app-bg/90 backdrop-blur-md pt-safe border-b border-app-border shadow-2xs transition-colors duration-200">
@@ -38,7 +38,7 @@ import { ProfileService } from '@granary/shared';
               class="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-transform active:scale-95 focus:outline-none cursor-pointer bg-app-surface-variant border border-app-border text-app-text hover:bg-app-surface shadow-2xs" 
               aria-label="Powiadomienia"
             >
-              <lucide-icon name="bell" [size]="18" class="text-app-text"></lucide-icon>
+              <svg lucideBell [size]="18" class="text-app-text" ></svg>
 
               <!-- Czerwona kropka gdy są nieprzeczytane powiadomienia -->
               @if (profileService.unreadCount() > 0) {
@@ -90,7 +90,7 @@ import { ProfileService } from '@granary/shared';
                     </div>
                   } @empty {
                     <div class="py-6 flex flex-col items-center justify-center text-center">
-                      <lucide-icon name="check-circle-2" [size]="24" class="text-app-muted/50 mb-1"></lucide-icon>
+                      <svg lucideCircleCheck [size]="24" class="text-app-muted/50 mb-1" ></svg>
                       <span class="text-xs font-medium text-app-muted">
                         {{ 'notifications.empty' | t:'Brak nowych powiadomień' }}
                       </span>
@@ -108,7 +108,7 @@ import { ProfileService } from '@granary/shared';
             class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-transform active:scale-95 focus:outline-none cursor-pointer bg-app-surface-variant border border-app-border text-app-text hover:bg-app-surface shadow-2xs" 
             aria-label="Profil użytkownika"
           >
-            <lucide-icon name="user" [size]="18" class="text-app-text"></lucide-icon>
+            <svg lucideUser [size]="18" class="text-app-text" ></svg>
           </button>
 
         </div>

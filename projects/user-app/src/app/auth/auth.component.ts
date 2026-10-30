@@ -2,23 +2,16 @@ import { Component, signal, ChangeDetectionStrategy, inject, OnInit, ChangeDetec
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { LucideAngularModule } from 'lucide-angular';
-
-import { AuthService } from '@granary/shared';
+import { AuthService, APP_ICONS } from '@granary/shared';
 import { AuthMode } from '@granary/shared';
 import { ForgotPasswordModalComponent } from './components/forgot-password-modal/forgot-password-modal.component';
 import { TranslatePipe } from '@granary/shared';
 
+
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [
-    CommonModule, 
-    RouterLink, 
-    LucideAngularModule,
-    ForgotPasswordModalComponent,
-    TranslatePipe
-  ],
+  imports: [CommonModule, RouterLink, ForgotPasswordModalComponent, TranslatePipe, APP_ICONS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './auth.component.html'
 })

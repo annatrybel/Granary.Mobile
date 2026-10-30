@@ -6,21 +6,24 @@
   z-index: 90;
 }
 
-.sheet-fullscreen-wrapper {
+.sheet-container {
   position: fixed;
-  inset: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--app-surface);
+  border-top: 1px solid var(--app-border);
+  border-radius: 32px 32px 0 0;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25);
   z-index: 100;
-  background: var(--app-bg);
-  overflow-y: auto;
-  overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  -webkit-overflow-scrolling: touch;
+  max-height: 90dvh;
+  box-sizing: border-box;
+  overflow: hidden;
   transition: background-color 0.2s ease;
-
-  ::ng-deep lucide-icon svg {
-    display: block;
-  }
 }
 
 @keyframes slideUp {
@@ -28,15 +31,6 @@
   to { transform: translateY(0); }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 .animate-slide-up {
-  animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out forwards;
+  animation: slideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

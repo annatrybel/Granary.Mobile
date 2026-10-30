@@ -30,7 +30,7 @@
         <button type="button" (click)="removeImage()"
           class="absolute top-2 right-2 bg-black/65 hover:bg-black/80 border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer active:scale-90 text-white transition-all shadow-xs"
           [title]="'productDetail.removePhoto' | t:'Usuń zdjęcie'">
-          <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+          <svg lucideTrash [size]="14"></svg>
         </button>
 
         <button type="button" [disabled]="isGeneratingImage()" (click)="generateAiProductImage()"
@@ -40,7 +40,7 @@
           <span
             class="inline-block animate-spin border-2 border-white border-t-transparent rounded-full w-3.5 h-3.5"></span>
           } @else {
-          <lucide-icon name="sparkles" [size]="12"></lucide-icon>
+          <svg lucideSparkles [size]="12"></svg>
           }
           <span>AI</span>
         </button>
@@ -53,14 +53,14 @@
           class="inline-block animate-spin border-2 border-app-brand border-t-transparent rounded-full w-4 h-4"></span>
         <span>{{ 'productDetail.generatingAi' | t:'Generuję zdjęcie produktu przez AI...' }}</span>
         } @else {
-        <lucide-icon name="sparkles" [size]="15"></lucide-icon>
+        <svg lucideSparkles [size]="15"></svg>
         <span>{{ 'productDetail.generateAiBtn' | t:'Wygeneruj zdjęcie produktu przez AI' }}</span>
         }
       </button>
 
       <label
         class="text-[11px] font-semibold text-app-muted flex items-center gap-1.5 p-1 cursor-pointer hover:text-app-text transition-colors">
-        <lucide-icon name="image" [size]="14"></lucide-icon>
+        <svg lucideImage [size]="14"></svg>
         <span>{{ 'productDetail.uploadPhoto' | t:'lub wgraj własne zdjęcie z telefonu' }}</span>
         <input type="file" accept="image/*" class="hidden" (change)="onImageFileChange($event)" />
       </label>
@@ -168,7 +168,7 @@
       </label>
       <div
         class="bg-app-surface-variant rounded-2xl p-3 px-4 flex items-center gap-3 border border-app-border focus-within:border-app-brand">
-        <lucide-icon name="clock" [size]="18" class="text-app-brand shrink-0"></lucide-icon>
+        <svg lucideClock [size]="18" class="text-app-brand shrink-0"></svg>
         <input type="date" [attr.lang]="translationService.currentLang()" [value]="detailExpirationDate()"
           (input)="detailExpirationDate.set($any($event.target).value)"
           class="bg-transparent border-none outline-none font-semibold text-sm text-app-text w-full [color-scheme:light] dark:[color-scheme:dark]" />

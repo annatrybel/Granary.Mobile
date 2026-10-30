@@ -5,7 +5,7 @@
     <!-- 1. NAGŁÓWEK -->
     <header class="text-center pt-2">
       <div class="w-14 h-14 rounded-2xl bg-app-brand/15 text-app-brand flex items-center justify-center mx-auto shadow-2xs">
-        <lucide-icon name="refrigerator" [size]="28" class="text-app-brand"></lucide-icon>
+        <svg lucideRefrigerator [size]="28" class="text-app-brand"></svg>
       </div>
       <h1 class="text-2xl font-extrabold text-app-text tracking-tight text-center mt-3">
         {{ 'auth.title' | t:'Witaj w Smart Pantry' }}
@@ -47,7 +47,7 @@
       
       @if (errorMessage()) {
         <div class="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
-          <lucide-icon name="alert-circle" [size]="16" class="shrink-0"></lucide-icon>
+          <svg lucideCircleAlert [size]="16" class="shrink-0"></svg>
           <span class="flex-1 leading-snug">{{ errorMessage() }}</span>
         </div>
       }
@@ -58,7 +58,7 @@
         @if (mode() === 'register') {
           <div class="flex flex-col gap-1.5 animate-in fade-in duration-200">
             <label class="text-xs font-bold text-app-text flex items-center gap-1.5">
-              <lucide-icon name="user" [size]="15" class="text-app-brand"></lucide-icon>
+              <svg lucideUser [size]="15" class="text-app-brand"></svg>
               {{ 'auth.nameLabel' | t:'Twoje imię' }}
             </label>
             <div class="h-[52px] bg-app-surface-variant border border-app-border rounded-2xl px-4 flex items-center focus-within:border-app-brand transition-colors">
@@ -77,7 +77,7 @@
         <!-- Pole: E-mail -->
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-bold text-app-text flex items-center gap-1.5">
-            <lucide-icon name="mail" [size]="15" class="text-app-brand"></lucide-icon>
+            <svg lucideMail [size]="15" class="text-app-brand"></svg>
             {{ 'auth.emailLabel' | t:'Adres e-mail' }}
           </label>
           <div class="h-[52px] bg-app-surface-variant border border-app-border rounded-2xl px-4 flex items-center focus-within:border-app-brand transition-colors">
@@ -95,7 +95,7 @@
         <!-- Pole: Hasło -->
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-bold text-app-text flex items-center gap-1.5">
-            <lucide-icon name="lock" [size]="15" class="text-app-brand"></lucide-icon>
+            <svg lucideLock [size]="15" class="text-app-brand"></svg>
             {{ 'auth.passwordLabel' | t:'Hasło' }}
           </label>
           <div class="h-[52px] bg-app-surface-variant border border-app-border rounded-2xl px-4 flex items-center justify-between focus-within:border-app-brand transition-colors">
@@ -112,7 +112,11 @@
               (click)="togglePasswordVisibility()"
               aria-label="Pokaż lub ukryj hasło" 
               class="text-app-muted hover:text-app-text p-1 flex items-center justify-center transition-colors cursor-pointer border-none bg-transparent">
-              <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16"></lucide-icon>
+              @if (showPassword()) {
+                <svg lucideEyeOff [size]="16"></svg>
+              } @else {
+                <svg lucideEye [size]="16"></svg>
+              }
             </button>
           </div>
         </div>
@@ -143,7 +147,11 @@
           class="w-full h-[52px] bg-app-brand hover:brightness-110 active:scale-[0.98] text-white rounded-full font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all mt-1 cursor-pointer border-none disabled:opacity-70 disabled:cursor-not-allowed">
           
           @if (!isLoading()) {
-            <lucide-icon [name]="mode() === 'login' ? 'log-in' : 'user-plus'" [size]="16"></lucide-icon>
+            @if (mode() === 'login') {
+              <svg lucideLogIn [size]="16"></svg>
+            } @else {
+              <svg lucideUserPlus [size]="16"></svg>
+            }
             <span>
               {{ (mode() === 'login' ? 'auth.btnLoginSubmit' : 'auth.btnRegisterSubmit') | t:(mode() === 'login' ? 'Zaloguj się do spiżarni' : 'Utwórz konto w spiżarni') }}
             </span>

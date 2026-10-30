@@ -1,21 +1,15 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
 import { AdminRecipesService, AdminRecipeItem, AdminRecipeKpis } from './services/admin-recipes.service';
-import { ConfirmDeleteModalComponent } from '@granary/shared';
+import { ConfirmDeleteModalComponent, APP_ICONS } from '@granary/shared';
 import { AdminSearchBarComponent } from '../shared/components/admin-search-bar/admin-search-bar.component';
+
 
 @Component({
   selector: 'app-admin-recipes',
   standalone: true,
-  imports: [
-    CommonModule, 
-    FormsModule, 
-    LucideAngularModule,
-    ConfirmDeleteModalComponent,
-    AdminSearchBarComponent 
-  ],
+  imports: [CommonModule, FormsModule, ConfirmDeleteModalComponent, AdminSearchBarComponent, APP_ICONS],
   templateUrl: './admin-recipes.component.html',
   styleUrl: './admin-recipes.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

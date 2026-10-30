@@ -8,13 +8,13 @@
 
         <!-- Przycisk aparatu: na telefonie odpala aparat, na PC wybór pliku -->
         <label search-actions
-          class="flex w-[38px] h-[38px] justify-center items-center rounded-full bg-app-brand/15 hover:bg-app-brand/25 border-none cursor-pointer shrink-0 ml-1 active:scale-[0.92] transition-all"
+          class="flex w-9 h-9 justify-center items-center rounded-full bg-app-brand/15 hover:bg-app-brand/25 border-none cursor-pointer shrink-0 ml-1 active:scale-[0.92] transition-all"
           [title]="'inventory.scanPhoto' | t:'Zrób zdjęcie produktu (AI)'">
           
           @if (isAnalyzingImage()) {
             <span class="inline-block animate-spin border-2 border-app-brand border-t-transparent rounded-full w-4 h-4"></span>
           } @else {
-            <lucide-icon name="camera" [size]="18" class="text-app-brand"></lucide-icon>
+            <svg lucideCamera [size]="18" class="text-app-brand"></svg>
           }
           
           <!-- TO JEST CAŁA MAGIA: capture="environment" uruchamia aparat telefonu -->
@@ -33,7 +33,7 @@
     <!-- Pływający baner informacyjny tylko podczas analizy AI -->
     @if (isAnalyzingImage()) {
       <div class="mx-5 p-3 rounded-2xl bg-app-brand/15 border border-app-brand/30 flex items-center gap-3 animate-fade-in shadow-xs">
-        <lucide-icon name="sparkles" [size]="18" class="text-app-brand animate-pulse"></lucide-icon>
+        <svg lucideSparkles [size]="18" class="text-app-brand animate-pulse"></svg>
         <div class="flex flex-col">
           <span class="text-xs font-bold text-app-brand">Groq AI analizuje zdjęcie...</span>
           <span class="text-[11px] text-app-muted">Identyfikuję produkt i szacuję termin ważności</span>

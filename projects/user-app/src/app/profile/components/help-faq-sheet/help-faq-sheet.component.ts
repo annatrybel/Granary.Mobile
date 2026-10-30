@@ -8,9 +8,9 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-import { ProfileService, ContactMessageDto } from '@granary/shared';
+import { ProfileService, ContactMessageDto, APP_ICONS } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
+
 
 
 interface FaqItem {
@@ -25,7 +25,7 @@ interface FaqItem {
 @Component({
   selector: 'app-help-faq-sheet',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, APP_ICONS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './help-faq-sheet.component.html',
   styleUrl: './help-faq-sheet.component.scss'

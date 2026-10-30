@@ -16,23 +16,19 @@
 
 <!-- 2. WYSZUKIWARKA -->
 <div class="bg-white p-4 rounded-2xl border border-neutral-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
-  <div class="relative w-full sm:w-96 flex items-center">
-    <lucide-icon name="search" [size]="18" class="text-neutral-400 absolute left-3.5 pointer-events-none" />
-    <input
-      type="text"
-      [ngModel]="searchQuery()"
-      (ngModelChange)="searchQuery.set($event)"
-      (keyup.enter)="onSearch()"
-      placeholder="Szukaj po nazwie lub e-mailu..."
-      class="w-full h-11 pl-11 pr-4 bg-neutral-50 border border-neutral-200/90 rounded-xl text-xs font-medium text-neutral-900 placeholder:text-neutral-400 focus:bg-white focus:border-[#536500] outline-none transition-all"
-    />
+  <div class="w-full sm:w-96">
+    <app-admin-search-bar
+      [value]="searchQuery()"
+      (valueChange)="searchQuery.set($event)"
+      (searchSubmit)="onSearch()"
+      placeholder="Szukaj po nazwie lub e-mailu..." />
   </div>
 
   <button
     type="button"
     (click)="onSearch()"
     class="h-11 px-5 rounded-xl bg-[#536500] hover:bg-[#435200] text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-[#536500]/20 cursor-pointer active:scale-95">
-    <lucide-icon name="search" [size]="15" />
+    <svg lucideSearch [size]="15"></svg>
     <span>Szukaj</span>
   </button>
 </div>
@@ -130,7 +126,7 @@
         (click)="prevPage()"
         [disabled]="pageIndex() === 0"
         class="h-8 px-3 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-100 disabled:opacity-40 text-neutral-700 font-bold flex items-center gap-1 cursor-pointer">
-        <lucide-icon name="chevron-left" [size]="14" />
+        <svg lucideChevronLeft [size]="14"></svg>
         Poprzednia
       </button>
 
@@ -140,7 +136,7 @@
         [disabled]="(pageIndex() + 1) * pageSize() >= totalRecords()"
         class="h-8 px-3 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-100 disabled:opacity-40 text-neutral-700 font-bold flex items-center gap-1 cursor-pointer">
         Następna
-        <lucide-icon name="chevron-right" [size]="14" />
+        <svg lucideChevronRight [size]="14"></svg>
       </button>
     </div>
   </div>

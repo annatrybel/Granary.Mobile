@@ -4,18 +4,18 @@ import {
   computed, 
   inject, 
   OnInit, 
+  OnDestroy,
   effect,
   untracked,
   ChangeDetectionStrategy, 
   HostListener 
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-
+import { Subscription } from 'rxjs';
 import { ShoppingListService } from '../core/services/shopping-list.service';
 import { PantryService } from '../core/services/pantry.service';
 import { SyncService } from '../core/services/sync.service';
-import { TranslationService } from '@granary/shared';
+import { TranslationService, APP_ICONS } from '@granary/shared';
 import { ProductItem } from '../core/db/app-database';
 import { 
   ShoppingListItem, 
@@ -31,23 +31,24 @@ import { RestockSuggestionsComponent } from './components/restock-suggestions/re
 import { ShoppingItemCardComponent } from './components/shopping-item-card/shopping-item-card.component';
 import { TranslatePipe } from '@granary/shared';
 
+
 @Component({
   selector: 'app-shopping-list',
   standalone: true,
   imports: [
     CommonModule,
-    LucideAngularModule,
     ConfirmDeleteModalComponent,
     CatalogSearchBarComponent,
     RestockSuggestionsComponent,
     ShoppingItemCardComponent,
-    TranslatePipe 
+    TranslatePipe,
+    APP_ICONS,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shopping-list.component.html',
   styleUrl: './shopping-list.component.scss'
 })
-export class ShoppingListComponent implements OnInit {
+export class ShoppingListComponent implements OnInit, OnDestroy {
   private shoppingService = inject(ShoppingListService);
   private pantryService = inject(PantryService);
   private syncService = inject(SyncService);
@@ -55,6 +56,8 @@ export class ShoppingListComponent implements OnInit {
 
   private isFirstLangRun = true;
   private isFirstSyncRun = true;
+  private listsSub?: Subscription;
+  private detailsSub?: Subscription;
 
   isLoading = signal<boolean>(true);
   userLists = signal<ShoppingListDto[]>([]);
@@ -129,6 +132,11 @@ export class ShoppingListComponent implements OnInit {
     this.loadLists();
   }
 
+  ngOnDestroy(): void {
+    this.listsSub?.unsubscribe();
+    this.detailsSub?.unsubscribe();
+  }
+
   @HostListener('document:click', ['$event'])
   onDocClick(e: MouseEvent): void {
     if (!(e.target as HTMLElement)?.closest('.options-menu-wrapper')) {
@@ -138,12 +146,19 @@ export class ShoppingListComponent implements OnInit {
 
   loadLists(selectListId?: string): void {
     this.isLoading.set(true);
-    this.shoppingService.getMyLists().subscribe({
+    let detailsRequestedFor: string | null = null;
+
+    this.listsSub?.unsubscribe();
+    this.listsSub = this.shoppingService.getMyLists().subscribe({
       next: lists => {
         this.userLists.set(lists || []);
         if (lists && lists.length > 0) {
           const target = selectListId ? (lists.find(l => l.id === selectListId) || lists[0]) : lists[0];
-          this.loadListDetails(target.id);
+          // Kolejna emisja (dane z serwera) nie powinna ponownie ładować tej samej listy.
+          if (target.id !== detailsRequestedFor) {
+            detailsRequestedFor = target.id;
+            this.loadListDetails(target.id);
+          }
         } else {
           const defaultName = this.translationService.translate('shopping.defaultListName', 'Główna lista');
           this.shoppingService.createList({ name: defaultName }).subscribe(newList => {
@@ -157,7 +172,8 @@ export class ShoppingListComponent implements OnInit {
   }
 
   loadListDetails(listId: string): void {
-    this.shoppingService.getListDetails(listId).subscribe({
+    this.detailsSub?.unsubscribe();
+    this.detailsSub = this.shoppingService.getListDetails(listId).subscribe({
       next: dto => {
         this.currentList.set(dto);
         this.items.set((dto.items || []).map((i: ShoppingItemDto) => ({

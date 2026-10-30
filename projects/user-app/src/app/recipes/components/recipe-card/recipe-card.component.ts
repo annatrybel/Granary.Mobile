@@ -1,14 +1,14 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-import { RecipeMatchDto } from '@granary/shared';
+import { RecipeMatchDto, APP_ICONS } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
+
 
 @Component({
   selector: 'app-recipe-card',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule,TranslatePipe, MediaUrlPipe],
+  imports: [CommonModule, TranslatePipe, MediaUrlPipe, APP_ICONS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipe-card.component.html'
 })

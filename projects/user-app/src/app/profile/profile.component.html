@@ -5,7 +5,7 @@
     <button type="button"
       class="w-10 h-10 rounded-full flex items-center justify-center border-none bg-transparent hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 cursor-pointer transition-all"
       (click)="goBack()" aria-label="Wróć">
-      <lucide-icon name="arrow-left" [size]="18" class="text-app-text"></lucide-icon>
+      <svg lucideArrowLeft [size]="18" class="text-app-text"></svg>
     </button>
 
     <h1 class="m-0 text-app-text font-bold text-base leading-6">
@@ -28,7 +28,7 @@
         <label
           class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-app-brand hover:brightness-110 active:scale-90 shadow-md flex items-center justify-center cursor-pointer border-2 border-app-bg transition-all"
           title="Zmień zdjęcie">
-          <lucide-icon name="camera" [size]="14" class="text-white"></lucide-icon>
+          <svg lucideCamera [size]="14" class="text-white"></svg>
           <input type="file" accept="image/*" class="hidden" (change)="onAvatarFileChange($event)" />
         </label>
       </div>
@@ -50,12 +50,12 @@
           <button type="button" (click)="saveName()"
             class="w-9 h-9 rounded-xl bg-app-brand text-white flex items-center justify-center border-none cursor-pointer active:scale-95 shadow-xs transition-transform"
             title="Zapisz">
-            <lucide-icon name="check" [size]="15"></lucide-icon>
+            <svg lucideCheck [size]="15"></svg>
           </button>
           <button type="button" (click)="cancelEditName()"
             class="w-9 h-9 rounded-xl bg-app-surface border border-app-border text-app-muted hover:text-app-text flex items-center justify-center cursor-pointer active:scale-95 transition-colors"
             title="Anuluj">
-            <lucide-icon name="x" [size]="15"></lucide-icon>
+            <svg lucideX [size]="15"></svg>
           </button>
         </div>
         } @else {
@@ -65,7 +65,7 @@
           <button type="button" (click)="startEditName()"
             class="w-7 h-7 rounded-full flex items-center justify-center border-none bg-transparent text-app-muted hover:text-app-text hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-all active:scale-90"
             title="Edytuj nazwę">
-            <lucide-icon name="pencil" [size]="14"></lucide-icon>
+            <svg lucidePencil [size]="14"></svg>
           </button>
         </div>
         }
@@ -86,7 +86,7 @@
       <div class="flex items-center justify-between w-full py-1 cursor-pointer" (click)="openHouseholdSheet()">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
-            <lucide-icon name="users" [size]="18" class="text-app-brand"></lucide-icon>
+            <svg lucideUsers [size]="18" class="text-app-brand"></svg>
           </div>
           <span class="text-sm font-semibold text-app-text">
             {{ 'profile.household' | t:'Gospodarstwo domowe' }}
@@ -113,7 +113,7 @@
           </span>
           }
 
-          <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
+          <svg lucideChevronRight [size]="14" class="text-app-muted"></svg>
         </div>
       </div>
 
@@ -121,7 +121,7 @@
       <div class="flex items-center justify-between w-full py-1">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
-            <lucide-icon name="bell" [size]="18" class="text-app-brand"></lucide-icon>
+            <svg lucideBell [size]="18" class="text-app-brand"></svg>
           </div>
           <span class="text-sm font-semibold text-app-text">
             {{ 'profile.pushNotifications' | t:'Powiadomienia Push (telefon)' }}
@@ -141,7 +141,7 @@
       <div class="flex items-center justify-between w-full py-1 cursor-pointer" routerLink="/preferencje-diety">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
-            <lucide-icon name="utensils" [size]="18" class="text-app-brand"></lucide-icon>
+            <svg lucideUtensils [size]="18" class="text-app-brand"></svg>
           </div>
           <span class="text-sm font-semibold text-app-text">
             {{ 'profile.diet' | t:'Preferencje diety' }}
@@ -152,7 +152,7 @@
           <span class="px-2.5 py-0.5 rounded-full border border-app-border bg-app-bg text-app-text text-xs font-bold">
             {{ dietPreference() }}
           </span>
-          <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
+          <svg lucideChevronRight [size]="14" class="text-app-muted"></svg>
         </div>
       </div>
     </section>
@@ -168,7 +168,7 @@
       <div class="flex items-center justify-between w-full py-1">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
-            <lucide-icon name="moon" [size]="18" class="text-app-brand"></lucide-icon>
+            <svg lucideMoon [size]="18" class="text-app-brand"></svg>
           </div>
           <span class="text-sm font-semibold text-app-text">
             {{ 'profile.darkMode' | t:'Ciemny motyw' }}
@@ -190,7 +190,7 @@
 
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
-              <lucide-icon name="globe" [size]="18" class="text-app-brand"></lucide-icon>
+              <svg lucideGlobe [size]="18" class="text-app-brand"></svg>
             </div>
             <span class="text-sm font-semibold text-app-text">
               {{ 'profile.language' | t:'Język' }}
@@ -204,9 +204,8 @@
               <span>{{ translationService.currentLanguageDetails()?.name || translationService.currentLang() }}</span>
             </span>
 
-            <lucide-icon name="chevron-right" [size]="14" class="text-app-muted transition-transform duration-200"
-              [class.rotate-90]="isLanguageDropdownOpen()">
-            </lucide-icon>
+            <svg lucideChevronRight [size]="14" class="text-app-muted transition-transform duration-200"
+              [class.rotate-90]="isLanguageDropdownOpen()"></svg>
           </div>
         </div>
 
@@ -233,7 +232,7 @@
             </span>
 
             @if (translationService.currentLang() === lang.code) {
-            <lucide-icon name="check" [size]="14" class="text-app-brand"></lucide-icon>
+            <svg lucideCheck [size]="14" class="text-app-brand"></svg>
             }
           </button>
           }
@@ -245,7 +244,7 @@
       <div class="flex items-center justify-between w-full py-1 cursor-pointer" routerLink="/jednostki">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
-            <lucide-icon name="ruler" [size]="18" class="text-app-brand"></lucide-icon>
+            <svg lucideRuler [size]="18" class="text-app-brand"></svg>
           </div>
           <span class="text-sm font-semibold text-app-text">
             {{ 'profile.units' | t:'Jednostki miar' }}
@@ -256,9 +255,55 @@
           <span class="px-2.5 py-0.5 rounded-full border border-app-border bg-app-bg text-app-text text-xs font-bold">
             {{ 'profile.unitsMetric' | t:'Metryczne' }}
           </span>
-          <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
+          <svg lucideChevronRight [size]="14" class="text-app-muted"></svg>
         </div>
       </div>
+
+      <!-- Zainstaluj aplikację (PWA) -->
+      @if (pwaInstall.canShowInstall()) {
+      <div class="flex flex-col w-full">
+        <button type="button"
+          class="flex items-center justify-between w-full py-1 bg-transparent border-none p-0 cursor-pointer text-left"
+          (click)="installApp()" [attr.aria-expanded]="isInstallHelpOpen()">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+              <svg lucideDownload [size]="18" class="text-app-brand"></svg>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-sm font-semibold text-app-text">
+                {{ 'profile.installApp' | t:'Zainstaluj aplikację' }}
+              </span>
+              <span class="text-xs text-app-muted">
+                {{ 'profile.installAppHint' | t:'Dodaj Granary do ekranu głównego' }}
+              </span>
+            </div>
+          </div>
+          <svg lucideChevronRight [size]="14" class="text-app-muted transition-transform duration-200"
+            [class.rotate-90]="isInstallHelpOpen()"></svg>
+        </button>
+
+        @if (isInstallHelpOpen()) {
+        <p class="m-0 mt-2 ml-[52px] text-xs leading-5 text-app-muted">
+          @if (pwaInstall.isIos) {
+          {{ 'profile.installAppIos' | t:'Stuknij ikonę Udostępnij w Safari, a następnie wybierz „Do ekranu początkowego”.' }}
+          } @else {
+          {{ 'profile.installAppGeneric' | t:'Otwórz menu przeglądarki i wybierz „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.' }}
+          }
+        </p>
+        }
+      </div>
+      } @else {
+      <div class="flex items-center justify-between w-full py-1">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+            <svg lucideCircleCheck [size]="18" class="text-app-brand"></svg>
+          </div>
+          <span class="text-sm font-semibold text-app-text">
+            {{ 'profile.appInstalled' | t:'Aplikacja zainstalowana' }}
+          </span>
+        </div>
+      </div>
+      }
     </section>
 
     <!-- Karta 3: POMOC I KONTO -->
@@ -273,25 +318,25 @@
       <div class="flex items-center justify-between w-full py-1 cursor-pointer" (click)="isHelpSheetOpen.set(true)">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
-            <lucide-icon name="help-circle" [size]="18" class="text-app-brand"></lucide-icon>
+            <svg lucideCircleQuestionMark [size]="18" class="text-app-brand"></svg>
           </div>
           <span class="text-sm font-semibold text-app-text">
             {{ 'profile.help' | t:'Pomoc i FAQ' }}
           </span>
         </div>
-        <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
+        <svg lucideChevronRight [size]="14" class="text-app-muted"></svg>
       </div>
 
       <div class="flex items-center justify-between w-full py-1 cursor-pointer" routerLink="/polityka-prywatnosci">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
-            <lucide-icon name="lock" [size]="18" class="text-app-brand"></lucide-icon>
+            <svg lucideLock [size]="18" class="text-app-brand"></svg>
           </div>
           <span class="text-sm font-semibold text-app-text">
             {{ 'profile.privacy' | t:'Polityka prywatności' }}
           </span>
         </div>
-        <lucide-icon name="chevron-right" [size]="14" class="text-app-muted"></lucide-icon>
+        <svg lucideChevronRight [size]="14" class="text-app-muted"></svg>
       </div>
     </section>
 
@@ -299,7 +344,7 @@
     <button type="button"
       class="h-12 w-full rounded-full border border-rose-200 dark:border-rose-500/20 bg-rose-50/80 dark:bg-rose-950/40 hover:bg-rose-100/90 dark:hover:bg-rose-900/40 text-rose-800 dark:text-rose-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer mt-1 active:scale-[0.98] transition-all"
       (click)="logout()">
-      <lucide-icon name="log-out" [size]="16" class="text-rose-800 dark:text-rose-200"></lucide-icon>
+      <svg lucideLogOut [size]="16" class="text-rose-800 dark:text-rose-200"></svg>
       <span>{{ 'profile.logout' | t:'Wyloguj się' }}</span>
     </button>
 

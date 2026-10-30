@@ -15,7 +15,7 @@
           [class.border-app-border]="currentList()?.id !== list.id"
           (click)="switchList(list)">
           @if (currentList()?.id === list.id) {
-            <lucide-icon name="shopping-basket" [size]="14" class="text-white shrink-0"></lucide-icon>
+            <svg lucideShoppingBasket [size]="14" class="text-white shrink-0"></svg>
           }
           <span>{{ list.name }}</span>
         </button>
@@ -25,7 +25,7 @@
         type="button" 
         class="h-[34px] px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 whitespace-nowrap border border-dashed border-app-border bg-app-surface/60 text-app-muted hover:border-app-brand hover:text-app-brand active:scale-95 transition-all cursor-pointer"
         (click)="openNewListModal()">
-        <lucide-icon name="plus" [size]="13" class="shrink-0"></lucide-icon>
+        <svg lucidePlus [size]="13" class="shrink-0"></svg>
         <span>{{ 'shopping.newListBtn' | t:'Nowa lista' }}</span>
       </button>
     </section>
@@ -55,14 +55,14 @@
             class="w-8 h-8 rounded-full border border-app-border bg-app-surface hover:bg-app-surface-variant text-app-muted hover:text-app-text flex items-center justify-center transition-colors cursor-pointer"
             (click)="toggleOptionsMenu($event)" 
             [title]="'shopping.moreOptionsTitle' | t:'Więcej opcji'">
-            <lucide-icon name="more-vertical" [size]="14"></lucide-icon>
+            <svg lucideEllipsisVertical [size]="14"></svg>
           </button>
 
           @if (isOptionsMenuOpen()) {
             <div class="absolute top-10 right-0 w-64 rounded-2xl bg-app-surface border border-app-border shadow-xl z-50 p-2 flex flex-col gap-1 animate-in fade-in zoom-in-95" (click)="$event.stopPropagation()">
               <button type="button" class="flex items-center gap-3 p-2 rounded-xl text-left hover:bg-app-surface-variant active:scale-[0.98] transition-all cursor-pointer border-none bg-transparent w-full" (click)="shareList()">
                 <div class="w-8 h-8 rounded-lg bg-app-surface-variant flex items-center justify-center shrink-0">
-                  <lucide-icon name="share-2" [size]="15" class="text-app-text"></lucide-icon>
+                  <svg lucideShare2 [size]="15" class="text-app-text"></svg>
                 </div>
                 <div class="flex flex-col min-w-0">
                   <span class="text-xs font-bold text-app-text">{{ 'shopping.shareTitle' | t:'Wyślij listę' }}</span>
@@ -72,7 +72,7 @@
 
               <button type="button" class="flex items-center gap-3 p-2 rounded-xl text-left hover:bg-app-surface-variant active:scale-[0.98] transition-all cursor-pointer border-none bg-transparent w-full" (click)="clearBoughtItems()">
                 <div class="w-8 h-8 rounded-lg bg-app-surface-variant flex items-center justify-center shrink-0">
-                  <lucide-icon name="check-circle-2" [size]="15" class="text-app-text"></lucide-icon>
+                  <svg lucideCircleCheck [size]="15" class="text-app-text"></svg>
                 </div>
                 <div class="flex flex-col min-w-0">
                   <span class="text-xs font-bold text-app-text">{{ 'shopping.clearBoughtTitle' | t:'Wyczyść kupione' }}</span>
@@ -82,7 +82,7 @@
 
               <button type="button" class="flex items-center gap-3 p-2 rounded-xl text-left hover:bg-rose-500/10 active:scale-[0.98] transition-all cursor-pointer border-none bg-transparent w-full" (click)="deleteCurrentList()">
                 <div class="w-8 h-8 rounded-lg bg-rose-500/15 flex items-center justify-center shrink-0">
-                  <lucide-icon name="trash-2" [size]="15" class="text-rose-600 dark:text-rose-400"></lucide-icon>
+                  <svg lucideTrash [size]="15" class="text-rose-600 dark:text-rose-400"></svg>
                 </div>
                 <div class="flex flex-col min-w-0">
                   <span class="text-xs font-bold text-rose-600 dark:text-rose-400">{{ 'shopping.deleteListTitle' | t:'Usuń tę listę' }}</span>
@@ -123,7 +123,7 @@
         type="button" 
         class="pointer-events-auto w-full h-12 rounded-full bg-app-brand hover:brightness-110 active:scale-98 text-white font-bold text-sm flex items-center justify-center gap-2 border-none shadow-lg cursor-pointer transition-all"
         (click)="moveBoughtToPantry()">
-        <lucide-icon name="package" [size]="18" class="text-white shrink-0"></lucide-icon>
+        <svg lucidePackage [size]="18" class="text-white shrink-0"></svg>
         <span>{{ 'shopping.checkoutBtn' | t:'Schowaj zakupy do magazynu' }} ({{ checkedCount() }})</span>
       </button>
 

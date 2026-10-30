@@ -3,8 +3,7 @@ import {
   provideBrowserGlobalErrorListeners,
   provideAppInitializer,
   inject,
-  isDevMode,
-  importProvidersFrom
+  isDevMode
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -13,79 +12,8 @@ import { routes } from './app.routes';
 import { authInterceptor, provideAppConfig, LOGOUT_CLEANUP } from '@granary/shared';
 import { AppDatabase } from './core/db/app-database';
 import { SyncService } from './core/services/sync.service';
-
-import {
-  LucideAngularModule,
-  AlertCircle,
-  ArrowLeft,
-  Bell,
-  BookOpen,
-  Camera,
-  Check,
-  CheckCircle,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Copy,
-  Eye,
-  EyeOff,
-  Flame,
-  Globe,
-  Heart,
-  HelpCircle,
-  Home,
-  Image,
-  Info,
-  KeyRound,
-  Laptop,
-  LayoutDashboard,
-  Link2,
-  ListOrdered,
-  Lock,
-  LogIn,
-  LogOut,
-  Mail,
-  Minus,
-  MinusCircle,
-  Moon,
-  MoreVertical,
-  Package,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Pencil,
-  Plus,
-  PlusCircle,
-  Refrigerator,
-  Ruler,
-  Search,
-  Send,
-  Share2,
-  ShoppingBasket,
-  SlidersHorizontal,
-  Sparkles,
-  Sprout,
-  Star,
-  Sun,
-  ThumbsDown,
-  ThumbsUp,
-  Trash2,
-  User,
-  UserPlus,
-  Users,
-  Utensils,
-  X,
-  XCircle
-} from 'lucide-angular';
-
-const APP_ICONS = {
-  AlertCircle, ArrowLeft, Bell, BookOpen, Camera, Check, CheckCircle, CheckCircle2, ChevronLeft, ChevronRight,
-  Clock, Copy, Eye, EyeOff, Flame, Globe, Heart, HelpCircle, Home, Image, Info, KeyRound, Laptop,
-  LayoutDashboard, Link2, ListOrdered, Lock, LogIn, LogOut, Mail, Minus, MinusCircle, Moon, MoreVertical,
-  Package, PanelLeftClose, PanelLeftOpen, Pencil, Plus, PlusCircle, Refrigerator, Ruler, Search, Send, Share2,
-  ShoppingBasket, SlidersHorizontal, Sparkles, Sprout, Star, Sun, ThumbsDown, ThumbsUp, Trash2, User,
-  UserPlus, Users, Utensils, X, XCircle
-};
+import { ThemeService } from './core/services/theme.service';
+import { PwaInstallService } from './core/services/pwa-install.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -111,10 +39,10 @@ export const appConfig: ApplicationConfig = {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
-    // Uruchamia synchronizację zmian zapisanych offline od startu aplikacji.
     provideAppInitializer(() => {
+      inject(ThemeService);
       inject(SyncService);
+      inject(PwaInstallService);
     }),
-    importProvidersFrom(LucideAngularModule.pick(APP_ICONS))
   ],
 };

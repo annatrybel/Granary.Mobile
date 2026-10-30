@@ -13,7 +13,7 @@
     <button type="button"
       class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text border border-app-border flex items-center justify-center cursor-pointer shadow-2xs active:scale-90 transition-all"
       (click)="closeSheet.emit()" aria-label="Zamknij formularz">
-      <lucide-icon name="x" [size]="16"></lucide-icon>
+      <svg lucideX [size]="16"></svg>
     </button>
   </header>
 
@@ -32,21 +32,21 @@
             <button type="button" (click)="imageUrl.set(null)"
               class="absolute top-1.5 right-1.5 bg-black/65 border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer active:scale-90 text-white"
               [title]="'addRecipe.removePhoto' | t:'Usuń zdjęcie'">
-              <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+              <svg lucideTrash [size]="14"></svg>
             </button>
           </div>
           } @else {
           <button type="button" [disabled]="isGeneratingImage()"
             class="w-full bg-app-brand/15 text-app-brand text-xs font-bold py-2.5 px-3 rounded-xl border border-app-brand/25 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 disabled:opacity-50"
             (click)="generateAiImage()">
-            <lucide-icon name="sparkles" [size]="15"></lucide-icon>
+            <svg lucideSparkles [size]="15"></svg>
             <span>{{ (isGeneratingImage() ? 'addRecipe.generatingAi' : 'addRecipe.generateAiBtn') | t:'Wygeneruj zdjęcie
               potrawy przez AI' }}</span>
           </button>
 
           <label
             class="text-[11px] font-semibold text-app-muted flex items-center gap-1.5 p-1 cursor-pointer hover:text-app-text">
-            <lucide-icon name="image" [size]="14"></lucide-icon>
+            <svg lucideImage [size]="14"></svg>
             <span>{{ 'addRecipe.uploadPhoto' | t:'lub wgraj własne zdjęcie z telefonu' }}</span>
             <input type="file" accept="image/*" class="hidden" (change)="onImageFileChange($event)" />
           </label>
@@ -69,7 +69,7 @@
             <button type="button"
               class="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center active:scale-90 text-app-text cursor-pointer"
               (click)="changeServings(-1)" aria-label="Zmniejsz porcje">
-              <lucide-icon name="minus" [size]="14"></lucide-icon>
+              <svg lucideMinus [size]="14"></svg>
             </button>
             <div class="flex flex-col items-center">
               <span class="text-[10px] font-bold text-app-muted uppercase tracking-wide">{{ 'addRecipe.servings' |
@@ -82,7 +82,7 @@
             <button type="button"
               class="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center active:scale-90 text-app-text cursor-pointer"
               (click)="changeServings(1)" aria-label="Zwiększ porcje">
-              <lucide-icon name="plus" [size]="14"></lucide-icon>
+              <svg lucidePlus [size]="14"></svg>
             </button>
           </div>
 
@@ -90,7 +90,7 @@
             <button type="button"
               class="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center active:scale-90 text-app-text cursor-pointer"
               (click)="changeTime(-5)" aria-label="Zmniejsz czas">
-              <lucide-icon name="minus" [size]="14"></lucide-icon>
+              <svg lucideMinus [size]="14"></svg>
             </button>
             <div class="flex flex-col items-center">
               <span class="text-[10px] font-bold text-app-muted uppercase tracking-wide">{{ 'addRecipe.time' | t:'Czas'
@@ -101,7 +101,7 @@
             <button type="button"
               class="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center active:scale-90 text-app-text cursor-pointer"
               (click)="changeTime(5)" aria-label="Zwiększ czas">
-              <lucide-icon name="plus" [size]="14"></lucide-icon>
+              <svg lucidePlus [size]="14"></svg>
             </button>
           </div>
         </div>
@@ -110,7 +110,7 @@
         <div class="flex flex-col gap-1">
           <label class="text-xs font-bold text-app-text flex items-center justify-between" for="recipe-calories">
             <span class="flex items-center gap-1.5">
-              <lucide-icon name="flame" [size]="14" class="text-amber-500"></lucide-icon>
+              <svg lucideFlame [size]="14" class="text-amber-500"></svg>
               <span>{{ 'addRecipe.caloriesLabel' | t:'Wartość energetyczna' }}</span>
             </span>
             <span class="text-[11px] text-app-muted font-normal">{{ 'common.optional' | t:'(opcjonalnie)' }}</span>
@@ -145,7 +145,7 @@
             [class.text-app-text]="selectedCategory() !== cat" [class.border-app-border]="selectedCategory() !== cat"
             (click)="selectedCategory.set(cat)">
             @if (selectedCategory() === cat) {
-            <lucide-icon name="check" [size]="13" class="text-white"></lucide-icon>
+            <svg lucideCheck [size]="13" class="text-white"></svg>
             }
             <span>{{ ('category.' + (cat === 'Obiad' ? 'lunch' : cat === 'Śniadanie' ? 'breakfast' : cat === 'Kolacja' ?
               'dinner' : cat === 'Wypieki i ciasta' ? 'baking' : 'snack')) | t:cat }}</span>
@@ -198,7 +198,7 @@
               <button type="button"
                 class="w-8 h-8 rounded-lg text-app-muted hover:text-rose-500 hover:bg-rose-500/10 flex items-center justify-center cursor-pointer border-none bg-transparent active:scale-90"
                 (click)="askDeleteIngredient(ing)" [attr.aria-label]="'addRecipe.deleteIngredient' | t:'Usuń składnik'">
-                <lucide-icon name="trash-2" [size]="15"></lucide-icon>
+                <svg lucideTrash [size]="15"></svg>
               </button>
             </div>
 
@@ -240,7 +240,7 @@
             <button type="button"
               class="w-7 h-7 rounded-lg text-app-muted hover:text-rose-500 flex items-center justify-center shrink-0 border-none bg-transparent cursor-pointer active:scale-90"
               (click)="removeStep(step.id)" [attr.aria-label]="'addRecipe.deleteStep' | t:'Usuń krok'">
-              <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+              <svg lucideTrash [size]="14"></svg>
             </button>
           </div>
           }
@@ -248,7 +248,7 @@
           <button type="button"
             class="text-app-brand text-xs font-bold flex items-center gap-1.5 p-1 cursor-pointer w-fit active:scale-95 border-none bg-transparent"
             (click)="addStep()">
-            <lucide-icon name="plus" [size]="15"></lucide-icon>
+            <svg lucidePlus [size]="15"></svg>
             <span>{{ 'addRecipe.addStep' | t:'Dodaj kolejny krok' }}</span>
           </button>
         </div>
@@ -260,7 +260,7 @@
   <footer class="shrink-0 bg-app-surface border-t border-app-border px-5 py-3">
     <button type="button" [disabled]="!title().trim()" (click)="onSubmit()"
       class="w-full h-11 bg-app-brand text-white text-xs font-bold rounded-full border-none flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110">
-      <lucide-icon name="check" [size]="16"></lucide-icon>
+      <svg lucideCheck [size]="16"></svg>
       <span>{{ 'addRecipe.saveBtn' | t:'Zapisz przepis' }}</span>
     </button>
   </footer>
