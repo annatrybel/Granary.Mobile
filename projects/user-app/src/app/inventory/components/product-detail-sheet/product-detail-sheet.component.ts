@@ -29,6 +29,12 @@ export interface QuickDayOption {
   label: string;
 }
 
+export interface ProductDetailSheetSavePayload extends ProductDetailUpdatePayload {
+  categoryName?: string;
+  categoryId?: string;
+  customImageUrl?: string;
+}
+
 @Component({
   selector: 'app-product-detail-sheet',
   standalone: true,
@@ -44,7 +50,7 @@ export class ProductDetailSheetComponent implements OnInit {
 
   product = input.required<ProductItem>();
   closeSheet = output<void>();
-  save = output<ProductDetailUpdatePayload & { categoryName?: string; categoryId?: string; customImageUrl?: string }>();
+  save = output<ProductDetailSheetSavePayload>();
 
   readonly categories = this.pantryService.categories;
 

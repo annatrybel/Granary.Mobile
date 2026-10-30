@@ -3,13 +3,16 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { PantryService } from '../core/services/pantry.service';
 import { ProductItem } from '../core/db/app-database';
-import { ProductDetailUpdatePayload, CatalogProductDto, APP_ICONS } from '@granary/shared';
+import { CatalogProductDto, APP_ICONS } from '@granary/shared';
 
 import { ConfirmDeleteModalComponent } from '@granary/shared';
 import { CatalogSearchBarComponent } from '../shared/components/catalog-search-bar/catalog-search-bar.component';
 import { InventoryCardComponent } from './components/inventory-card/inventory-card.component';
 import { InventoryRecipeBarComponent } from './components/inventory-recipe-bar/inventory-recipe-bar.component';
-import { ProductDetailSheetComponent } from './components/product-detail-sheet/product-detail-sheet.component';
+import {
+  ProductDetailSheetComponent,
+  ProductDetailSheetSavePayload
+} from './components/product-detail-sheet/product-detail-sheet.component';
 import { TranslatePipe } from '@granary/shared';
 
 
@@ -163,7 +166,7 @@ export class InventoryComponent {
     this.activeProductForDetails.set(null);
   }
 
-  onSaveProductDetails(payload: ProductDetailUpdatePayload): void {
+  onSaveProductDetails(payload: ProductDetailSheetSavePayload): void {
     const item = this.activeProductForDetails();
     if (!item) return;
 

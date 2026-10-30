@@ -61,13 +61,16 @@
         }
       </button>
 
+      }
+      }
+
+      @if (isCustomProduct) {
       <label
         class="text-[11px] font-semibold text-app-muted flex items-center gap-1.5 p-1 cursor-pointer hover:text-app-text transition-colors">
         <svg lucideImage [size]="14"></svg>
         <span>{{ 'productDetail.uploadPhoto' | t:'lub wgraj własne zdjęcie z telefonu' }}</span>
         <input type="file" accept="image/*" class="hidden" (change)="onImageFileChange($event)" />
       </label>
-      }
       }
 
       <div class="flex items-center justify-between w-full px-1 pt-1">
