@@ -1,5 +1,6 @@
 @import "tailwindcss" source(none);
 @import "../../shared/src/theme.css";
+@import "../../shared/src/bottom-sheet.css";
 
 @source "./app";
 @source "../../shared/src";

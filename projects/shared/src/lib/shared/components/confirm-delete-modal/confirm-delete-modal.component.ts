@@ -18,7 +18,7 @@ import { APP_ICONS } from '../../../icons';
         </div>
 
         <h3 class="text-base font-bold text-app-text m-0">
-          {{ 'confirmModal.title' | t:'Usunąć produkt?' }}
+          {{ title() || ('confirmModal.title' | t:'Usunąć produkt?') }}
         </h3>
         
         <p class="text-xs text-app-muted mt-1.5 mb-5 leading-relaxed">
@@ -45,6 +45,8 @@ import { APP_ICONS } from '../../../icons';
   `
 })
 export class ConfirmDeleteModalComponent {
+  /** Własny nagłówek; gdy pusty, używany jest domyślny „Usunąć produkt?”. */
+  title = input<string>('');
   productName = input<string>('');
   contextText = input<string>('ze swojej spiżarni'); 
 

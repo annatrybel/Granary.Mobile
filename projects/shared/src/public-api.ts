@@ -14,6 +14,7 @@ export * from './lib/icons';
 export * from './lib/profile/profile.models';
 export * from './lib/recipes/recipe.models';
 export * from './lib/shared/components/confirm-delete-modal/confirm-delete-modal.component';
+export * from './lib/shared/components/success-check-overlay/success-check-overlay.component';
 export * from './lib/shared/models/common.models';
 export * from './lib/shared/pipes/media-url.pipe';
 export * from './lib/shared/pipes/translate.pipe';

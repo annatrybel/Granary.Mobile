@@ -61,6 +61,10 @@ export class ProfileService {
   savePushSubscription(dto: SavePushSubscriptionDto): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/push-subscription`, dto);
   }
+
+  getPushPublicKey(): Observable<{ publicKey: string }> {
+    return this.http.get<{ publicKey: string }>(`${this.baseUrl}/push-public-key`);
+  }
   updateExpiryNotifications(enabled: boolean): Observable<any> {
     return this.http.patch(`${this.baseUrl}/notifications-settings`, {
       expiryNotifications: enabled

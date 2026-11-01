@@ -22,6 +22,10 @@ export const USER_ROUTES: Routes = [
     loadComponent: () => import('./auth/auth.component').then(m => m.AuthComponent)
   },
   {
+    path: 'reset-password',
+    loadComponent: () => import('./auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
+  },
+  {
     path: 'profil',
     canActivate: [authGuard],
     loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)

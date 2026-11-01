@@ -4,7 +4,6 @@ export interface CatalogProductDto {
   categoryId?: string | null;
   categoryName?: string;
   category?: string;
-  barcode?: string | null;
   defaultUnit?: string;
   imageUrl?: string | null;
 }
