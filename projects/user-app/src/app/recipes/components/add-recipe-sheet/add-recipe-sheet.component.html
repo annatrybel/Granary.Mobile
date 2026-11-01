@@ -1,6 +1,6 @@
-<div class="sheet-backdrop animate-fade-in" (click)="closeSheet.emit()"></div>
+<div class="sheet-backdrop"></div>
 
-<div class="sheet-container animate-slide-up" appSwipeToClose (appSwipeToClose)="closeSheet.emit()">
+<div class="sheet-container" appSwipeToClose #sheet="swipeToClose" (appSwipeToClose)="closeSheet.emit()">
 
   <div class="w-11 h-1 bg-app-border rounded-full mx-auto my-2.5 shrink-0"></div>
 
@@ -12,7 +12,7 @@
 
     <button type="button"
       class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text border border-app-border flex items-center justify-center cursor-pointer shadow-2xs active:scale-90 transition-all"
-      (click)="closeSheet.emit()" aria-label="Zamknij formularz">
+      (click)="sheet.requestClose()" aria-label="Zamknij formularz">
       <svg lucideX [size]="16"></svg>
     </button>
   </header>

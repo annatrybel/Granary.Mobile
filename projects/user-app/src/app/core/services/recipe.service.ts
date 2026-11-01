@@ -95,28 +95,50 @@ export class RecipeService {
       && (filters.sortBy ?? 'match') === 'match';
   }
 
-  /**
-   * Zwraca przepisy, które najlepiej wykorzystują produkty z krótkim terminem ważności.
-   * Ostatni wynik jest zapisany lokalnie, więc pulpit działa też offline.
-   */
   getSuggestedRecipes(expiringCatalogIds: string[], limit = 3): Observable<RecipeMatchDto[]> {
-    return defer(async () => {
-      if (this.network.isOnline()) {
-        try {
-          const suggestions = await this.fetchSuggestions(expiringCatalogIds, limit);
-          await this.db.transaction('rw', this.db.suggestedRecipes, async () => {
-            await this.db.suggestedRecipes.clear();
-            await this.db.suggestedRecipes.bulkPut(suggestions.map((recipe, rank) => ({ ...recipe, rank })));
-          });
-          return suggestions;
-        } catch (error) {
-          if (!this.isNetworkError(error)) throw error;
-        }
-      }
+    return new Observable<RecipeMatchDto[]>(subscriber => {
+      let cancelled = false;
 
-      const cached = await this.db.suggestedRecipes.orderBy('rank').toArray();
-      if (cached.length > 0) return cached.slice(0, limit);
-      return this.rankForSuggestions(await this.db.recipes.toArray()).slice(0, limit);
+      void (async () => {
+        try {
+          const cached = await this.db.suggestedRecipes.orderBy('rank').toArray();
+          if (cancelled) return;
+
+          const online = this.network.isOnline();
+          const emittedCached = online && cached.length > 0;
+          if (emittedCached) subscriber.next(cached.slice(0, limit));
+
+          if (online) {
+            try {
+              const suggestions = await this.fetchSuggestions(expiringCatalogIds, limit);
+              await this.db.transaction('rw', this.db.suggestedRecipes, async () => {
+                await this.db.suggestedRecipes.clear();
+                await this.db.suggestedRecipes.bulkPut(suggestions.map((recipe, rank) => ({ ...recipe, rank })));
+              });
+              if (cancelled) return;
+              subscriber.next(suggestions);
+              subscriber.complete();
+              return;
+            } catch (error) {
+              if (!this.isNetworkError(error)) throw error;
+            }
+          }
+
+          if (cancelled) return;
+          if (!emittedCached) {
+            subscriber.next(cached.length > 0
+              ? cached.slice(0, limit)
+              : this.rankForSuggestions(await this.db.recipes.toArray()).slice(0, limit));
+          }
+          subscriber.complete();
+        } catch (error) {
+          subscriber.error(error);
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+      };
     });
   }
 
@@ -134,23 +156,41 @@ export class RecipeService {
   }
 
   getById(id: string): Observable<RecipeDetailDto> {
-    return defer(async () => {
-      const recipeId = await this.db.resolveId(id);
+    return new Observable<RecipeDetailDto>(subscriber => {
+      let cancelled = false;
 
-      if (this.network.isOnline()) {
+      void (async () => {
         try {
-          const raw = await firstValueFrom(this.http.get<any>(`${this.baseUrl}/${recipeId}`));
-          const detail = this.mapDetail(unwrap(raw), recipeId);
-          await this.db.recipeDetails.put({ ...detail, updatedAt: Date.now() });
-          return detail;
-        } catch (error) {
-          if (!this.isNetworkError(error)) throw error;
-        }
-      }
+          const recipeId = await this.db.resolveId(id);
+          const local = await this.db.recipeDetails.get(recipeId);
+          if (cancelled) return;
+          if (local) subscriber.next(local);
 
-      const local = await this.db.recipeDetails.get(recipeId);
-      if (!local) throw new Error(`Przepis ${id} nie jest dostępny offline`);
-      return local;
+          if (this.network.isOnline()) {
+            try {
+              const raw = await firstValueFrom(this.http.get<any>(`${this.baseUrl}/${recipeId}`));
+              const detail = this.mapDetail(unwrap(raw), recipeId);
+              await this.db.recipeDetails.put({ ...detail, updatedAt: Date.now() });
+              if (cancelled) return;
+              subscriber.next(detail);
+              subscriber.complete();
+              return;
+            } catch (error) {
+              if (!this.isNetworkError(error)) throw error;
+            }
+          }
+
+          if (cancelled) return;
+          if (!local) throw new Error(`Przepis ${id} nie jest dostępny offline`);
+          subscriber.complete();
+        } catch (error) {
+          subscriber.error(error);
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+      };
     });
   }
 

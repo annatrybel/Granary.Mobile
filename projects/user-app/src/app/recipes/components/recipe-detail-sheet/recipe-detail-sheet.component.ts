@@ -5,6 +5,7 @@ import {
   signal,
   computed,
   inject,
+  viewChild,
   ChangeDetectionStrategy,
   ChangeDetectorRef
 } from '@angular/core';
@@ -35,6 +36,7 @@ export class RecipeDetailSheetComponent {
   closeSheet = output<void>();
   toggleFavorite = output<void>();
 
+  private readonly sheet = viewChild(SwipeToCloseDirective);
   userVoteOverride = signal<boolean | null | undefined>(undefined);
   likesCountDelta = signal<number>(0);
 
@@ -119,6 +121,7 @@ export class RecipeDetailSheetComponent {
 
   cookRecipe(): void {
     alert('Ugotowano przepis! Składniki zostaną odliczone z magazynu.');
-    this.closeSheet.emit();
+    const sheet = this.sheet();
+    if (sheet) sheet.requestClose(); else this.closeSheet.emit();
   }
 }

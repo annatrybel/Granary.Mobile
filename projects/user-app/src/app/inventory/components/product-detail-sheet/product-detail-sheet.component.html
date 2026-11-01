@@ -1,6 +1,6 @@
-<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+<div class="sheet-backdrop"></div>
 
-<div class="sheet-container animate-slide-up" appSwipeToClose (appSwipeToClose)="closeSheet.emit()">
+<div class="sheet-container" appSwipeToClose #sheet="swipeToClose" (appSwipeToClose)="closeSheet.emit()">
 
   <div class="sheet-header flex flex-col items-center px-6 pt-4 pb-2 shrink-0">
     <div class="w-12 h-1 bg-app-border rounded-full mb-3 shrink-0"></div>
@@ -10,7 +10,7 @@
       </h2>
       <button type="button"
         class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text flex items-center justify-center border-none cursor-pointer active:scale-95 transition-all"
-        (click)="closeSheet.emit()" [attr.aria-label]="'common.close' | t:'Zamknij'">
+        (click)="sheet.requestClose()" [attr.aria-label]="'common.close' | t:'Zamknij'">
         ✕
       </button>
     </div>
@@ -32,18 +32,6 @@
           [title]="'productDetail.removePhoto' | t:'Usuń zdjęcie'">
           <svg lucideX [size]="14"></svg>
         </button>
-
-        <button type="button" [disabled]="isGeneratingImage()" (click)="generateAiProductImage()"
-          class="absolute bottom-2 right-2 bg-black/65 hover:bg-black/80 border-none rounded-full px-3 h-7 flex items-center gap-1.5 cursor-pointer active:scale-90 text-white text-[11px] font-bold transition-all shadow-xs disabled:opacity-50"
-          [title]="'productDetail.regenerateAi' | t:'Wygeneruj ponownie AI'">
-          @if (isGeneratingImage()) {
-          <span
-            class="inline-block animate-spin border-2 border-white border-t-transparent rounded-full w-3.5 h-3.5"></span>
-          } @else {
-          <svg lucideSparkles [size]="12"></svg>
-          }
-          <span>AI</span>
-        </button>
         }
       </div>      
 
@@ -62,7 +50,7 @@
 
       }
 
-      @if (isCustomProduct) {
+      @if (isCustomProduct && !detailImageUrl()) {
       <label
         class="text-[11px] font-semibold text-app-muted flex items-center gap-1.5 p-1 cursor-pointer hover:text-app-text transition-colors">
         <svg lucideImage [size]="14"></svg>

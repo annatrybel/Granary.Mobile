@@ -185,4 +185,15 @@
         (confirm)="confirmDelete()" />
     </div>
   }
+
+  @if (listToDelete(); as list) {
+    <div class="relative z-[120]">
+      <app-confirm-delete-modal
+        [title]="'shopping.deleteListConfirmTitle' | t:'Usunąć listę?'"
+        [productName]="list.name"
+        [contextText]="'shopping.deleteListContext' | t:'z Twoich list zakupów'"
+        (cancel)="cancelDeleteList()"
+        (confirm)="confirmDeleteList()" />
+    </div>
+  }
 </main>

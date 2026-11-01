@@ -68,6 +68,7 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
   newListName = signal<string>('');
   isOptionsMenuOpen = signal<boolean>(false);
   itemToDelete = signal<ShoppingListItem | null>(null);
+  listToDelete = signal<ShoppingListDto | null>(null);
 
   suggestions = computed<RestockSuggestion[]>(() => {
     const products: ProductItem[] = this.pantryService.products() || [];
@@ -112,7 +113,8 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Po wysłaniu zmian zapisanych offline lokalne ID mogły zostać zastąpione serwerowymi.
+    // Po wysłaniu zmian zapisanych offline lokalne ID zostają zastąpione serwerowymi w lokalnej bazie,
+    // więc wystarczy odświeżyć widok z niej, bez ponownego pobierania z serwera.
     effect(() => {
       this.syncService.syncVersion();
       untracked(() => {
@@ -122,8 +124,12 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
         }
 
         const cur = this.currentList();
-        this.shoppingService.getMyLists().subscribe(lists => this.userLists.set(lists));
-        if (cur) this.loadListDetails(cur.id);
+        this.shoppingService.getCachedLists().subscribe(lists => this.userLists.set(lists));
+        if (cur) {
+          this.shoppingService.getCachedListDetails(cur.id).subscribe(dto => {
+            if (dto) this.applyList(dto);
+          });
+        }
       });
     });
   }
@@ -175,20 +181,24 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
     this.detailsSub?.unsubscribe();
     this.detailsSub = this.shoppingService.getListDetails(listId).subscribe({
       next: dto => {
-        this.currentList.set(dto);
-        this.items.set((dto.items || []).map((i: ShoppingItemDto) => ({
-          id: i.id,
-          productId: i.productId || null,
-          name: i.productName || i.name || 'Produkt',
-          categoryName: i.categoryName || i.category || 'Inne',
-          quantity: Number(i.quantity) || 1,
-          unit: i.unit || 'szt.',
-          isChecked: !!i.isBought
-        })));
+        this.applyList(dto);
         this.isLoading.set(false);
       },
       error: () => this.isLoading.set(false)
     });
+  }
+
+  private applyList(dto: ShoppingListDto): void {
+    this.currentList.set(dto);
+    this.items.set((dto.items || []).map((i: ShoppingItemDto) => ({
+      id: i.id,
+      productId: i.productId || null,
+      name: i.productName || i.name || 'Produkt',
+      categoryName: i.categoryName || i.category || 'Inne',
+      quantity: Number(i.quantity) || 1,
+      unit: i.unit || 'szt.',
+      isChecked: !!i.isBought
+    })));
   }
 
   switchList(list: ShoppingListDto): void {
@@ -364,7 +374,17 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
   deleteCurrentList(): void {
     this.isOptionsMenuOpen.set(false);
     const list = this.currentList();
-    if (list && confirm(`Czy na pewno chcesz usunąć listę "${list.name}"?`)) {
+    if (list) this.listToDelete.set(list);
+  }
+
+  cancelDeleteList(): void {
+    this.listToDelete.set(null);
+  }
+
+  confirmDeleteList(): void {
+    const list = this.listToDelete();
+    this.listToDelete.set(null);
+    if (list) {
       this.shoppingService.deleteList(list.id).subscribe(() => this.loadLists());
     }
   }

@@ -5,7 +5,7 @@ import type { RecipeDetailDto, RecipeMatchDto, ShoppingItemDto, ShoppingListDto 
 export interface ProductItem {
   id: string;
   catalogProductId?: string | null;
-  isCustom?: boolean;
+  isCustom: boolean;
   name: string;
 
   category?: string;

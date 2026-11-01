@@ -142,7 +142,6 @@ export class HeaderComponent implements OnInit {
       takeUntilDestroyed()
     ).subscribe((event: NavigationEnd) => {
       this.updateTitleByUrl(event.urlAfterRedirects || event.url);
-      // Zamykamy dropdown po przejściu na inny widok
       this.isNotificationsOpen.set(false);
     });
 
@@ -150,7 +149,6 @@ export class HeaderComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Ładujemy powiadomienia raz na starcie nagłówka
     this.profileService.loadNotifications();
   }
 

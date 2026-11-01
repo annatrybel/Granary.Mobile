@@ -79,6 +79,14 @@ export class ShoppingListService {
     });
   }
 
+  getCachedLists(): Observable<ShoppingListDto[]> {
+    return defer(() => this.readLocalLists());
+  }
+
+  getCachedListDetails(listId: string): Observable<ShoppingListDto | undefined> {
+    return defer(async () => this.db.shoppingLists.get(await this.db.resolveId(listId)));
+  }
+
   getListDetails(listId: string): Observable<ShoppingListDto> {
     return new Observable<ShoppingListDto>(subscriber => {
       let cancelled = false;
@@ -98,7 +106,6 @@ export class ShoppingListService {
               await this.db.shoppingLists.put(this.toOfflineList(dto, await this.db.shoppingLists.get(id)));
               refreshed = true;
             } catch {
-              // brak sieci lub błąd serwera: korzystamy z danych lokalnych
             }
           }
 
@@ -168,11 +175,6 @@ export class ShoppingListService {
     });
   }
 
-  /**
-   * Dodaje wiele produktów do listy.
-   * Jeśli dany produkt już znajduje się na liście (sprawdzane po productId lub nazwie), zostaje pominięty.
-   */
-  // projects/user-app/src/app/core/services/shopping-list.service.ts
 
   addItemsBulk(listId: string, dtos: AddShoppingItemDto[]): Observable<number> {
     return defer(async () => {
@@ -186,7 +188,6 @@ export class ShoppingListService {
         for (const dto of dtos) {
           const name = (dto.customName || dto.productName || '').trim().toLowerCase();
 
-          // BEZPIECZNE SPRAWDZENIE (zabezpieczone przed undefined):
           const alreadyExists = updatedItems.some(i => {
             if (dto.productId && i.productId === dto.productId) return true;
             const currentName = (i.name || i.productName || '').trim().toLowerCase();
@@ -194,7 +195,7 @@ export class ShoppingListService {
           });
 
           if (alreadyExists) {
-            continue; // Pomijamy istniejący produkt
+            continue; 
           }
 
           const newItem: ShoppingItemDto = {
@@ -358,6 +359,7 @@ export class ShoppingListService {
     return {
       id: this.db.newId(),
       catalogProductId: item.productId,
+      isCustom: !item.productId,
       name: item.productName || item.name || 'Produkt',
       categoryName: item.categoryName || item.category || 'Inne',
       locationName,

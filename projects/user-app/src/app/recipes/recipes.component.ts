@@ -16,7 +16,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, last } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RecipeService } from '../core/services/recipe.service';
@@ -30,7 +30,8 @@ import {
   APP_ICONS,
   TranslatePipe,
   TranslationService,
-  ConfirmDeleteModalComponent
+  ConfirmDeleteModalComponent,
+  SuccessCheckOverlayComponent
 } from '@granary/shared';
 
 import { RecipeSearchBarComponent } from './components/recipe-search-bar/recipe-search-bar.component';
@@ -60,6 +61,7 @@ const isScope = (s: string | null): s is RecipeTabScope => ['all', 'favorites', 
     RecipeFilterSheetComponent,
     AddRecipeSheetComponent,
     ConfirmDeleteModalComponent,
+    SuccessCheckOverlayComponent,
     TranslatePipe,
     APP_ICONS
   ],
@@ -120,6 +122,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly selectedShoppingListId = signal<string | null>(null);
   readonly isLoadingLists = signal<boolean>(false);
   readonly isAddingToShoppingList = signal<boolean>(false);
+  readonly successMessage = signal<string | null>(null);
 
   private currentPage = 1;
   private readonly pageSize = 20;
@@ -287,7 +290,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openEditRecipe(recipe: RecipeMatchDto): void {
-    this.recipeService.getById(recipe.recipeId).subscribe(detail => {
+    this.recipeService.getById(recipe.recipeId).pipe(last()).subscribe(detail => {
       this.recipeBeingEdited.set(detail);
       this.isAddRecipeOpen.set(true);
     });
@@ -401,7 +404,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (addedCount) => {
         this.isAddingToShoppingList.set(false);
         this.recipeForShoppingList.set(null);
-        alert(this.translationService.translate(
+        this.successMessage.set(this.translationService.translate(
           addedCount === 0 ? 'recipes.allAlreadyOnList' : 'recipes.addedSuccess',
           addedCount === 0
             ? 'Wszystkie brakujące składniki znajdują się już na tej liście zakupów!'

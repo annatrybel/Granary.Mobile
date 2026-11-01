@@ -1,12 +1,12 @@
-<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+<div class="sheet-backdrop"></div>
 
-<div class="sheet-container animate-slide-up" appSwipeToClose (appSwipeToClose)="closeSheet.emit()">
+<div class="sheet-container" appSwipeToClose #sheet="swipeToClose" (appSwipeToClose)="closeSheet.emit()">
   
   <div class="flex flex-col items-center px-6 pt-4 pb-2 shrink-0">
     <div class="w-12 h-1 bg-app-border rounded-full mb-3 shrink-0"></div>
     <div class="w-full flex items-center justify-between">
       <h2 class="text-xl font-bold text-app-text m-0">{{ 'recipeFilters.title' | t:'Filtry i sortowanie' }}</h2>
-      <button type="button" (click)="closeSheet.emit()" class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text flex items-center justify-center border-none cursor-pointer active:scale-95 transition-all">✕</button>
+      <button type="button" (click)="sheet.requestClose()" class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border text-app-muted hover:text-app-text flex items-center justify-center border-none cursor-pointer active:scale-95 transition-all">✕</button>
     </div>
   </div>
 

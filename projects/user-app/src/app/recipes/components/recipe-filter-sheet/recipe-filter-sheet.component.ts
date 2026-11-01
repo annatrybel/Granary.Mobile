@@ -1,4 +1,4 @@
-import { Component, input, output, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, signal, viewChild, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecipeFilters, SwipeToCloseDirective } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
@@ -18,6 +18,8 @@ export class RecipeFilterSheetComponent implements OnInit {
   closeSheet = output<void>();
   apply = output<RecipeFilters>();
   reset = output<void>();
+
+  private readonly sheet = viewChild(SwipeToCloseDirective);
 
   maxTime = signal<number | null>(null);
   sortBy = signal<'match' | 'time' | 'calories' | 'rating'>('match');
@@ -72,6 +74,7 @@ export class RecipeFilterSheetComponent implements OnInit {
       mealType: this.mealType(),
       diet: this.diet()
     });
-    this.closeSheet.emit();
+    const sheet = this.sheet();
+    if (sheet) sheet.requestClose(); else this.closeSheet.emit();
   }
 }

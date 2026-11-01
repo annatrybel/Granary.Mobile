@@ -74,10 +74,7 @@ export class ProductDetailSheetComponent implements OnInit {
   isGeneratingImage = signal<boolean>(false);
 
   get isCustomProduct(): boolean {
-    const item = this.product();
-
-    if (item.isCustom !== undefined) return item.isCustom;
-    return !item.catalogProductId;
+    return this.product().isCustom;
   }
 
   ngOnInit(): void {

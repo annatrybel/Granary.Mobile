@@ -1,7 +1,7 @@
-<div class="sheet-backdrop" (click)="closeSheet.emit()"></div>
+<div class="sheet-backdrop"></div>
 
 
-<div class="sheet-container animate-slide-up" appSwipeToClose (appSwipeToClose)="closeSheet.emit()"
+<div class="sheet-container" appSwipeToClose #sheet="swipeToClose" (appSwipeToClose)="closeSheet.emit()"
   (click)="$event.stopPropagation()">
 
   <div class="w-12 h-1 bg-app-border rounded-full mx-auto mb-2 shrink-0"></div>
@@ -10,7 +10,7 @@
   <div class="flex justify-end w-full px-2">
     <button type="button"
       class="w-8 h-8 rounded-full bg-app-surface-variant hover:bg-app-border flex items-center justify-center border border-app-border/50 cursor-pointer active:scale-95 transition-all text-app-muted hover:text-app-text"
-      (click)="closeSheet.emit()" [attr.aria-label]="'common.close' | t:'Zamknij'">
+      (click)="sheet.requestClose()" [attr.aria-label]="'common.close' | t:'Zamknij'">
       <svg lucideX [size]="14"></svg>
     </button>
   </div>

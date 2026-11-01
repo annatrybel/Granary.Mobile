@@ -19,6 +19,7 @@ import { TranslationService } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
 import { PwaInstallService } from '../core/services/pwa-install.service';
+import { PushNotificationService } from '../core/services/push-notification.service';
 import { ProfilePreferencesService } from '../core/services/profile-preferences.service';
 
 @Component({
@@ -46,17 +47,16 @@ export class ProfileComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   protected readonly translationService = inject(TranslationService);
   protected readonly pwaInstall = inject(PwaInstallService);
+  private readonly pushService = inject(PushNotificationService);
 
   isInstallHelpOpen = signal<boolean>(false);
   isLanguageDropdownOpen = signal<boolean>(false);
   isLoading = signal<boolean>(true);
 
-  // Dane użytkownika
   name = signal<string>('');
   email = signal<string>('');
   avatarUrl = signal<string | null>(null);
 
-  // Stan edycji nazwy użytkownika
   isEditingName = signal<boolean>(false);
   editNameValue = signal<string>('');
 
@@ -101,6 +101,7 @@ export class ProfileComponent implements OnInit {
           if (data.avatarUrl) this.avatarUrl.set(data.avatarUrl);
           if (data.dietPreference) this.dietPreference.set(data.dietPreference);
           if (data.expiryNotifications !== undefined) this.expiryNotifications.set(data.expiryNotifications);
+          if (this.expiryNotifications()) void this.pushService.syncIfGranted();
 
           this.authService.saveCurrentUser(data);
         }
@@ -155,13 +156,11 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  // --- OBSŁUGA AWATARA ---
   onAvatarFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
 
-      // Podgląd natychmiastowy Base64 w UI
       const reader = new FileReader();
       reader.onload = (e) => {
         this.avatarUrl.set(e.target?.result as string);
@@ -169,7 +168,6 @@ export class ProfileComponent implements OnInit {
       };
       reader.readAsDataURL(file);
 
-      // Wysyłka prawdziwego pliku do backendu
       const formData = new FormData();
       formData.append('avatar', file);
 
@@ -220,6 +218,9 @@ export class ProfileComponent implements OnInit {
     this.expiryNotifications.set(nextValue);
 
     this.profileService.updateExpiryNotifications(nextValue).subscribe({
+      next: () => {
+        if (nextValue) void this.pushService.subscribe();
+      },
       error: (err) => {
         this.expiryNotifications.set(previousValue);
         this.cdr.markForCheck();
@@ -237,7 +238,6 @@ export class ProfileComponent implements OnInit {
         return;
       }
     }
-    // Brak natywnego monitu (np. iOS Safari) - pokazujemy instrukcję ręcznej instalacji.
     this.isInstallHelpOpen.update(v => !v);
   }
 

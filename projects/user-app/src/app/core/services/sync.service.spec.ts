@@ -34,6 +34,7 @@ describe('SyncService', () => {
   const product = (id: string): ProductItem => ({
     id,
     name: 'Mleko',
+    isCustom: false,
     quantity: 1,
     unit: 'szt.',
     isSynced: false,

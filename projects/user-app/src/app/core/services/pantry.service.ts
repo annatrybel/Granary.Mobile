@@ -32,6 +32,7 @@ export class PantryService {
   private readonly apiUrl = `${this.apiBaseUrl}/pantry/items`;
   readonly products = signal<ProductItem[]>([]);
   readonly categories = signal<CategoryDto[]>([]);
+  readonly isLocalDataLoaded = signal(false);
 
   constructor() {
     this.loadInitialData();
@@ -69,7 +70,6 @@ export class PantryService {
 
     if (!this.network.isOnline()) return;
 
-    // Zmiany użytkownika muszą trafić na serwer zanim nadpiszemy je stanem z serwera.
     await this.sync.flush();
     if (await this.db.pendingCount('product') > 0) return;
 
@@ -220,6 +220,7 @@ export class PantryService {
   private async reloadFromDb(): Promise<void> {
     const localItems = await this.db.products.toArray();
     this.products.set(localItems.map(p => this.withFreshExpiry(p)));
+    this.isLocalDataLoaded.set(true);
   }
 
   private mapServerItem(item: any): ProductItem {
@@ -243,9 +244,7 @@ export class PantryService {
     return {
       id: item.id,
       catalogProductId,
-      isCustom: typeof item.isCustom === 'boolean'
-        ? item.isCustom
-        : Boolean(item.customProductName) || !catalogProductId,
+      isCustom: item.isCustom === true,
       name: item.productName || item.name || 'Produkt',
       category: cat,
       categoryName: item.categoryName || 'Inne',

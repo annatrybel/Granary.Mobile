@@ -102,7 +102,6 @@ export class DashboardComponent {
     }));
   });
 
-  /** Identyfikatory produktów z katalogu, które niedługo się przeterminują. */
   private readonly expiringCatalogIds = computed(() =>
     this.expiringProducts()
       .map(p => p.catalogProductId)
@@ -113,7 +112,9 @@ export class DashboardComponent {
   constructor() {
     this.recipeRequests$.pipe(
       debounceTime(150),
-      tap(() => this.isLoadingRecipes.set(true)),
+      tap(() => {
+        if (this.recipes().length === 0) this.isLoadingRecipes.set(true);
+      }),
       switchMap(ids =>
         this.recipeService.getSuggestedRecipes(ids, SUGGESTED_RECIPES_LIMIT).pipe(
           catchError(err => {
@@ -130,6 +131,7 @@ export class DashboardComponent {
 
     effect(() => {
       this.translationService.currentLang();
+      if (!this.pantryService.isLocalDataLoaded()) return;
       const ids = this.expiringCatalogIds();
       untracked(() => this.recipeRequests$.next(ids ? ids.split(',') : []));
     });

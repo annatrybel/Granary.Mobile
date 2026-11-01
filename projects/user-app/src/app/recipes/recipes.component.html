@@ -244,4 +244,8 @@
     </div>
   </div>
   }
+
+  @if (successMessage(); as message) {
+  <app-success-check-overlay [message]="message" (closed)="successMessage.set(null)" />
+  }
 </main>

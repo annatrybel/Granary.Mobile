@@ -89,9 +89,9 @@ export class InventoryComponent {
       next: (recognized) => {
         this.isAnalyzingImage.set(false);
 
-        // Automatycznie dodajemy produkt rozpoznany przez Groq AI do lodówki/spiżarni
         this.pantryService.addProduct({
           name: recognized.name,
+          isCustom: true,
           category: recognized.categoryName.toLowerCase(),
           categoryName: recognized.categoryName,
           locationName: recognized.suggestedLocation || 'Lodówka',
@@ -116,6 +116,7 @@ export class InventoryComponent {
   onSelectSuggestion(product: CatalogProductDto): void {
     this.pantryService.addProduct({
       catalogProductId: product.id,
+      isCustom: false,
       name: product.name,
       category: 'ogolne',
       categoryName: product.categoryName || 'Inne',
