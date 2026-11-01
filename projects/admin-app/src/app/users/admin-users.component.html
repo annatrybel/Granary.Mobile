@@ -6,6 +6,13 @@
       Przeglądaj konta z bazy danych, nadawaj role i zarządzaj blokadami dostępu.
     </p>
   </div>
+  <button
+    type="button"
+    (click)="openCreate()"
+    class="h-11 px-5 rounded-xl bg-[#536500] hover:bg-[#435200] text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer active:scale-95 shadow-md shadow-[#536500]/20 shrink-0 self-start md:self-auto">
+    <svg lucideUserPlus [size]="16"></svg>
+    <span>Dodaj użytkownika</span>
+  </button>
 </div>
 
 @if (errorMessage()) {
@@ -90,15 +97,24 @@
               }
             </td>
 
-            <!-- Akcje (Blokuj / Odblokuj) -->
+            <!-- Akcje (Edytuj / Blokuj / Odblokuj) -->
             <td class="py-4 px-6 text-right">
-              <button 
-                type="button" 
-                (click)="toggleLock(user)" 
-                class="px-3 py-1.5 rounded-lg border font-bold text-xs transition-colors cursor-pointer"
-                [ngClass]="user.isLocked ? 'border-emerald-300 text-emerald-700 hover:bg-emerald-50' : 'border-rose-300 text-rose-700 hover:bg-rose-50'">
-                {{ user.isLocked ? 'Odblokuj' : 'Zablokuj' }}
-              </button>
+              <div class="flex items-center justify-end gap-1.5">
+                <button
+                  type="button"
+                  (click)="openEdit(user)"
+                  title="Edytuj użytkownika"
+                  class="w-8 h-8 rounded-lg text-neutral-400 hover:text-[#536500] hover:bg-[#536500]/10 inline-flex items-center justify-center transition-colors cursor-pointer">
+                  <svg lucidePencil [size]="15"></svg>
+                </button>
+                <button 
+                  type="button" 
+                  (click)="toggleLock(user)" 
+                  class="px-3 py-1.5 rounded-lg border font-bold text-xs transition-colors cursor-pointer"
+                  [ngClass]="user.isLocked ? 'border-emerald-300 text-emerald-700 hover:bg-emerald-50' : 'border-rose-300 text-rose-700 hover:bg-rose-50'">
+                  {{ user.isLocked ? 'Odblokuj' : 'Zablokuj' }}
+                </button>
+              </div>
             </td>
           </tr>
         } @empty {
@@ -141,3 +157,11 @@
     </div>
   </div>
 </div>
+
+@if (editedUser() !== undefined) {
+  <app-user-form-modal
+    [user]="editedUser() ?? null"
+    [roles]="roles()"
+    (saved)="onUserSaved()"
+    (cancel)="closeModal()" />
+}

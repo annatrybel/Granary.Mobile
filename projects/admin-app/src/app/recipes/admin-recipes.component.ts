@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { AdminRecipesService, AdminRecipeItem, AdminRecipeKpis } from './services/admin-recipes.service';
 import { ConfirmDeleteModalComponent, APP_ICONS } from '@granary/shared';
 import { AdminSearchBarComponent } from '../shared/components/admin-search-bar/admin-search-bar.component';
+import { RecipeFormModalComponent } from './components/recipe-form-modal/recipe-form-modal.component';
 
 
 @Component({
   selector: 'app-admin-recipes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmDeleteModalComponent, AdminSearchBarComponent, APP_ICONS],
+  imports: [CommonModule, FormsModule, ConfirmDeleteModalComponent, AdminSearchBarComponent, RecipeFormModalComponent, APP_ICONS],
   templateUrl: './admin-recipes.component.html',
   styleUrl: './admin-recipes.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -24,6 +25,7 @@ export class AdminRecipesComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null);
 
   readonly recipeToDelete = signal<AdminRecipeItem | null>(null);
+  readonly recipeIdToEdit = signal<string | null | undefined>(undefined);
 
   readonly searchQuery = signal('');
   readonly selectedMealType = signal('all');
@@ -144,7 +146,16 @@ export class AdminRecipesComponent implements OnInit {
   }
 
   editRecipe(recipe: AdminRecipeItem): void {
-    console.log('Edycja przepisu:', recipe.id, recipe.title);
+    this.recipeIdToEdit.set(recipe.id);
+  }
+
+  closeRecipeModal(): void {
+    this.recipeIdToEdit.set(undefined);
+  }
+
+  onRecipeSaved(): void {
+    this.closeRecipeModal();
+    this.loadRecipes();
   }
 
   askDeleteRecipe(recipe: AdminRecipeItem): void {
@@ -177,7 +188,7 @@ export class AdminRecipesComponent implements OnInit {
   }
 
   openCreateRecipe(): void {
-    console.log('Nowy przepis...');
+    this.recipeIdToEdit.set(null);
   }
 
   getCategoryBadgeClass(cat: string): string {

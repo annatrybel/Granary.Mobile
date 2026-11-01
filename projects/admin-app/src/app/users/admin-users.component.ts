@@ -1,15 +1,16 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminUsersService, UserDto } from './services/admin-users.service';
+import { AdminUsersService, RoleDto, UserDto } from './services/admin-users.service';
 import { APP_ICONS } from '@granary/shared';
 import { AdminSearchBarComponent } from '../shared/components/admin-search-bar/admin-search-bar.component';
+import { UserFormModalComponent } from './components/user-form-modal/user-form-modal.component';
 
 
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminSearchBarComponent, APP_ICONS],
+  imports: [CommonModule, FormsModule, AdminSearchBarComponent, UserFormModalComponent, APP_ICONS],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -18,15 +19,43 @@ export class AdminUsersComponent implements OnInit {
   private readonly usersService = inject(AdminUsersService);
 
   readonly users = signal<UserDto[]>([]);
+  readonly roles = signal<RoleDto[]>([]);
   readonly totalRecords = signal<number>(0);
   readonly isLoading = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
 
+  readonly editedUser = signal<UserDto | null | undefined>(undefined);
+
   readonly searchQuery = signal<string>('');
-  readonly pageIndex = signal<number>(0); // 0-based dla backendu (Start = pageIndex * pageSize)
+  readonly pageIndex = signal<number>(0); 
   readonly pageSize = signal<number>(10);
 
   ngOnInit(): void {
+    this.loadRoles();
+    this.loadUsers();
+  }
+
+  loadRoles(): void {
+    this.usersService.getRoles().subscribe({
+      next: (roles) => this.roles.set(roles || []),
+      error: () => this.roles.set([])
+    });
+  }
+
+  openCreate(): void {
+    this.editedUser.set(null);
+  }
+
+  openEdit(user: UserDto): void {
+    this.editedUser.set(user);
+  }
+
+  closeModal(): void {
+    this.editedUser.set(undefined);
+  }
+
+  onUserSaved(): void {
+    this.closeModal();
     this.loadUsers();
   }
 

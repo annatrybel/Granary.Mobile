@@ -38,7 +38,7 @@
 
       <!-- Menu Nawigacji -->
       <nav class="flex flex-col gap-1.5" aria-label="Nawigacja główna">
-        <a routerLink="/admin/users" 
+        <a routerLink="/users" 
            routerLinkActive="bg-[#536500] text-white shadow-md shadow-[#536500]/20 font-bold"
            [title]="isCollapsed() ? 'Użytkownicy' : ''"
            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70 font-semibold text-sm transition-all group"
@@ -47,7 +47,7 @@
           @if (!isCollapsed()) { <span>Użytkownicy</span> }
         </a>
 
-        <a routerLink="/admin/products" 
+        <a routerLink="/products" 
            routerLinkActive="bg-[#536500] text-white shadow-md shadow-[#536500]/20 font-bold"
            [title]="isCollapsed() ? 'Katalog produktów' : ''"
            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70 font-semibold text-sm transition-all group"
@@ -56,7 +56,7 @@
           @if (!isCollapsed()) { <span>Baza produktów</span> }
         </a>
 
-        <a routerLink="/admin/recipes" 
+        <a routerLink="/recipes" 
            routerLinkActive="bg-[#536500] text-white shadow-md shadow-[#536500]/20 font-bold"
            [title]="isCollapsed() ? 'Przepisy' : ''"
            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70 font-semibold text-sm transition-all group"

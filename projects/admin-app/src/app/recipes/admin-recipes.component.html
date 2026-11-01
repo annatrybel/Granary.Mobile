@@ -226,3 +226,7 @@
 <app-confirm-delete-modal [productName]="recipe.title" contextText="z bazy przepisów" (cancel)="cancelDelete()"
   (confirm)="confirmDelete()" />
 }
+
+@if (recipeIdToEdit() !== undefined) {
+<app-recipe-form-modal [recipeId]="recipeIdToEdit() ?? null" (saved)="onRecipeSaved()" (cancel)="closeRecipeModal()" />
+}
