@@ -1,1 +1,17 @@
 <router-outlet />
+
+@if (pwaUpdateService.updateAvailable()) {
+<div class="fixed inset-x-4 bottom-4 z-[100] mx-auto flex max-w-lg items-center gap-3 rounded-2xl border border-app-border bg-app-surface p-4 text-app-text shadow-xl"
+  role="status" aria-live="polite">
+  <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-brand/15 text-app-brand">
+    <svg lucideSparkles [size]="20"></svg>
+  </div>
+  <span class="min-w-0 flex-1 text-sm font-semibold">
+    {{ 'pwa.updateAvailable' | t:'Dostępna nowa wersja aplikacji' }}
+  </span>
+  <button type="button" (click)="pwaUpdateService.applyUpdate()"
+    class="shrink-0 rounded-xl border-none bg-app-brand px-4 py-2 text-sm font-bold text-white shadow-xs transition-opacity hover:opacity-90">
+    {{ 'pwa.refresh' | t:'Odśwież' }}
+  </button>
+</div>
+}
