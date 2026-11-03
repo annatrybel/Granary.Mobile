@@ -1,6 +1,6 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RecipeMatchDto, APP_ICONS } from '@granary/shared';
+import { getDietaryPreferenceLabel, RecipeMatchDto, APP_ICONS } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
 
@@ -13,6 +13,8 @@ import { MediaUrlPipe } from '@granary/shared';
   templateUrl: './recipe-card.component.html'
 })
 export class RecipeCardComponent {
+  protected readonly getDietaryPreferenceLabel = getDietaryPreferenceLabel;
+
   recipe = input.required<RecipeMatchDto>();
   isFavorite = input<boolean>(false);
 

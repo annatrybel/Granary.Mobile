@@ -8,6 +8,8 @@ import { NetworkService } from './network.service';
 import { SyncService } from './sync.service';
 
 import {
+  DietaryPreference,
+  parseDietaryPreference,
   RecipeMatchDto,
   RecipeDetailDto,
   VoteRecipeRequest,
@@ -89,8 +91,7 @@ export class RecipeService {
     return filters.page === 1
       && !filters.query?.trim()
       && !filters.items?.trim()
-      && !filters.mealType
-      && !filters.diet
+      && (filters.diet == null || filters.diet === DietaryPreference.Standard)
       && !filters.maxTime
       && (filters.sortBy ?? 'match') === 'match';
   }
@@ -331,9 +332,7 @@ export class RecipeService {
     const optionalFilters: Record<string, string | number | undefined | null> = {
       query: filters.query?.trim(),
       items: filters.items?.trim(),
-      maxTime: filters.maxTime,
-      mealType: filters.mealType,
-      diet: filters.diet
+      maxTime: filters.maxTime
     };
 
     Object.entries(optionalFilters).forEach(([key, val]) => {
@@ -342,11 +341,18 @@ export class RecipeService {
       }
     });
 
+    if (filters.diet !== undefined && filters.diet !== null) {
+      params = params.set('diet', filters.diet.toString());
+    }
+
     return this.http.get<any>(this.baseUrl, { params }).pipe(
       map((res: any): PagedRecipesResult => {
         const raw = unwrap(res);
         return {
-          items: (raw?.items ?? []) as RecipeMatchDto[],
+          items: ((raw?.items ?? []) as RecipeMatchDto[]).map(recipe => ({
+            ...recipe,
+            dietaryPreference: parseDietaryPreference(recipe.dietaryPreference)
+          })),
           totalCount: raw?.totalCount ?? 0,
           page: raw?.page ?? filters.page,
           pageSize: raw?.pageSize ?? filters.pageSize,
@@ -394,13 +400,17 @@ export class RecipeService {
 
   private async getLocalRecipes(filters: RecipeQueryParams): Promise<PagedRecipesResult> {
     const query = filters.query?.trim().toLowerCase();
-    let recipes: RecipeMatchDto[] = await this.db.recipes.toArray();
+    let recipes: RecipeMatchDto[] = (await this.db.recipes.toArray()).map(recipe => ({
+      ...recipe,
+      dietaryPreference: parseDietaryPreference(recipe.dietaryPreference)
+    }));
 
     recipes = recipes.filter(recipe =>
       (filters.scope !== 'favorites' || recipe.isFavorite) &&
       (filters.scope !== 'custom' || recipe.isCustom) &&
       (!query || recipe.title.toLowerCase().includes(query)) &&
-      (!filters.maxTime || recipe.prepTimeMinutes <= filters.maxTime)
+      (!filters.maxTime || recipe.prepTimeMinutes <= filters.maxTime) &&
+      this.matchesDiet(recipe.dietaryPreference, filters.diet)
     );
 
     switch (filters.sortBy) {
@@ -429,6 +439,28 @@ export class RecipeService {
     };
   }
 
+  private matchesDiet(
+    recipeDiet: DietaryPreference | undefined,
+    requestedDiet: DietaryPreference | null | undefined
+  ): boolean {
+    if (requestedDiet == null || requestedDiet === DietaryPreference.Standard) return true;
+
+    switch (requestedDiet) {
+      case DietaryPreference.Vegetarian:
+        return recipeDiet === DietaryPreference.Vegetarian || recipeDiet === DietaryPreference.Vegan;
+      case DietaryPreference.Vegan:
+        return recipeDiet === DietaryPreference.Vegan;
+      case DietaryPreference.Pescetarian:
+        return recipeDiet === DietaryPreference.Vegetarian
+          || recipeDiet === DietaryPreference.Vegan
+          || recipeDiet === DietaryPreference.Pescetarian;
+      case DietaryPreference.Keto:
+        return recipeDiet === DietaryPreference.Keto;
+      default:
+        return true;
+    }
+  }
+
   private async cacheRecipes(recipes: RecipeMatchDto[]): Promise<void> {
     const now = Date.now();
     await this.db.recipes.bulkPut(recipes.map(recipe => ({ ...recipe, isSynced: true, updatedAt: now })));
@@ -443,6 +475,7 @@ export class RecipeService {
       prepTimeMinutes: detail.prepTimeMinutes,
       servings: detail.servings,
       calories: detail.calories,
+      dietaryPreference: detail.dietaryPreference,
       matchPercentage: existing?.matchPercentage ?? 0,
       ownedIngredientsCount: existing?.ownedIngredientsCount ?? 0,
       totalIngredientsCount: detail.ingredients?.length ?? 0,
@@ -507,6 +540,7 @@ export class RecipeService {
       prepTimeMinutes: payload.prepTimeMinutes,
       servings: payload.servings,
       calories: payload.calories ?? null,
+      dietaryPreference: payload.dietaryPreference,
       isFavorite: false,
       isCustom: true,
       likesCount: 0,
@@ -537,6 +571,7 @@ export class RecipeService {
       imageUrl: raw?.imageUrl ?? raw?.ImageUrl,
       prepTimeMinutes: raw?.prepTimeMinutes ?? raw?.PrepTimeMinutes ?? 15,
       servings: raw?.servings ?? raw?.Servings ?? 2,
+      dietaryPreference: parseDietaryPreference(raw?.dietaryPreference ?? raw?.DietaryPreference),
       isFavorite: raw?.isFavorite ?? false,
       isCustom: raw?.isCustom ?? false,
       likesCount: raw?.likesCount ?? 0,

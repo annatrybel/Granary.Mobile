@@ -126,32 +126,19 @@
 
       </section>
 
-      <!-- Kategoria posiłku -->
+      <!-- Preferencja dietetyczna -->
       <section class="flex flex-col gap-2 pt-2 border-t border-app-border">
-        <div class="flex items-center justify-between">
-          <h3 class="m-0 text-[13.5px] font-bold text-app-text">{{ 'addRecipe.categoryTitle' | t:'Kategoria posiłku' }}
-          </h3>
-          <span class="text-[11px] text-app-muted font-medium">{{ 'addRecipe.categorySubtitle' | t:'Wybierz rodzaj
-            dania' }}</span>
-        </div>
-
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          @for (cat of categories; track cat) {
-          <button type="button"
-            class="h-[34px] px-3.5 rounded-full border text-xs font-semibold whitespace-nowrap cursor-pointer flex items-center gap-1.5 outline-none active:scale-95 transition-colors"
-            [class.bg-app-brand]="selectedCategory() === cat" [class.text-white]="selectedCategory() === cat"
-            [class.border-app-brand]="selectedCategory() === cat" [class.shadow-xs]="selectedCategory() === cat"
-            [class.bg-app-surface-variant]="selectedCategory() !== cat"
-            [class.text-app-text]="selectedCategory() !== cat" [class.border-app-border]="selectedCategory() !== cat"
-            (click)="selectedCategory.set(cat)">
-            @if (selectedCategory() === cat) {
-            <svg lucideCheck [size]="13" class="text-white"></svg>
-            }
-            <span>{{ ('category.' + (cat === 'Obiad' ? 'lunch' : cat === 'Śniadanie' ? 'breakfast' : cat === 'Kolacja' ?
-              'dinner' : cat === 'Wypieki i ciasta' ? 'baking' : 'snack')) | t:cat }}</span>
-          </button>
+        <label class="text-xs font-bold text-app-text" for="custom-recipe-diet">
+          {{ 'recipeFilters.diet' | t:'Dieta' }}
+        </label>
+        <select id="custom-recipe-diet"
+          class="h-11 w-full px-3 rounded-xl border border-app-border bg-app-surface-variant text-[13px] font-semibold text-app-text outline-none focus:border-app-brand"
+          [value]="dietaryPreference()"
+          (change)="setDietaryPreference($any($event.target).value)">
+          @for (option of dietaryPreferenceOptions; track option.value) {
+          <option [value]="option.value">{{ option.key | t:option.label }}</option>
           }
-        </div>
+        </select>
       </section>
 
       <!-- Składniki -->

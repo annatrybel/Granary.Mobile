@@ -49,6 +49,7 @@ export class ProductDetailSheetComponent implements OnInit {
   product = input.required<ProductItem>();
   closeSheet = output<void>();
   save = output<ProductDetailSheetSavePayload>();
+  deleteProduct = output<void>();
 
   readonly categories = this.pantryService.categories;
 

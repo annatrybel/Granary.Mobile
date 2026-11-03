@@ -1,3 +1,5 @@
+import type { DietaryPreference } from '../recipes/recipe.models';
+
 export interface UserProfileDto {
   id: string;
   userName?: string;
@@ -6,7 +8,7 @@ export interface UserProfileDto {
   avatarUrl?: string | null;
   darkMode?: boolean;
   language?: string;
-  dietPreference?: string;
+  dietaryPreference?: DietaryPreference;
   expiryNotifications?: boolean;
 }
 

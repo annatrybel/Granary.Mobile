@@ -12,7 +12,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ProfileService, APP_ICONS } from '@granary/shared';
 import { AuthService } from '@granary/shared';
 import { ThemeService } from '../core/services/theme.service';
-import { UserProfileDto, HouseholdMember } from '@granary/shared';
+import { UserProfileDto, HouseholdMember, DietaryPreference, DIETARY_PREFERENCE_OPTIONS } from '@granary/shared';
 import { HouseholdInviteSheetComponent } from './components/household-invite-sheet/household-invite-sheet.component';
 import { HelpFaqSheetComponent } from './components/help-faq-sheet/help-faq-sheet.component';
 import { TranslationService } from '@granary/shared';
@@ -65,7 +65,8 @@ export class ProfileComponent implements OnInit {
   isHelpSheetOpen = signal<boolean>(false);
 
   expiryNotifications = signal<boolean>(true);
-  dietPreference = signal<string>('Brak');
+  dietaryPreference = signal<DietaryPreference>(DietaryPreference.Standard);
+  readonly dietaryPreferenceOptions = DIETARY_PREFERENCE_OPTIONS;
 
   readonly fallbackAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23FAF9F5' viewBox='0 0 24 24'><rect width='24' height='24' fill='%23FAF9F5'/><circle cx='12' cy='8' r='4' fill='%23D4D4D4'/><path d='M4 20c0-4 4-6 8-6s8 2 8 6' fill='%23D4D4D4'/></svg>";
 
@@ -99,7 +100,7 @@ export class ProfileComponent implements OnInit {
           this.email.set(data.email || '');
 
           if (data.avatarUrl) this.avatarUrl.set(data.avatarUrl);
-          if (data.dietPreference) this.dietPreference.set(data.dietPreference);
+          if (data.dietaryPreference !== undefined) this.dietaryPreference.set(data.dietaryPreference);
           if (data.expiryNotifications !== undefined) this.expiryNotifications.set(data.expiryNotifications);
           if (this.expiryNotifications()) void this.pushService.syncIfGranted();
 
@@ -225,6 +226,22 @@ export class ProfileComponent implements OnInit {
         this.expiryNotifications.set(previousValue);
         this.cdr.markForCheck();
         console.error('Błąd zapisu preferencji powiadomień:', err);
+      }
+    });
+  }
+
+  updateDietaryPreference(value: string): void {
+    const option = DIETARY_PREFERENCE_OPTIONS.find(item => item.value === value);
+    if (!option) return;
+
+    const preference = option.value;
+    this.profileService.updateDietaryPreference(preference).subscribe({
+      next: () => {
+        this.dietaryPreference.set(preference);
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Błąd zapisu preferencji dietetycznej:', err);
       }
     });
   }

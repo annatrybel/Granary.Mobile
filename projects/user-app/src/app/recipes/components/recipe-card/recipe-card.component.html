@@ -51,6 +51,12 @@
       {{ r.title }}
     </h3>
 
+    @if (getDietaryPreferenceLabel(r.dietaryPreference); as diet) {
+    <span class="w-fit rounded-full border border-app-border px-2 py-0.5 text-[9.5px] font-semibold text-app-muted">
+      {{ diet.key | t:diet.label }}
+    </span>
+    }
+
     <div class="flex items-center gap-2.5">
       <div class="flex items-center gap-1">
         <svg lucideClock [size]="12" class="text-app-muted shrink-0"></svg>

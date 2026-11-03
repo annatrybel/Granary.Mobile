@@ -55,6 +55,12 @@
           </div>
           }
 
+          @if (getDietaryPreferenceLabel(r.dietaryPreference); as diet) {
+          <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-app-surface border border-app-border text-xs font-semibold text-app-text">
+            {{ diet.key | t:diet.label }}
+          </span>
+          }
+
           <button type="button"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer active:scale-95 transition-all outline-none"
             [class.bg-app-brand/15]="isLiked()" [class.border-app-brand]="isLiked()" [class.text-app-brand]="isLiked()"

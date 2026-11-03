@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, effect, untracked } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { firstValueFrom, map } from 'rxjs';
 import { AppDatabase, ProductItem } from '../db/app-database';
 import { NetworkService } from './network.service';
 import { SyncService } from './sync.service';
@@ -14,6 +14,12 @@ export interface ScannedProductDto {
   estimatedExpiryDays: number;
   suggestedLocation: string;
   imageUrl?: string;
+}
+
+export interface ZeroWasteStats {
+  consumedCount: number;
+  wastedCount: number;
+  percentage: number;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -187,6 +193,20 @@ export class PantryService {
 
     await this.db.enqueue({ action: 'DELETE', entity: 'product', entityId: localId, payload: { id: localId } });
     void this.sync.flush();
+  }
+
+  async resolveProduct(id: string, status: 'consume' | 'waste'): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${this.apiUrl}/${encodeURIComponent(id)}/${status}`, {}));
+
+    const localId = await this.db.resolveId(id);
+    await this.db.products.delete(localId);
+    this.products.update(items => items.filter(item => item.id !== localId));
+  }
+
+  getZeroWasteStats(): Observable<ZeroWasteStats> {
+    return this.http.get<any>(`${this.apiUrl}/stats`).pipe(
+      map(response => response?.data ?? response?.result ?? response)
+    );
   }
 
   loadCategories(): void {

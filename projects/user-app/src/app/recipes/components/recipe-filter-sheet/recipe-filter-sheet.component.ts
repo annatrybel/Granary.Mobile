@@ -1,12 +1,13 @@
 import { Component, input, output, signal, viewChild, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RecipeFilters, SwipeToCloseDirective } from '@granary/shared';
+import { FormsModule } from '@angular/forms';
+import { APP_ICONS, DietaryPreference, DIETARY_PREFERENCE_OPTIONS, parseDietaryPreference, RecipeFilters, SwipeToCloseDirective } from '@granary/shared';
 import { TranslatePipe } from '@granary/shared';
 
 @Component({
   selector: 'app-recipe-filter-sheet',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, SwipeToCloseDirective],
+  imports: [CommonModule, FormsModule, TranslatePipe, SwipeToCloseDirective, APP_ICONS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipe-filter-sheet.component.html',
   styleUrl: './recipe-filter-sheet.component.scss'
@@ -14,6 +15,7 @@ import { TranslatePipe } from '@granary/shared';
 export class RecipeFilterSheetComponent implements OnInit {
   filters = input.required<RecipeFilters>();
   filteredCount = input<number>(0);
+  defaultDiet = input<DietaryPreference>(DietaryPreference.Standard);
 
   closeSheet = output<void>();
   apply = output<RecipeFilters>();
@@ -23,8 +25,8 @@ export class RecipeFilterSheetComponent implements OnInit {
 
   maxTime = signal<number | null>(null);
   sortBy = signal<'match' | 'time' | 'calories' | 'rating'>('match');
-  mealType = signal<string | null>(null);
-  diet = signal<string | null>(null);
+  diet = signal<DietaryPreference | null>(null);
+  readonly dietOptions = DIETARY_PREFERENCE_OPTIONS;
 
   readonly sortOptions = [
     { id: 'match', label: 'Dopasowanie spiżarni' },
@@ -40,30 +42,22 @@ export class RecipeFilterSheetComponent implements OnInit {
     { val: null, label: 'Dowolny' }
   ] as const;
 
-  readonly mealOptions = ['Śniadanie', 'Obiad', 'Kolacja', 'Przekąska'] as const;
-  readonly dietOptions = ['Bez glutenu', 'Bez laktozy', 'Wegańskie', 'Wegetariańskie'] as const;
-
   ngOnInit(): void {
     const f = this.filters();
     this.maxTime.set(f.maxTime);
     this.sortBy.set(f.sortBy);
-    this.mealType.set(f.mealType);
-    this.diet.set(f.diet);
+    this.diet.set(f.diet == null ? this.defaultDiet() : parseDietaryPreference(f.diet));
   }
 
-  setMealType(type: string): void {
-    this.mealType.update(prev => prev === type ? null : type);
-  }
-
-  setDiet(diet: string): void {
-    this.diet.update(prev => prev === diet ? null : diet);
+  setDiet(value: string): void {
+    const preference = DIETARY_PREFERENCE_OPTIONS.find(option => option.value === value);
+    if (preference) this.diet.set(preference.value);
   }
 
   onReset(): void {
     this.maxTime.set(null);
     this.sortBy.set('match');
-    this.mealType.set(null);
-    this.diet.set(null);
+    this.diet.set(this.defaultDiet());
     this.reset.emit();
   }
 
@@ -71,7 +65,6 @@ export class RecipeFilterSheetComponent implements OnInit {
     this.apply.emit({
       maxTime: this.maxTime(),
       sortBy: this.sortBy(),
-      mealType: this.mealType(),
       diet: this.diet()
     });
     const sheet = this.sheet();

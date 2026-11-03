@@ -15,22 +15,21 @@ import { Subscription } from 'rxjs';
 import { ShoppingListService } from '../core/services/shopping-list.service';
 import { PantryService } from '../core/services/pantry.service';
 import { SyncService } from '../core/services/sync.service';
-import { TranslationService, APP_ICONS } from '@granary/shared';
-import { ProductItem } from '../core/db/app-database';
 import { 
+  TranslationService, 
+  APP_ICONS, 
+  TranslatePipe, 
+  ConfirmDeleteModalComponent,
   ShoppingListItem, 
   RestockSuggestion, 
   CatalogProductDto, 
   ShoppingListDto, 
   ShoppingItemDto 
 } from '@granary/shared';
-
-import { ConfirmDeleteModalComponent } from '@granary/shared';
+import { ProductItem } from '../core/db/app-database';
 import { CatalogSearchBarComponent } from '../shared/components/catalog-search-bar/catalog-search-bar.component';
 import { RestockSuggestionsComponent } from './components/restock-suggestions/restock-suggestions.component';
 import { ShoppingItemCardComponent } from './components/shopping-item-card/shopping-item-card.component';
-import { TranslatePipe } from '@granary/shared';
-
 
 @Component({
   selector: 'app-shopping-list',
@@ -49,28 +48,28 @@ import { TranslatePipe } from '@granary/shared';
   styleUrl: './shopping-list.component.scss'
 })
 export class ShoppingListComponent implements OnInit, OnDestroy {
-  private shoppingService = inject(ShoppingListService);
-  private pantryService = inject(PantryService);
-  private syncService = inject(SyncService);
-  protected translationService = inject(TranslationService);
+  private readonly shoppingService = inject(ShoppingListService);
+  private readonly pantryService = inject(PantryService);
+  private readonly syncService = inject(SyncService);
+  protected readonly translationService = inject(TranslationService);
 
   private isFirstLangRun = true;
   private isFirstSyncRun = true;
   private listsSub?: Subscription;
   private detailsSub?: Subscription;
 
-  isLoading = signal<boolean>(true);
-  userLists = signal<ShoppingListDto[]>([]);
-  currentList = signal<ShoppingListDto | null>(null);
-  items = signal<ShoppingListItem[]>([]);
+  readonly isLoading = signal<boolean>(true);
+  readonly userLists = signal<ShoppingListDto[]>([]);
+  readonly currentList = signal<ShoppingListDto | null>(null);
+  readonly items = signal<ShoppingListItem[]>([]);
 
-  isNewListModalOpen = signal<boolean>(false);
-  newListName = signal<string>('');
-  isOptionsMenuOpen = signal<boolean>(false);
-  itemToDelete = signal<ShoppingListItem | null>(null);
-  listToDelete = signal<ShoppingListDto | null>(null);
+  readonly isNewListModalOpen = signal<boolean>(false);
+  readonly newListName = signal<string>('');
+  readonly isOptionsMenuOpen = signal<boolean>(false);
+  readonly itemToDelete = signal<ShoppingListItem | null>(null);
+  readonly listToDelete = signal<ShoppingListDto | null>(null);
 
-  suggestions = computed<RestockSuggestion[]>(() => {
+  readonly suggestions = computed<RestockSuggestion[]>(() => {
     const products: ProductItem[] = this.pantryService.products() || [];
     const existingNames = new Set(this.items().map(i => i.name?.trim().toLowerCase()));
 
@@ -92,8 +91,8 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
       }));
   });
 
-  checkedCount = computed<number>(() => this.items().filter(i => i.isChecked).length);
-  totalCount = computed<number>(() => this.items().length);
+  readonly checkedCount = computed<number>(() => this.items().filter(i => i.isChecked).length);
+  readonly totalCount = computed<number>(() => this.items().length);
 
   constructor() {
     effect(() => {
@@ -103,18 +102,12 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
           this.isFirstLangRun = false;
           return;
         }
-
         const cur = this.currentList();
-        if (cur) {
-          this.loadListDetails(cur.id);
-        } else {
-          this.loadLists();
-        }
+        cur ? this.loadListDetails(cur.id) : this.loadLists();
       });
     });
 
-    // Po wysłaniu zmian zapisanych offline lokalne ID zostają zastąpione serwerowymi w lokalnej bazie,
-    // więc wystarczy odświeżyć widok z niej, bez ponownego pobierania z serwera.
+    // Reakcja na synchronizację offline (IndexedDB / Cache)
     effect(() => {
       this.syncService.syncVersion();
       untracked(() => {
@@ -122,13 +115,10 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
           this.isFirstSyncRun = false;
           return;
         }
-
         const cur = this.currentList();
-        this.shoppingService.getCachedLists().subscribe(lists => this.userLists.set(lists));
+        this.shoppingService.getCachedLists().subscribe(lists => this.userLists.set(this.sortLists(lists || [])));
         if (cur) {
-          this.shoppingService.getCachedListDetails(cur.id).subscribe(dto => {
-            if (dto) this.applyList(dto);
-          });
+          this.shoppingService.getCachedListDetails(cur.id).subscribe(dto => dto && this.applyList(dto));
         }
       });
     });
@@ -150,17 +140,24 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
     }
   }
 
+  private sortLists(lists: ShoppingListDto[]): ShoppingListDto[] {
+    return [...lists].sort((a, b) => (b.isMain ? 1 : 0) - (a.isMain ? 1 : 0) || (a.name || '').localeCompare(b.name || ''));
+  }
+
   loadLists(selectListId?: string): void {
     this.isLoading.set(true);
     let detailsRequestedFor: string | null = null;
 
     this.listsSub?.unsubscribe();
     this.listsSub = this.shoppingService.getMyLists().subscribe({
-      next: lists => {
-        this.userLists.set(lists || []);
-        if (lists && lists.length > 0) {
-          const target = selectListId ? (lists.find(l => l.id === selectListId) || lists[0]) : lists[0];
-          // Kolejna emisja (dane z serwera) nie powinna ponownie ładować tej samej listy.
+      next: rawLists => {
+        const lists = this.sortLists(rawLists || []);
+        this.userLists.set(lists);
+
+        if (lists.length > 0) {
+          const defaultTarget = lists.find(l => l.isMain) || lists[0];
+          const target = selectListId ? (lists.find(l => l.id === selectListId) || defaultTarget) : defaultTarget;
+
           if (target.id !== detailsRequestedFor) {
             detailsRequestedFor = target.id;
             this.loadListDetails(target.id);
@@ -202,89 +199,56 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
   }
 
   switchList(list: ShoppingListDto): void {
-    if (this.currentList()?.id === list.id) return;
-    this.loadListDetails(list.id);
+    if (this.currentList()?.id !== list.id) {
+      this.loadListDetails(list.id);
+    }
+  }
+
+   private addOptimisticItem(name: string, category: string, quantity = 1, unit = 'szt.', productId?: string | null): void {
+    const list = this.currentList();
+    const trimmed = name.trim();
+    if (!list || !trimmed) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const newItem: ShoppingListItem = {
+      id: tempId,
+      productId: productId || null,
+      name: trimmed,
+      categoryName: category,
+      quantity,
+      unit,
+      isChecked: false
+    };
+
+    this.items.update(curr => [newItem, ...curr]);
+
+    this.shoppingService.addItem(list.id, {
+      productId: productId || undefined,
+      customName: productId ? undefined : trimmed,
+      productName: trimmed,
+      categoryName: category,
+      quantity,
+      unit
+    }).subscribe({
+      next: res => {
+        if (res?.id) {
+          this.items.update(c => c.map(it => it.id === tempId ? { ...it, id: res.id } : it));
+        }
+      },
+      error: () => this.items.update(c => c.filter(it => it.id !== tempId))
+    });
   }
 
   onAddCatalog(prod: CatalogProductDto): void {
-    const list = this.currentList();
-    if (!list) return;
-
-    const tempId = 'temp-' + Date.now();
-    const category = prod.categoryName || prod.category || 'Inne';
-
-    this.items.update(curr => [
-      { id: tempId, productId: prod.id, name: prod.name, categoryName: category, quantity: 1, unit: prod.defaultUnit || 'szt.', isChecked: false },
-      ...curr
-    ]);
-
-    this.shoppingService.addItem(list.id, {
-      productId: prod.id,
-      productName: prod.name,
-      customName: prod.name,
-      categoryName: category,
-      quantity: 1,
-      unit: prod.defaultUnit || 'szt.'
-    }).subscribe({
-      next: res => {
-        if (res?.id) {
-          this.items.update(c => c.map(it => it.id === tempId ? { ...it, id: res.id } : it));
-        }
-      },
-      error: () => this.items.update(c => c.filter(it => it.id !== tempId))
-    });
+    this.addOptimisticItem(prod.name, prod.categoryName || prod.category || 'Inne', 1, prod.defaultUnit || 'szt.', prod.id);
   }
 
   onAddCustom(name: string): void {
-    const list = this.currentList();
-    if (!name.trim() || !list) return;
-
-    const tempId = 'temp-' + Date.now();
-    this.items.update(curr => [
-      { id: tempId, name: name.trim(), categoryName: 'Własne', quantity: 1, unit: 'szt.', isChecked: false },
-      ...curr
-    ]);
-
-    this.shoppingService.addItem(list.id, {
-      customName: name.trim(),
-      productName: name.trim(),
-      categoryName: 'Własne',
-      quantity: 1,
-      unit: 'szt.'
-    }).subscribe({
-      next: res => {
-        if (res?.id) {
-          this.items.update(c => c.map(it => it.id === tempId ? { ...it, id: res.id } : it));
-        }
-      },
-      error: () => this.items.update(c => c.filter(it => it.id !== tempId))
-    });
+    this.addOptimisticItem(name, 'Własne');
   }
 
   onAddSuggestion(sug: RestockSuggestion): void {
-    const list = this.currentList();
-    if (!list) return;
-
-    const tempId = 'temp-' + Date.now();
-    this.items.update(curr => [
-      { id: tempId, name: sug.name, categoryName: sug.categoryName, quantity: 1, unit: 'szt.', isChecked: false },
-      ...curr
-    ]);
-
-    this.shoppingService.addItem(list.id, {
-      customName: sug.name,
-      productName: sug.name,
-      categoryName: sug.categoryName,
-      quantity: 1,
-      unit: 'szt.'
-    }).subscribe({
-      next: res => {
-        if (res?.id) {
-          this.items.update(c => c.map(it => it.id === tempId ? { ...it, id: res.id } : it));
-        }
-      },
-      error: () => this.items.update(c => c.filter(it => it.id !== tempId))
-    });
+    this.addOptimisticItem(sug.name, sug.categoryName, 1, 'szt.');
   }
 
   onToggleCheck(id: string): void {
@@ -334,6 +298,70 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
     this.isOptionsMenuOpen.update(v => !v);
   }
 
+  async shareList(): Promise<void> {
+    this.isOptionsMenuOpen.set(false);
+    const list = this.currentList();
+    if (!list) return;
+
+    const itemsToShare = this.items().filter(item => !item.isChecked);
+    if (itemsToShare.length === 0) {
+      alert(this.translationService.translate('shopping.nothingToShare', 'Brak pozycji do kupienia na tej liście!'));
+      return;
+    }
+
+    const header = this.translationService
+      .translate('shopping.shareMessageHeader', '🛒 Lista zakupów: {listName}')
+      .replace('{listName}', list.name);
+    const summary = this.translationService
+      .translate('shopping.shareMessageSummary', 'Łącznie do kupienia: {count}')
+      .replace('{count}', String(itemsToShare.length));
+
+    const formattedText = [
+      header,
+      '',
+      ...itemsToShare.map(item => `• ${item.name} (${item.quantity} ${item.unit})`),
+      '',
+      summary
+    ].join('\n');
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: list.name, text: formattedText });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        alert(this.translationService.translate('shopping.shareError', 'Nie udało się udostępnić listy. Spróbuj ponownie.'));
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(formattedText);
+      alert(this.translationService.translate('shopping.copiedToClipboard', 'Skopiowano listę do schowka! Możesz wkleić ją w SMS lub WhatsApp.'));
+    } catch {
+      alert(this.translationService.translate('shopping.copyError', 'Nie udało się skopiować listy do schowka.'));
+    }
+  }
+
+  clearBoughtItems(): void {
+    this.isOptionsMenuOpen.set(false);
+    const list = this.currentList();
+    const ids = this.items().filter(i => i.isChecked && !i.id.startsWith('temp-')).map(i => i.id);
+    this.items.update(l => l.filter(i => !i.isChecked));
+    if (list && ids.length) this.shoppingService.deleteSelectedItems(list.id, ids).subscribe();
+  }
+
+  moveBoughtToPantry(): void {
+    const list = this.currentList();
+    const checkedIds = this.items().filter(i => i.isChecked && !i.id.startsWith('temp-')).map(i => i.id);
+    if (!list || checkedIds.length === 0) return;
+
+    this.shoppingService.bulkTransfer(list.id, { itemIds: checkedIds, destinationLocation: 'Pantry' }).subscribe(() => {
+      this.loadListDetails(list.id);
+      this.pantryService.loadInitialData();
+    });
+  }
+
+
   openNewListModal(): void {
     this.newListName.set('');
     this.isNewListModalOpen.set(true);
@@ -352,25 +380,6 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
     });
   }
 
-  moveBoughtToPantry(): void {
-    const list = this.currentList();
-    const checkedIds = this.items().filter(i => i.isChecked && !i.id.startsWith('temp-')).map(i => i.id);
-    if (!list || checkedIds.length === 0) return;
-
-    this.shoppingService.bulkTransfer(list.id, { itemIds: checkedIds, destinationLocation: 'Pantry' }).subscribe(() => {
-      this.loadListDetails(list.id);
-      this.pantryService.loadInitialData();
-    });
-  }
-
-  clearBoughtItems(): void {
-    this.isOptionsMenuOpen.set(false);
-    const list = this.currentList();
-    const ids = this.items().filter(i => i.isChecked && !i.id.startsWith('temp-')).map(i => i.id);
-    this.items.update(l => l.filter(i => !i.isChecked));
-    if (list && ids.length) this.shoppingService.deleteSelectedItems(list.id, ids).subscribe();
-  }
-
   deleteCurrentList(): void {
     this.isOptionsMenuOpen.set(false);
     const list = this.currentList();
@@ -387,13 +396,5 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
     if (list) {
       this.shoppingService.deleteList(list.id).subscribe(() => this.loadLists());
     }
-  }
-
-  shareList(): void {
-    this.isOptionsMenuOpen.set(false);
-    const list = this.currentList();
-    if (!list) return;
-    const txt = `Lista: ${list.name}\n\n` + this.items().map(i => `• ${i.name} (${i.quantity} ${i.unit})`).join('\n');
-    navigator.share ? navigator.share({ title: list.name, text: txt }).catch(() => {}) : navigator.clipboard.writeText(txt);
   }
 }

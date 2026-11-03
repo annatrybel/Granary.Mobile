@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { API_BASE_URL, PagedResult } from '@granary/shared';
+import type { DietaryPreference } from '@granary/shared';
 
 export interface AdminRecipeItem {
   id: string;
@@ -8,7 +9,6 @@ export interface AdminRecipeItem {
   title: string;
   subtitle?: string;
   imageUrl?: string;
-  category: string;
   mainIngredients: string[];
   extraIngredientsCount: number;
   prepTimeMinutes: number;
@@ -64,11 +64,10 @@ export class AdminRecipesService {
   updateRecipe = (id: string, payload: AdminRecipeEditPayload) => this.http.put<AdminRecipeEdit>(`${this.url}/${id}`, payload);
   createRecipe = (payload: AdminRecipeEditPayload) => this.http.post<AdminRecipeEdit>(this.url, payload);
 
-  getRecipes(params: { search?: string; mealType?: string; diet?: string; status?: string; pageNumber: number; pageSize: number }) {
+  getRecipes(params: { search?: string; diet?: DietaryPreference | null; status?: string; pageNumber: number; pageSize: number }) {
     let p = new HttpParams().set('pageNumber', params.pageNumber).set('pageSize', params.pageSize);
     if (params.search) p = p.set('search', params.search);
-    if (params.mealType && params.mealType !== 'all') p = p.set('mealType', params.mealType);
-    if (params.diet && params.diet !== 'all') p = p.set('diet', params.diet);
+    if (params.diet != null) p = p.set('diet', params.diet);
     if (params.status && params.status !== 'all') p = p.set('status', params.status);
     return this.http.get<PagedResult<AdminRecipeItem>>(this.url, { params: p });
   }

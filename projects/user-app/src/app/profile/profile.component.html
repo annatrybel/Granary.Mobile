@@ -138,7 +138,7 @@
       </div>
 
       <!-- Preferencje diety -->
-      <div class="flex items-center justify-between w-full py-1 cursor-pointer" routerLink="/preferencje-diety">
+      <div class="flex items-center justify-between w-full py-1">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
             <svg lucideUtensils [size]="18" class="text-app-brand"></svg>
@@ -147,13 +147,14 @@
             {{ 'profile.diet' | t:'Preferencje diety' }}
           </span>
         </div>
-
-        <div class="flex items-center gap-2">
-          <span class="px-2.5 py-0.5 rounded-full border border-app-border bg-app-bg text-app-text text-xs font-bold">
-            {{ dietPreference() }}
-          </span>
-          <svg lucideChevronRight [size]="14" class="text-app-muted"></svg>
-        </div>
+        <select
+          class="max-w-[185px] h-10 px-3 rounded-xl border border-app-border bg-app-bg text-app-text text-xs font-semibold outline-none focus:border-app-brand cursor-pointer"
+          [value]="dietaryPreference()" (change)="updateDietaryPreference($any($event.target).value)"
+          [attr.aria-label]="'profile.diet' | t:'Preferencje diety'">
+          @for (option of dietaryPreferenceOptions; track option.value) {
+          <option [value]="option.value">{{ option.key | t:option.label }}</option>
+          }
+        </select>
       </div>
     </section>
 

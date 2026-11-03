@@ -135,7 +135,7 @@
   }
 
   @if (isFilterSheetOpen()) {
-  <app-recipe-filter-sheet [filters]="activeFilters()" [filteredCount]="recipes().length"
+  <app-recipe-filter-sheet [filters]="activeFilters()" [defaultDiet]="defaultDiet()" [filteredCount]="recipes().length"
     (closeSheet)="isFilterSheetOpen.set(false)" (apply)="onFiltersApplied($event)" (reset)="onFiltersReset()" />
   }
 

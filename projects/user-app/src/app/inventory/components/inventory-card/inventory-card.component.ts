@@ -18,15 +18,17 @@ export class InventoryCardComponent {
 
   cardClick = output<ProductItem>();
   toggleSelect = output<void>();
-  deleteClick = output<void>();
+  consumeClick = output<void>();
+  wasteClick = output<void>();
 
   onSelect(event: Event): void {
     event.stopPropagation();
     this.toggleSelect.emit();
   }
 
-  onDelete(event: Event): void {
+  onResolve(event: Event, status: 'consume' | 'waste'): void {
     event.stopPropagation();
-    this.deleteClick.emit();
+    if (status === 'consume') this.consumeClick.emit();
+    else this.wasteClick.emit();
   }
 }

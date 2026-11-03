@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecipeService } from '../../../core/services/recipe.service';
-import { CreateCustomRecipePayload, RecipeDetailDto, APP_ICONS, SwipeToCloseDirective } from '@granary/shared';
+import { CreateCustomRecipePayload, DietaryPreference, DIETARY_PREFERENCE_OPTIONS, RecipeDetailDto, APP_ICONS, SwipeToCloseDirective } from '@granary/shared';
 
 import { CatalogProductDto } from '@granary/shared';
 import { CatalogSearchBarComponent } from '../../../shared/components/catalog-search-bar/catalog-search-bar.component';
@@ -63,11 +63,11 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
   servings = signal<number>(1);
   prepTimeMinutes = signal<number>(20);
   calories = signal<number | null>(null);
-  selectedCategory = signal<string>('Obiad');
+  dietaryPreference = signal<DietaryPreference>(DietaryPreference.Standard);
+  readonly dietaryPreferenceOptions = DIETARY_PREFERENCE_OPTIONS;
   imageUrl = signal<string | null>(null);
   isGeneratingImage = signal<boolean>(false);
 
-  readonly categories = ['Obiad', 'Śniadanie', 'Kolacja', 'Wypieki i ciasta', 'Przekąska'];
   readonly availableUnits = ['szt.', 'g', 'kg', 'ml', 'L', 'łyżka', 'szklanka', 'szczypta', 'op.'];
 
   ingredients = signal<FormIngredientItem[]>([]);
@@ -85,6 +85,7 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
       this.servings.set(edit.servings || 1);
       this.prepTimeMinutes.set(edit.prepTimeMinutes || 20);
       this.calories.set(edit.calories ?? null);
+      this.dietaryPreference.set(edit.dietaryPreference ?? DietaryPreference.Standard);
       this.imageUrl.set(edit.imageUrl || null);
 
       if (edit.ingredients && edit.ingredients.length > 0) {
@@ -134,6 +135,11 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
     }
     const parsed = parseInt(val, 10);
     this.calories.set(!isNaN(parsed) && parsed >= 0 ? parsed : null);
+  }
+
+  setDietaryPreference(value: string): void {
+    const option = DIETARY_PREFERENCE_OPTIONS.find(item => item.value === value);
+    if (option) this.dietaryPreference.set(option.value);
   }
 
   onSelectCatalogProduct(prod: CatalogProductDto): void {
@@ -303,7 +309,7 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
 
     this.save.emit({
       title: titleVal,
-      category: this.selectedCategory(),
+      dietaryPreference: this.dietaryPreference(),
       servings: this.servings(),
       prepTimeMinutes: this.prepTimeMinutes(),
       calories: this.calories() ?? undefined,

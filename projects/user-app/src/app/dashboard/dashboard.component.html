@@ -95,7 +95,95 @@
       </div>
     </section>
 
-    <!-- 4. Gotuj z wygasających produktów -->
+    @if (zeroWasteStatsError()) {
+    <p class="m-0 text-xs text-rose-600" role="status">
+      {{ 'dashboard.zeroWasteError' | t:'Nie udało się pobrać statystyk Zero-Waste.' }}
+    </p>
+    } @else if (!isLoadingZeroWasteStats()) {
+    <section class="p-4 rounded-[24px] border border-app-border bg-app-surface shadow-2xs flex items-center gap-4">
+      
+      <div class="relative w-[70px] h-[70px] shrink-0 flex items-center justify-center">
+        <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+          <path
+            class="text-app-surface-variant"
+            stroke-width="3.5"
+            stroke="currentColor"
+            fill="none"
+            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+          />
+         
+          <path
+            class="text-app-brand transition-all duration-1000 ease-out"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke="currentColor"
+            fill="none"
+            [attr.stroke-dasharray]="zeroWasteStats().percentage + ', 100'"
+            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+          />
+        </svg>
+       
+        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span class="text-sm font-black text-app-text leading-none tracking-tight">
+            {{ zeroWasteStats().percentage | number:'1.0-0' }}%
+          </span>
+          <span class="text-[8.5px] font-bold text-app-muted uppercase mt-0.5">uratowane</span>
+        </div>
+      </div>
+
+      <div class="flex-1 min-w-0 flex flex-col justify-between h-full py-0.5">
+        
+        <div class="flex items-center justify-between gap-1 mb-1.5">
+          <div class="flex flex-col">
+            <h2 class="m-0 text-[13px] font-bold text-app-text leading-tight">
+              {{ 'dashboard.zeroWasteTitle' | t:'Bilans Zero-Waste' }}
+            </h2>
+            <span class="text-[10.5px] font-medium text-app-muted">
+              {{ 'dashboard.thisMonth' | t:'Bieżący miesiąc' }}
+            </span>
+          </div>
+
+          @if (zeroWasteStats().percentage >= 90) {
+            <span class="px-2 py-0.5 rounded-full bg-app-brand/15 text-app-brand text-[9.5px] font-extrabold border border-app-brand/20">
+              Wzorowo! 🌿
+            </span>
+          } @else if (zeroWasteStats().percentage >= 70) {
+            <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9.5px] font-extrabold border border-amber-500/20">
+              Dobry bilans 👍
+            </span>
+          } @else {
+            <span class="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-500 text-[9.5px] font-extrabold border border-rose-500/20">
+              Wymaga uwagi ⚠️
+            </span>
+          }
+        </div>
+
+        <div class="flex items-center gap-3 pt-1 border-t border-app-border/40 text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-app-brand shrink-0"></span>
+            <span class="text-[11.5px] font-bold text-app-text">
+              {{ zeroWasteStats().consumedCount }} {{ 'dashboard.unitPcs' | t:'szt.' }}
+            </span>
+            <span class="text-[10.5px] text-app-muted font-medium">{{ 'dashboard.zeroWasteConsumed' | t:'zjedzone' }}</span>
+          </div>
+
+          <div class="h-3 w-px bg-app-border"></div>
+
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+            <span class="text-[11.5px] font-bold text-app-text">
+              {{ zeroWasteStats().wastedCount }} {{ 'dashboard.unitPcs' | t:'szt.' }}
+            </span>
+            <span class="text-[10.5px] text-app-muted font-medium">{{ 'dashboard.zeroWasteWasted' | t:'wyrzucone' }}</span>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+    }
+
+    <!-- 5. Gotuj z wygasających produktów -->
     <section class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
         <div>
@@ -138,6 +226,11 @@
               }
 
               <h3 class="m-0 text-[13px] font-bold text-app-text truncate">{{ recipe.title }}</h3>
+              @if (getDietaryPreferenceLabel(recipe.dietaryPreference); as diet) {
+              <span class="mt-1 w-fit rounded-full border border-app-border px-2 py-0.5 text-[9.5px] font-semibold text-app-muted">
+                {{ diet.key | t:diet.label }}
+              </span>
+              }
               <p class="m-0 mt-0.5 text-[10.5px] text-app-muted">
                 {{ recipe.prepTimeMinutes }} min • {{ recipe.servings }} {{ 'recipes.servings' | t:'porcje' }}
               </p>

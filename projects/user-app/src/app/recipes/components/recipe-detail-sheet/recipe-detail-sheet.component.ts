@@ -10,7 +10,7 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RecipeDetailDto, APP_ICONS, SwipeToCloseDirective } from '@granary/shared';
+import { getDietaryPreferenceLabel, RecipeDetailDto, APP_ICONS, SwipeToCloseDirective } from '@granary/shared';
 import { RecipeService } from '../../../core/services/recipe.service';
 import { TranslatePipe } from '@granary/shared';
 import { TranslationService } from '@granary/shared';
@@ -26,6 +26,8 @@ import { MediaUrlPipe } from '@granary/shared';
   styleUrl: './recipe-detail-sheet.component.scss'
 })
 export class RecipeDetailSheetComponent {
+  protected readonly getDietaryPreferenceLabel = getDietaryPreferenceLabel;
+
   private readonly recipeService = inject(RecipeService);
   private readonly cdr = inject(ChangeDetectorRef);
   protected readonly translationService = inject(TranslationService);

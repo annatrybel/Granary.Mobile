@@ -185,6 +185,12 @@
       </button>
     </div>
 
+    <button type="button" (click)="deleteProduct.emit()"
+      class="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-rose-500/30 bg-transparent py-3 text-xs font-bold text-rose-600 transition-all hover:bg-rose-500/10 active:scale-[0.98] dark:text-rose-400">
+      <svg lucideTrash2 [size]="15"></svg>
+      <span>{{ 'productDetail.deleteBtn' | t:'Usuń ze spiżarni' }}</span>
+    </button>
+
   </div>
 
 </div>

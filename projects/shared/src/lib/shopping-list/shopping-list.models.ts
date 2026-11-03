@@ -13,6 +13,7 @@ export interface ShoppingItemDto {
 export interface ShoppingListDto {
   id: string;
   name: string;
+  isMain?: boolean; 
   title?: string;
   items?: ShoppingItemDto[];
   createdAt?: string;

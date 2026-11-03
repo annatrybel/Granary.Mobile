@@ -26,6 +26,8 @@ import {
   RecipeDetailDto,
   RecipeFilters,
   RecipeTabScope,
+  DietaryPreference,
+  parseDietaryPreference,
   CreateCustomRecipePayload,
   APP_ICONS,
   TranslatePipe,
@@ -39,6 +41,7 @@ import { RecipeCardComponent } from './components/recipe-card/recipe-card.compon
 import { RecipeDetailSheetComponent } from './components/recipe-detail-sheet/recipe-detail-sheet.component';
 import { RecipeFilterSheetComponent } from './components/recipe-filter-sheet/recipe-filter-sheet.component';
 import { AddRecipeSheetComponent } from './components/add-recipe-sheet/add-recipe-sheet.component';
+import { ProfilePreferencesService } from '../core/services/profile-preferences.service';
 
 interface ScopeTabOption {
   scope: RecipeTabScope;
@@ -75,6 +78,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly translationService = inject(TranslationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly profilePreferencesService = inject(ProfilePreferencesService);
 
   @ViewChild('scrollSentinel') scrollSentinel?: ElementRef<HTMLDivElement>;
   private observer?: IntersectionObserver;
@@ -129,7 +133,8 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   private hasMorePages = true;
   private isFirstLangRun = true;
 
-  readonly activeFilters = signal<RecipeFilters>({ maxTime: null, sortBy: 'match', mealType: null, diet: null });
+  readonly defaultDiet = signal<DietaryPreference>(DietaryPreference.Standard);
+  readonly activeFilters = signal<RecipeFilters>({ maxTime: null, sortBy: 'match', diet: DietaryPreference.Standard });
 
   constructor() {
     this.searchSubject.pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed())
@@ -157,7 +162,18 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
     const itemsParam = this.route.snapshot.queryParamMap.get('items');
     if (itemsParam) this.selectedItemsFilter.set(itemsParam);
 
-    this.fetchData(true);
+    this.profilePreferencesService.getProfile().subscribe({
+      next: profile => {
+        const diet = parseDietaryPreference(profile.dietaryPreference);
+        this.defaultDiet.set(diet);
+        this.activeFilters.update(filters => ({ ...filters, diet }));
+        this.fetchData(true);
+      },
+      error: error => {
+        console.warn('Nie udało się pobrać domyślnej diety profilu:', error);
+        this.fetchData(true);
+      }
+    });
 
     const targetId = this.route.snapshot.queryParamMap.get('recipeId');
     if (targetId) this.openRecipeDetail(targetId);
@@ -196,7 +212,7 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onFiltersReset(): void {
-    this.activeFilters.set({ maxTime: null, sortBy: 'match', mealType: null, diet: null });
+    this.activeFilters.set({ maxTime: null, sortBy: 'match', diet: this.defaultDiet() });
     this.resetAndReload();
   }
 
@@ -236,7 +252,6 @@ export class RecipesComponent implements OnInit, AfterViewInit, OnDestroy {
       items: this.selectedItemsFilter() || undefined,
       maxTime: filters.maxTime,
       sortBy: filters.sortBy,
-      mealType: filters.mealType,
       diet: filters.diet,
       page: this.currentPage,
       pageSize: this.pageSize

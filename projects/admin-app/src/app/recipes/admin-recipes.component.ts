@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminRecipesService, AdminRecipeItem, AdminRecipeKpis } from './services/admin-recipes.service';
-import { ConfirmDeleteModalComponent, APP_ICONS } from '@granary/shared';
+import { ConfirmDeleteModalComponent, APP_ICONS, DietaryPreference, DIETARY_PREFERENCE_OPTIONS } from '@granary/shared';
 import { AdminSearchBarComponent } from '../shared/components/admin-search-bar/admin-search-bar.component';
 import { RecipeFormModalComponent } from './components/recipe-form-modal/recipe-form-modal.component';
 
@@ -28,8 +28,8 @@ export class AdminRecipesComponent implements OnInit {
   readonly recipeIdToEdit = signal<string | null | undefined>(undefined);
 
   readonly searchQuery = signal('');
-  readonly selectedMealType = signal('all');
-  readonly selectedDiet = signal('all');
+  readonly selectedDiet = signal<DietaryPreference | null>(null);
+  readonly dietOptions = DIETARY_PREFERENCE_OPTIONS;
   readonly selectedStatus = signal('all');
   readonly pageNumber = signal(1);
   readonly pageSize = signal(10);
@@ -101,7 +101,6 @@ export class AdminRecipesComponent implements OnInit {
 
     this.recipesService.getRecipes({
       search: this.searchQuery().trim(),
-      mealType: this.selectedMealType(),
       diet: this.selectedDiet(),
       status: this.selectedStatus(),
       pageNumber: this.pageNumber(),
@@ -191,12 +190,4 @@ export class AdminRecipesComponent implements OnInit {
     this.recipeIdToEdit.set(null);
   }
 
-  getCategoryBadgeClass(cat: string): string {
-    const map: Record<string, string> = {
-      'Wegetariańskie': 'bg-[#BEEB1E]/40 text-[#364900] border-[#BEEB1E]',
-      'Śniadanie': 'bg-amber-100/80 text-amber-900 border-amber-200',
-      'Wypieki': 'bg-purple-100 text-purple-800 border-purple-200'
-    };
-    return map[cat] || 'bg-neutral-100 text-neutral-700 border-neutral-200';
-  }
 }

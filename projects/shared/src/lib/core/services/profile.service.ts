@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../tokens/api-base-url.token';
 import { UserProfileDto, UpdateProfileResponseDto } from '../../profile/profile.models';
+import type { DietaryPreference } from '../../recipes/recipe.models';
 
 export interface ContactMessageDto {
   name: string;
@@ -85,6 +86,10 @@ export class ProfileService {
 
   updateLanguage(language: string): Observable<void> {
     return this.http.patch<void>(`${this.baseUrl}/language`, { language });
+  }
+
+  updateDietaryPreference(dietaryPreference: DietaryPreference): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/dietary-preference`, { dietaryPreference });
   }
 
   inviteHouseholdMember(recipientEmail: string, pantryName: string): Observable<boolean> {

@@ -177,6 +177,30 @@ export class InventoryComponent {
     this.closeDetails();
   }
 
+  resolveItem(item: ProductItem, status: 'consume' | 'waste'): void {
+    const previousItems = this.products();
+    const previousIndex = previousItems.findIndex(product => product.id === item.id);
+    this.products.update(items => items.filter(product => product.id !== item.id));
+
+    void this.pantryService.resolveProduct(item.id, status).catch(error => {
+      this.products.update(items => {
+        if (items.some(product => product.id === item.id)) return items;
+        const restoredItems = [...items];
+        restoredItems.splice(Math.max(0, Math.min(previousIndex, restoredItems.length)), 0, item);
+        return restoredItems;
+      });
+      console.error(`Nie udało się ${status === 'consume' ? 'zużyć' : 'wyrzucić'} produktu:`, error);
+      alert('Nie udało się zaktualizować produktu. Spróbuj ponownie.');
+    });
+  }
+
+  deleteProductFromDetails(item: ProductItem): void {
+    void this.pantryService.deleteProduct(item.id).then(() => this.closeDetails()).catch(error => {
+      console.error('Nie udało się usunąć produktu:', error);
+      alert('Nie udało się usunąć produktu. Spróbuj ponownie.');
+    });
+  }
+
   askRemoveItem(item: ProductItem, event?: Event): void {
     event?.stopPropagation();
     event?.preventDefault();

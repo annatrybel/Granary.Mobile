@@ -7,14 +7,15 @@ import {
   untracked,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, catchError, debounceTime, of, switchMap, tap } from 'rxjs';
 
-import { PantryService } from '../core/services/pantry.service';
+import { PantryService, ZeroWasteStats } from '../core/services/pantry.service';
 import { RecipeService } from '../core/services/recipe.service';
 import { ProductItem } from '../core/db/app-database';
-import { AuthService, RecipeMatchDto, TranslatePipe, TranslationService, APP_ICONS } from '@granary/shared';
+import { AuthService, getDietaryPreferenceLabel, RecipeMatchDto, TranslatePipe, TranslationService, APP_ICONS } from '@granary/shared';
 import { ExpiringItem, StockSection } from './models/dashboard.models';
 
 
@@ -38,11 +39,13 @@ const STORAGE_LABELS: Record<StorageKind, { key: string; fallback: string }> = {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, TranslatePipe, APP_ICONS],
+  imports: [RouterLink, TranslatePipe, APP_ICONS, DecimalPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent {
+  protected readonly getDietaryPreferenceLabel = getDietaryPreferenceLabel;
+
   private readonly pantryService = inject(PantryService);
   private readonly authService = inject(AuthService);
   private readonly recipeService = inject(RecipeService);
@@ -58,6 +61,9 @@ export class DashboardComponent {
 
   readonly recipes = signal<RecipeMatchDto[]>([]);
   readonly isLoadingRecipes = signal<boolean>(true);
+  readonly zeroWasteStats = signal<ZeroWasteStats>({ consumedCount: 0, wastedCount: 0, percentage: 100 });
+  readonly isLoadingZeroWasteStats = signal(true);
+  readonly zeroWasteStatsError = signal(false);
 
   private readonly products = this.pantryService.products;
 
@@ -110,6 +116,20 @@ export class DashboardComponent {
   );
 
   constructor() {
+    this.pantryService.getZeroWasteStats().pipe(
+      takeUntilDestroyed()
+    ).subscribe({
+      next: stats => {
+        this.zeroWasteStats.set(stats);
+        this.isLoadingZeroWasteStats.set(false);
+      },
+      error: err => {
+        console.error('Błąd pobierania statystyk Zero-Waste:', err);
+        this.zeroWasteStatsError.set(true);
+        this.isLoadingZeroWasteStats.set(false);
+      }
+    });
+
     this.recipeRequests$.pipe(
       debounceTime(150),
       tap(() => {

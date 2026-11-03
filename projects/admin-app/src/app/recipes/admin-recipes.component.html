@@ -49,24 +49,12 @@
     </div>
 
     <div class="relative">
-      <select [ngModel]="selectedMealType()" (ngModelChange)="selectedMealType.set($event); onFilterChange()"
-        class="appearance-none h-11 pl-4 pr-9 bg-neutral-100/60 hover:bg-neutral-100/90 border border-neutral-200/70 rounded-xl text-xs font-bold text-neutral-800 outline-none cursor-pointer transition-all">
-        <option value="all">Wszystkie posiłki</option>
-        <option value="Obiad">Obiad</option>
-        <option value="Śniadanie">Śniadanie</option>
-        <option value="Wypieki">Wypieki</option>
-      </select>
-      <svg lucideChevronDown [size]="15"
-        class="text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></svg>
-    </div>
-
-    <div class="relative">
       <select [ngModel]="selectedDiet()" (ngModelChange)="selectedDiet.set($event); onFilterChange()"
         class="appearance-none h-11 pl-4 pr-9 bg-neutral-100/60 hover:bg-neutral-100/90 border border-neutral-200/70 rounded-xl text-xs font-bold text-neutral-800 outline-none cursor-pointer transition-all">
-        <option value="all">Wszystkie diety</option>
-        <option value="Wegetariańskie">Wegetariańskie</option>
-        <option value="Keto">Keto</option>
-        <option value="Bezglutenowe">Bezglutenowe</option>
+        <option [ngValue]="null">Wszystkie diety</option>
+        @for (option of dietOptions; track option.value) {
+        <option [ngValue]="option.value">{{ option.label }}</option>
+        }
       </select>
       <svg lucideChevronDown [size]="15"
         class="text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></svg>
@@ -102,7 +90,6 @@
         <tr
           class="bg-neutral-50/80 border-b border-neutral-200/80 text-[11px] font-extrabold text-neutral-500 uppercase tracking-wider">
           <th class="py-3.5 px-6">Przepis</th>
-          <th class="py-3.5 px-6">Kategoria</th>
           <th class="py-3.5 px-6">Składniki</th>
           <th class="py-3.5 px-6">Czas i porcje</th>
           <th class="py-3.5 px-6">Popularność</th>
@@ -125,13 +112,6 @@
               </div>
               <span class="text-neutral-400 text-[11px]">ID: {{ recipe.code }} • {{ recipe.subtitle }}</span>
             </div>
-          </td>
-
-          <td class="py-4 px-6">
-            <span class="px-2.5 py-1 rounded-full font-bold text-[11px] border"
-              [ngClass]="getCategoryBadgeClass(recipe.category)">
-              {{ recipe.category }}
-            </span>
           </td>
 
           <td class="py-4 px-6">
@@ -176,7 +156,7 @@
         } @empty {
         @if (!isLoading()) {
         <tr>
-          <td colspan="6" class="py-8 text-center text-neutral-400">
+          <td colspan="5" class="py-8 text-center text-neutral-400">
             Brak przepisów w bazie spełniających kryteria.
           </td>
         </tr>

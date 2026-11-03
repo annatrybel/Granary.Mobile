@@ -65,7 +65,8 @@
     <section class="grid grid-cols-2 gap-3">
       @for (item of filteredItems(); track item.id) {
       <app-inventory-card [item]="item" [isSelected]="isSelected(item.id)" (cardClick)="openDetails($event)"
-        (toggleSelect)="toggleSelect(item.id)" (deleteClick)="askRemoveItem(item)" />
+        (toggleSelect)="toggleSelect(item.id)" (consumeClick)="resolveItem(item, 'consume')"
+        (wasteClick)="resolveItem(item, 'waste')" />
       } @empty {
       <div class="col-span-2 text-center py-10 px-5 text-[13px] text-app-muted leading-5">
         {{ 'inventory.empty' | t:'Brak produktów w wybranej lokalizacji.' }}
@@ -85,6 +86,7 @@
   }
 
   @if (activeProductForDetails(); as product) {
-  <app-product-detail-sheet [product]="product" (closeSheet)="closeDetails()" (save)="onSaveProductDetails($event)" />
+  <app-product-detail-sheet [product]="product" (closeSheet)="closeDetails()" (save)="onSaveProductDetails($event)"
+    (deleteProduct)="deleteProductFromDetails(product)" />
   }
 </main>

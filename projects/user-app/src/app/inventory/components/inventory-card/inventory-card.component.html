@@ -1,5 +1,5 @@
 <article
-  class="bg-app-surface rounded-[20px] border overflow-hidden flex flex-col cursor-pointer shadow-sm active:scale-[0.98] transition-all h-full"
+  class="bg-app-surface rounded-[20px] border overflow-hidden flex flex-col cursor-pointer shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none active:scale-[0.98] transition-all duration-200 h-full"
   [class.border-app-brand]="isSelected()" [class.ring-1]="isSelected()" [class.ring-app-brand]="isSelected()"
   [class.border-app-border]="!isSelected()" (click)="cardClick.emit(item())">
 
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Pigułka dni ważności -->
-    <div class="relative z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-xs"
+    <div class="relative z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-md"
       [class.bg-[#BA1A1A]/90]="(item().expiryDays ?? 0) <= 3" [class.text-white]="(item().expiryDays ?? 0) <= 3"
       [class.bg-app-surface/90]="(item().expiryDays ?? 0) > 3" [class.text-app-text]="(item().expiryDays ?? 0) > 3">
       <svg lucideClock [size]="11"></svg>
@@ -40,17 +40,26 @@
       </span>
     </div>
 
-    <!-- Pigułka ilości z koszem -->
-    <div
-      class="flex items-center justify-between bg-app-surface-variant rounded-full py-0.5 pl-2.5 pr-1.5 mt-auto border border-app-border/40">
-      <span class="text-[11px] font-bold text-app-text">
+    <div class="mt-auto flex items-center justify-between gap-1.5 rounded-full border border-black/[0.06] bg-black/[0.03] p-1 pl-3 pr-1 dark:border-white/[0.08] dark:bg-white/[0.04]">
+      <span class="text-xs font-semibold tracking-tight text-app-text">
         {{ item().quantity }} {{ item().unit || ('common.unitPcs' | t:'szt.') }}
       </span>
-      <button type="button"
-        class="bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-rose-500/15 active:scale-90 transition-all text-rose-500"
-        (click)="onDelete($event)" [title]="'inventoryCard.deleteTooltip' | t:'Usuń ze spiżarni'">
-        <svg lucideTrash [size]="14"></svg>
-      </button>
+
+      <div class="flex items-center gap-1">
+        <button type="button"
+          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-none bg-app-brand/15 p-0 text-app-brand transition-all duration-200 hover:bg-app-brand hover:text-white active:scale-90 dark:bg-app-brand/25"
+          (click)="onResolve($event, 'consume')" [title]="'inventoryCard.consume' | t:'Zjedz'"
+          [attr.aria-label]="'inventoryCard.consume' | t:'Zjedz'">
+          <svg lucideUtensils [size]="13" [strokeWidth]="2.2"></svg>
+        </button>
+
+        <button type="button"
+          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-none bg-transparent p-0 text-rose-600/80 transition-all duration-200 hover:bg-rose-500/10 hover:text-rose-600 active:scale-90 dark:text-rose-400"
+          (click)="onResolve($event, 'waste')" [title]="'inventoryCard.waste' | t:'Wyrzuć'"
+          [attr.aria-label]="'inventoryCard.waste' | t:'Wyrzuć'">
+          <svg lucideCircleX [size]="14" [strokeWidth]="2.2"></svg>
+        </button>
+      </div>
     </div>
   </div>
 
