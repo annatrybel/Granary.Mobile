@@ -51,6 +51,7 @@ export class ProfileComponent implements OnInit {
 
   isInstallHelpOpen = signal<boolean>(false);
   isLanguageDropdownOpen = signal<boolean>(false);
+  isDietaryPreferenceDropdownOpen = signal<boolean>(false);
   isLoading = signal<boolean>(true);
 
   name = signal<string>('');
@@ -67,6 +68,10 @@ export class ProfileComponent implements OnInit {
   expiryNotifications = signal<boolean>(true);
   dietaryPreference = signal<DietaryPreference>(DietaryPreference.Standard);
   readonly dietaryPreferenceOptions = DIETARY_PREFERENCE_OPTIONS;
+  get selectedDietaryPreferenceOption() {
+    return this.dietaryPreferenceOptions.find(option => option.value === this.dietaryPreference())
+      ?? this.dietaryPreferenceOptions[0];
+  }
 
   readonly fallbackAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23FAF9F5' viewBox='0 0 24 24'><rect width='24' height='24' fill='%23FAF9F5'/><circle cx='12' cy='8' r='4' fill='%23D4D4D4'/><path d='M4 20c0-4 4-6 8-6s8 2 8 6' fill='%23D4D4D4'/></svg>";
 
@@ -244,6 +249,16 @@ export class ProfileComponent implements OnInit {
         console.error('Błąd zapisu preferencji dietetycznej:', err);
       }
     });
+  }
+
+  toggleDietaryPreferenceDropdown(event: Event): void {
+    event.stopPropagation();
+    this.isDietaryPreferenceDropdownOpen.update(v => !v);
+  }
+
+  selectDietaryPreference(value: string): void {
+    this.updateDietaryPreference(value);
+    this.isDietaryPreferenceDropdownOpen.set(false);
   }
 
   async installApp(): Promise<void> {

@@ -138,23 +138,55 @@
       </div>
 
       <!-- Preferencje diety -->
-      <div class="flex items-center justify-between w-full py-1">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
-            <svg lucideUtensils [size]="18" class="text-app-brand"></svg>
-          </div>
-          <span class="text-sm font-semibold text-app-text">
-            {{ 'profile.diet' | t:'Preferencje diety' }}
+      <div class="relative w-full">
+        <button type="button"
+          class="flex items-center justify-between w-full py-1 border-none bg-transparent text-left cursor-pointer select-none"
+          (click)="toggleDietaryPreferenceDropdown($event)"
+          [attr.aria-label]="'profile.diet' | t:'Preferencje diety'"
+          [attr.aria-expanded]="isDietaryPreferenceDropdownOpen()">
+          <span class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-full bg-app-brand/15 flex items-center justify-center shrink-0">
+              <svg lucideUtensils [size]="18" class="text-app-brand"></svg>
+            </span>
+            <span class="text-sm font-semibold text-app-text">
+              {{ 'profile.diet' | t:'Preferencje diety' }}
+            </span>
           </span>
-        </div>
-        <select
-          class="max-w-[185px] h-10 px-3 rounded-xl border border-app-border bg-app-bg text-app-text text-xs font-semibold outline-none focus:border-app-brand cursor-pointer"
-          [value]="dietaryPreference()" (change)="updateDietaryPreference($any($event.target).value)"
-          [attr.aria-label]="'profile.diet' | t:'Preferencje diety'">
+
+          <span class="flex items-center gap-2">
+            <span
+              class="px-2.5 py-0.5 rounded-full border border-app-border bg-app-bg text-app-text text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+              {{ selectedDietaryPreferenceOption.key | t:selectedDietaryPreferenceOption.label }}
+            </span>
+            <svg lucideChevronRight [size]="14" class="text-app-muted transition-transform duration-200"
+              [class.rotate-90]="isDietaryPreferenceDropdownOpen()"></svg>
+          </span>
+        </button>
+
+        @if (isDietaryPreferenceDropdownOpen()) {
+        <div class="fixed inset-0 z-30 bg-transparent" (click)="isDietaryPreferenceDropdownOpen.set(false)"></div>
+
+        <div
+          class="absolute right-0 top-12 z-40 w-48 bg-app-surface border border-app-border rounded-2xl shadow-xl p-1.5 flex flex-col gap-1 animate-in fade-in zoom-in-95"
+          (click)="$event.stopPropagation()">
           @for (option of dietaryPreferenceOptions; track option.value) {
-          <option [value]="option.value">{{ option.key | t:option.label }}</option>
+          <button type="button" (click)="selectDietaryPreference(option.value)"
+            class="flex items-center justify-between px-3 py-2 rounded-xl border-none text-xs font-semibold cursor-pointer transition-all active:scale-98"
+            [class.bg-app-brand/15]="dietaryPreference() === option.value"
+            [class.text-app-brand]="dietaryPreference() === option.value"
+            [class.font-bold]="dietaryPreference() === option.value"
+            [class.bg-transparent]="dietaryPreference() !== option.value"
+            [class.text-app-text]="dietaryPreference() !== option.value"
+            [class.hover:bg-app-surface-variant]="dietaryPreference() !== option.value"
+            [attr.aria-pressed]="dietaryPreference() === option.value">
+            <span>{{ option.key | t:option.label }}</span>
+            @if (dietaryPreference() === option.value) {
+            <svg lucideCheck [size]="14" class="text-app-brand"></svg>
+            }
+          </button>
           }
-        </select>
+        </div>
+        }
       </div>
     </section>
 
