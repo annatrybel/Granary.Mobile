@@ -21,6 +21,7 @@ import { MediaUrlPipe } from '@granary/shared';
 import { PwaInstallService } from '../core/services/pwa-install.service';
 import { PushNotificationService } from '../core/services/push-notification.service';
 import { ProfilePreferencesService } from '../core/services/profile-preferences.service';
+import { compressAndConvertToJpeg } from '../core/utils/image-compressor.util';
 
 @Component({
   selector: 'app-profile',
@@ -162,21 +163,25 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  onAvatarFileChange(event: Event): void {
+  async onAvatarFileChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-      const previousAvatarUrl = this.avatarUrl();
+    const file = input.files?.[0];
+    if (!file) return;
 
+    const previousAvatarUrl = this.avatarUrl();
+    try {
+      const compressedFile = await compressAndConvertToJpeg(file);
       const reader = new FileReader();
       reader.onload = (e) => {
-        this.avatarUrl.set(e.target?.result as string);
+        if (typeof e.target?.result === 'string') {
+          this.avatarUrl.set(e.target.result);
+        }
         this.cdr.markForCheck();
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressedFile);
 
       const formData = new FormData();
-      formData.append('avatar', file);
+      formData.append('avatar', compressedFile);
 
       this.profileService.updateProfile(formData).subscribe({
         next: (res) => {
@@ -201,6 +206,13 @@ export class ProfileComponent implements OnInit {
           this.cdr.markForCheck();
         }
       });
+    } catch (error) {
+      this.avatarUrl.set(previousAvatarUrl);
+      console.error('Błąd przygotowania zdjęcia profilowego:', error);
+      alert('Nie udało się przetworzyć wybranego zdjęcia.');
+      this.cdr.markForCheck();
+    } finally {
+      input.value = '';
     }
   }
 
