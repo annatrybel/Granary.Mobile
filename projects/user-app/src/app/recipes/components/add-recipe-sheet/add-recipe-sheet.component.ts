@@ -19,7 +19,7 @@ import { ConfirmDeleteModalComponent } from '@granary/shared';
 
 import { TranslatePipe } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
-
+import { compressAndConvertToJpeg } from '../../../core/utils/image-compressor.util';
 
 export interface FormIngredientItem {
   id: string;
@@ -252,15 +252,25 @@ export class AddRecipeSheetComponent implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
-  onImageFileChange(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
+  async onImageFileChange(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    try {
+      const compressedFile = await compressAndConvertToJpeg(file);
+
       const reader = new FileReader();
       reader.onload = (e) => {
         this.imageUrl.set(e.target?.result as string);
         this.cdr.markForCheck();
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      console.error('Błąd kompresji zdjęcia przepisu:', error);
+      alert('Nie udało się przetworzyć wybranego zdjęcia.');
+    } finally {
+      input.value = '';
     }
   }
 

@@ -17,11 +17,11 @@ export class AdminImageService {
   private readonly apiBaseUrl = inject(API_BASE_URL);
 
   generate(kind: AdminImageKind, name: string): Observable<string> {
-    const request$ = kind === 'product'
-      ? this.http.post<GenerateImageResponse>(`${this.apiBaseUrl}/pantry/items/generate-product-image`, { name })
-      : this.http.post<GenerateImageResponse>(`${this.apiBaseUrl}/recipes/generate-image`, { title: name });
+    if (kind === 'product') {
+      return this.http.post<string>(`${this.apiBaseUrl}/pantry/items/generate-product-image`, { name });
+    }
 
-    return request$.pipe(
+    return this.http.post<GenerateImageResponse>(`${this.apiBaseUrl}/recipes/generate-image`, { title: name }).pipe(
       map(res => {
         if (!res.success || !res.imageUrl) {
           throw new Error(res.message || 'Nie udało się wygenerować obrazu.');

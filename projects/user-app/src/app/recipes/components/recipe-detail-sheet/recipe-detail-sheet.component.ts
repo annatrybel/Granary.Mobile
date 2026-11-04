@@ -66,7 +66,7 @@ export class RecipeDetailSheetComponent {
       { icon: 'users', text: `${r.servings} ${servingsLabel}` }
     ];
 
-    if (r.calories) {
+    if (r.calories != null) {
       items.push({ icon: 'flame', text: `${r.calories} kcal` });
     }
 

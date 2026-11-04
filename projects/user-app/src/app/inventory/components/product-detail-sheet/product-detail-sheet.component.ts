@@ -15,6 +15,9 @@ import { PantryService } from '../../../core/services/pantry.service';
 import { TranslatePipe } from '@granary/shared';
 import { TranslationService } from '@granary/shared';
 import { MediaUrlPipe } from '@granary/shared';
+import { getHttpErrorMessage } from '../../../core/utils/http-error-message.util';
+
+import { compressAndConvertToJpeg } from '../../../core/utils/image-compressor.util';
 
 export interface LocationOption {
   key: 'Lodówka' | 'Zamrażarka' | 'Spiżarnia';
@@ -128,18 +131,18 @@ export class ProductDetailSheetComponent implements OnInit {
     this.isGeneratingImage.set(true);
 
     this.pantryService.generateProductImage(productName).subscribe({
-      next: (res) => {
-        if (res.success && res.imageUrl) {
-          this.detailImageUrl.set(res.imageUrl);
+      next: (imageUrl) => {
+        if (imageUrl) {
+          this.detailImageUrl.set(imageUrl);
         } else {
-          alert(res.message || 'Nie udało się wygenerować zdjęcia produktu.');
+          alert('API nie zwróciło adresu wygenerowanego zdjęcia.');
         }
         this.isGeneratingImage.set(false);
         this.cdr.markForCheck();
       },
       error: (err) => {
         this.isGeneratingImage.set(false);
-        const msg = err.error?.message || 'Nie udało się wygenerować zdjęcia produktu.';
+        const msg = getHttpErrorMessage(err, 'Nie udało się wygenerować zdjęcia produktu.');
         alert(msg);
         this.cdr.markForCheck();
       }
@@ -151,14 +154,16 @@ export class ProductDetailSheetComponent implements OnInit {
     this.detailImageUrl.set(null);
   }
 
-  onImageFileChange(event: Event): void {
+  async onImageFileChange(event: Event): Promise<void> {
     if (!this.isCustomProduct) return;
 
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    input.value = '';
+    if (!file) return;
 
-    if (file) {
+    try {
+      const compressedFile = await compressAndConvertToJpeg(file);
+
       const reader = new FileReader();
       reader.onload = (e) => {
         if (typeof e.target?.result === 'string') {
@@ -166,7 +171,12 @@ export class ProductDetailSheetComponent implements OnInit {
         }
         this.cdr.markForCheck();
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      console.error('Błąd kompresji zdjęcia w szczegółach produktu:', error);
+      alert('Nie udało się przetworzyć wybranego zdjęcia.');
+    } finally {
+      input.value = '';
     }
   }
 
@@ -185,5 +195,4 @@ export class ProductDetailSheetComponent implements OnInit {
       customImageUrl: this.isCustomProduct ? this.detailImageUrl() : undefined
     });
   }
-
 }

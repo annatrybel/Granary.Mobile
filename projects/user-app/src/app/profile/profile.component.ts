@@ -166,6 +166,7 @@ export class ProfileComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
+      const previousAvatarUrl = this.avatarUrl();
 
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -179,17 +180,26 @@ export class ProfileComponent implements OnInit {
 
       this.profileService.updateProfile(formData).subscribe({
         next: (res) => {
-          if (res?.avatarUrl) {
-            this.avatarUrl.set(res.avatarUrl);
-            const user = this.authService.currentUser();
-            if (user) {
-              user.avatarUrl = res.avatarUrl;
-              this.authService.saveCurrentUser(user);
-            }
+          if (!res?.avatarUrl) {
+            this.avatarUrl.set(previousAvatarUrl);
+            console.error('API nie zwróciło adresu zapisanego awatara.');
+            this.cdr.markForCheck();
+            return;
+          }
+
+          this.avatarUrl.set(res.avatarUrl);
+          const user = this.authService.currentUser();
+          if (user) {
+            user.avatarUrl = res.avatarUrl;
+            this.authService.saveCurrentUser(user);
           }
           this.cdr.markForCheck();
         },
-        error: (err) => console.error('Błąd aktualizacji awatara:', err)
+        error: (err) => {
+          this.avatarUrl.set(previousAvatarUrl);
+          console.error('Błąd aktualizacji awatara:', err);
+          this.cdr.markForCheck();
+        }
       });
     }
   }

@@ -127,7 +127,10 @@ export class AuthService {
   }
 
   requestPasswordReset(email: string): Observable<any> {
-    return this.http.post(`${this.apiBaseUrl}/authentication/forgot-password`, { email });
+    return this.http.post(`${this.apiBaseUrl}/authentication/forgot-password`, {
+      email,
+      frontendOrigin: window.location.origin
+    });
   }
 
   resetPassword(dto: ResetPasswordDto): Observable<any> {
@@ -139,7 +142,11 @@ export class AuthService {
   startExternalLogin(provider: string): void {
     sessionStorage.setItem(this.pendingLoginKey, String(Date.now()));
     const url = `${this.config.backendOrigin}${this.apiBaseUrl}/authentication/external-login`;
-    window.location.href = `${url}?provider=${encodeURIComponent(provider)}`;
+    const params = new URLSearchParams({
+      provider,
+      returnUrl: window.location.origin
+    });
+    window.location.href = `${url}?${params.toString()}`;
   }
 
   /**

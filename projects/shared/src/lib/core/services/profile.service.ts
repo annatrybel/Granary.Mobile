@@ -52,22 +52,22 @@ export class ProfileService {
     return this.http.get<NotificationDto[]>(`${this.baseUrl}/notifications?onlyUnread=${onlyUnread}`);
   }
 
-  markNotificationAsRead(id: string): Observable<void> {
-    // Optymistycznie usuwamy z widoku
+  markNotificationAsRead(id: string): Observable<boolean> {
+   
     this.notifications.update(list => list.filter(n => n.id !== id));
 
-    return this.http.patch<void>(`${this.baseUrl}/notifications/${id}/read`, {});
+    return this.http.patch<boolean>(`${this.baseUrl}/notifications/${id}/read`, {});
   }
 
-  savePushSubscription(dto: SavePushSubscriptionDto): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/push-subscription`, dto);
+  savePushSubscription(dto: SavePushSubscriptionDto): Observable<boolean> {
+    return this.http.post<boolean>(`${this.baseUrl}/push-subscription`, dto);
   }
 
   getPushPublicKey(): Observable<{ publicKey: string }> {
     return this.http.get<{ publicKey: string }>(`${this.baseUrl}/push-public-key`);
   }
-  updateExpiryNotifications(enabled: boolean): Observable<any> {
-    return this.http.patch(`${this.baseUrl}/notifications-settings`, {
+  updateExpiryNotifications(enabled: boolean): Observable<boolean> {
+    return this.http.patch<boolean>(`${this.baseUrl}/notifications-settings`, {
       expiryNotifications: enabled
     });
   }

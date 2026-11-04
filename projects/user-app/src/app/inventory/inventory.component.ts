@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { PantryService } from '../core/services/pantry.service';
 import { ProductItem } from '../core/db/app-database';
 import { CatalogProductDto, APP_ICONS } from '@granary/shared';
+import { compressAndConvertToJpeg } from '../core/utils/image-compressor.util';
 
 import { ConfirmDeleteModalComponent } from '@granary/shared';
 import { CatalogSearchBarComponent } from '../shared/components/catalog-search-bar/catalog-search-bar.component';
@@ -14,7 +15,7 @@ import {
   ProductDetailSheetSavePayload
 } from './components/product-detail-sheet/product-detail-sheet.component';
 import { TranslatePipe } from '@granary/shared';
-
+import { getHttpErrorMessage } from '../core/utils/http-error-message.util';
 
 @Component({
   selector: 'app-inventory',
@@ -76,8 +77,7 @@ export class InventoryComponent {
     this.selectedLocation.update(current => current === key && key !== 'all' ? 'all' : key);
   }
 
-  // --- ZROBIENIE ZDJĘCIA APARATEM / WYBÓR Z DYSKU ---
-  onPhotoCaptured(event: Event): void {
+  async onPhotoCaptured(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
@@ -85,32 +85,42 @@ export class InventoryComponent {
     this.isAnalyzingImage.set(true);
     this.cdr.markForCheck();
 
-    this.pantryService.recognizeProductFromImage(file).subscribe({
-      next: (recognized) => {
-        this.isAnalyzingImage.set(false);
+    try {
+      const preparedFile = await compressAndConvertToJpeg(file);
 
-        this.pantryService.addProduct({
-          name: recognized.name,
-          isCustom: true,
-          category: recognized.categoryName.toLowerCase(),
-          categoryName: recognized.categoryName,
-          locationName: recognized.suggestedLocation || 'Lodówka',
-          imageUrl: recognized.imageUrl, // Zapisane na serwerze zdjęcie
-          quantity: 1,
-          unit: recognized.defaultUnit || 'szt.',
-          expiryDays: recognized.estimatedExpiryDays || 7
-        });
+      this.pantryService.recognizeProductFromImage(preparedFile).subscribe({
+        next: (recognized) => {
+          this.isAnalyzingImage.set(false);
 
-        input.value = '';
-        this.cdr.markForCheck();
-      },
-      error: (err: any) => {
-        this.isAnalyzingImage.set(false);
-        input.value = '';
-        this.cdr.markForCheck();
-        alert(err?.error?.message || 'Nie udało się rozpoznać produktu na zdjęciu.');
-      }
-    });
+          this.pantryService.addProduct({
+            name: recognized.name,
+            isCustom: true,
+            category: recognized.categoryName.toLowerCase(),
+            categoryName: recognized.categoryName,
+            locationName: recognized.suggestedLocation || 'Lodówka',
+            imageUrl: recognized.imageUrl, // Zapisane na serwerze zdjęcie
+            quantity: 1,
+            unit: recognized.defaultUnit || 'szt.',
+            expiryDays: recognized.estimatedExpiryDays || 7
+          });
+
+          input.value = '';
+          this.cdr.markForCheck();
+        },
+        error: (err: unknown) => {
+          this.isAnalyzingImage.set(false);
+          input.value = '';
+          this.cdr.markForCheck();
+          alert(getHttpErrorMessage(err, 'Nie udało się rozpoznać produktu na zdjęciu.'));
+        }
+      });
+    } catch (compressionError) {
+      console.error('Błąd kompresji zdjęcia:', compressionError);
+      this.isAnalyzingImage.set(false);
+      input.value = '';
+      this.cdr.markForCheck();
+      alert('Nie udało się przygotować formatu zdjęcia do wysłania.');
+    }
   }
 
   onSelectSuggestion(product: CatalogProductDto): void {
@@ -129,22 +139,22 @@ export class InventoryComponent {
   }
 
   onAddCustomProduct(name?: string): void {
-  const customName = (name || '').trim();
-  if (!customName) return;
+    const customName = (name || '').trim();
+    if (!customName) return;
 
-  this.pantryService.addProduct({
-    name: customName,
-    isCustom: true, 
-    catalogProductId: null,
-    category: 'ogolne',
-    categoryName: 'Inne',
-    locationName: this.selectedLocation() !== 'all' ? this.selectedLocation() : 'Lodówka',
-    imageUrl: null,
-    quantity: 1,
-    unit: 'szt.',
-    expiryDays: 7
-  });
-}
+    this.pantryService.addProduct({
+      name: customName,
+      isCustom: true, 
+      catalogProductId: null,
+      category: 'ogolne',
+      categoryName: 'Inne',
+      locationName: this.selectedLocation() !== 'all' ? this.selectedLocation() : 'Lodówka',
+      imageUrl: null,
+      quantity: 1,
+      unit: 'szt.',
+      expiryDays: 7
+    });
+  }
 
   isSelected(id: string): boolean {
     return this.selectedIds().has(id);

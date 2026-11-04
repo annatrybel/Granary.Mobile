@@ -221,8 +221,8 @@ export class PantryService {
     });
   }
 
-  generateProductImage(name: string): Observable<{ success: boolean; imageUrl: string; message?: string }> {
-    return this.http.post<{ success: boolean; imageUrl: string; message?: string }>(
+  generateProductImage(name: string): Observable<string> {
+    return this.http.post<string>(
       `${this.apiBaseUrl}/pantry/items/generate-product-image`,
       { name }
     );
