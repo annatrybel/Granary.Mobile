@@ -36,10 +36,11 @@
             <div class="flex justify-between items-center w-full">
               <div class="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center shrink-0">
                 <img 
-                  [src]="item.categoryIcon || '/icons/food-placeholder.svg'" 
+                  [src]="(item.productImageUrl | mediaUrl) || item.categoryIcon || '/icons/food-placeholder.svg'"
+                  [attr.data-image-source]="(item.productImageUrl | mediaUrl) ? 'product' : item.categoryIcon ? 'category' : 'placeholder'"
                   [alt]="item.categoryName" 
-                  class="w-4 h-4 object-contain"
-                  (error)="$any($event.target).onerror = null; $any($event.target).src = '/icons/food-placeholder.svg'"
+                  class="w-8 h-8 rounded-full object-cover"
+                  (error)="onProductImageError($event, item.categoryIcon)"
                   loading="lazy" 
                 />
               </div>

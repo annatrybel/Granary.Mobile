@@ -21,6 +21,21 @@ export class InventoryCardComponent {
   consumeClick = output<void>();
   wasteClick = output<void>();
 
+  onImageError(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    if (image.dataset['imageSource'] === 'placeholder') return;
+
+    const categoryImageUrl = this.item().categoryImageUrl;
+    if (image.dataset['imageSource'] === 'product' && categoryImageUrl) {
+      image.dataset['imageSource'] = 'category';
+      image.src = categoryImageUrl;
+      return;
+    }
+    image.dataset['imageSource'] = 'placeholder';
+    image.dataset['imageSource'] = 'placeholder';
+    image.src = '/icons/food-placeholder.svg';
+  }
+
   onSelect(event: Event): void {
     event.stopPropagation();
     this.toggleSelect.emit();

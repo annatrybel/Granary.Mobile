@@ -6,6 +6,7 @@ export interface CatalogProductDto {
   category?: string;
   defaultUnit?: string;
   imageUrl?: string | null;
+  categoryImageUrl?: string | null;
 }
 
 export interface ProductDetailUpdatePayload {
@@ -13,6 +14,7 @@ export interface ProductDetailUpdatePayload {
   quantity: number;
   unit: string;
   expirationDate: string;
+  categoryImageUrl?: string | null;
 }
 
 export interface CategoryDto {

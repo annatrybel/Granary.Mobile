@@ -130,6 +130,7 @@ export class InventoryComponent {
       name: product.name,
       category: 'ogolne',
       categoryName: product.categoryName || 'Inne',
+      categoryImageUrl: product.categoryImageUrl ?? null,
       locationName: this.selectedLocation() !== 'all' ? this.selectedLocation() : 'Lodówka',
       imageUrl: product.imageUrl,
       quantity: 1,
@@ -183,7 +184,10 @@ export class InventoryComponent {
     const item = this.activeProductForDetails();
     if (!item) return;
 
-    this.pantryService.updateProduct(item.id, payload);
+    void this.pantryService.updateProduct(item.id, payload).catch(error => {
+      console.error('Nie udało się zaktualizować produktu:', error);
+      alert('Nie udało się zaktualizować produktu. Spróbuj ponownie.');
+    });
     this.closeDetails();
   }
 

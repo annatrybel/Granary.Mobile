@@ -15,7 +15,7 @@ import { Subject, catchError, debounceTime, of, switchMap, tap } from 'rxjs';
 import { PantryService, ZeroWasteStats } from '../core/services/pantry.service';
 import { RecipeService } from '../core/services/recipe.service';
 import { ProductItem } from '../core/db/app-database';
-import { AuthService, getDietaryPreferenceLabel, RecipeMatchDto, TranslatePipe, TranslationService, APP_ICONS } from '@granary/shared';
+import { AuthService, getDietaryPreferenceLabel, RecipeMatchDto, TranslatePipe, TranslationService, APP_ICONS, MediaUrlPipe } from '@granary/shared';
 import { ExpiringItem, StockSection } from './models/dashboard.models';
 
 
@@ -39,7 +39,7 @@ const STORAGE_LABELS: Record<StorageKind, { key: string; fallback: string }> = {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, TranslatePipe, APP_ICONS, DecimalPipe],
+  imports: [RouterLink, TranslatePipe, APP_ICONS, DecimalPipe, MediaUrlPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html'
 })
@@ -177,5 +177,19 @@ export class DashboardComponent {
     const daysLabel = this.translationService.translate('common.days', 'dni');
     const leftLabel = this.translationService.translate('dashboard.leftPrefix', 'Zostało');
     return `${leftLabel} ${days} ${daysLabel}`;
+  }
+
+  onProductImageError(event: Event, categoryImageUrl: string | null): void {
+    const image = event.target as HTMLImageElement;
+    if (image.dataset['imageSource'] === 'placeholder') return;
+
+    if (image.dataset['imageSource'] === 'product' && categoryImageUrl) {
+      image.dataset['imageSource'] = 'category';
+      image.src = categoryImageUrl;
+      return;
+    }
+    image.dataset['imageSource'] = 'placeholder';
+    image.dataset['imageSource'] = 'placeholder';
+    image.src = '/icons/food-placeholder.svg';
   }
 }

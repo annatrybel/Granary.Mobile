@@ -140,6 +140,7 @@ export class PantryService {
       customImageUrl?: string | null;
       categoryId?: string;
       categoryName?: string;
+      categoryImageUrl?: string | null;
     }
   ): Promise<void> {
     const localId = await this.db.resolveId(id);
@@ -162,6 +163,9 @@ export class PantryService {
     }
     if (updates.categoryName) {
       localUpdates.categoryName = updates.categoryName;
+    }
+    if (updates.categoryImageUrl !== undefined) {
+      localUpdates.categoryImageUrl = updates.categoryImageUrl;
     }
 
     await this.db.products.update(localId, localUpdates);

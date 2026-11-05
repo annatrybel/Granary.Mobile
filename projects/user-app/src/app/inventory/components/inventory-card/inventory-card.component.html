@@ -4,8 +4,9 @@
   [class.border-app-border]="!isSelected()" (click)="cardClick.emit(item())">
 
   <div class="relative h-[120px] overflow-hidden p-2 flex justify-between items-start bg-app-surface-variant shrink-0">
-    <img [src]="(item().imageUrl | mediaUrl) || '/icons/food-placeholder.svg'" referrerpolicy="no-referrer"
-      (error)="$any($event.target).onerror = null; $any($event.target).src = '/icons/food-placeholder.svg'"
+    <img [src]="(item().imageUrl | mediaUrl) || item().categoryImageUrl || '/icons/food-placeholder.svg'"
+      [attr.data-image-source]="(item().imageUrl | mediaUrl) ? 'product' : item().categoryImageUrl ? 'category' : 'placeholder'"
+      referrerpolicy="no-referrer" (error)="onImageError($event)"
       [alt]="item().name" class="absolute inset-0 w-full h-full object-cover z-0" loading="lazy" />
     <!-- Wskaźnik wyboru -->
     <div

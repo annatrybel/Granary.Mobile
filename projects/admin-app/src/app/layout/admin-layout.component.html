@@ -56,6 +56,15 @@
           @if (!isCollapsed()) { <span>Baza produktów</span> }
         </a>
 
+        <a routerLink="/categories"
+           routerLinkActive="bg-[#536500] text-white shadow-md shadow-[#536500]/20 font-bold"
+           [title]="isCollapsed() ? 'Kategorie' : ''"
+           class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70 font-semibold text-sm transition-all group"
+           [ngClass]="isCollapsed() ? 'justify-center px-0' : ''">
+          <svg lucidePackage [size]="18" class="shrink-0"></svg>
+          @if (!isCollapsed()) { <span>Kategorie</span> }
+        </a>
+
         <a routerLink="/recipes" 
            routerLinkActive="bg-[#536500] text-white shadow-md shadow-[#536500]/20 font-bold"
            [title]="isCollapsed() ? 'Przepisy' : ''"

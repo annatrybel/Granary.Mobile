@@ -3,6 +3,7 @@ import {
   input,
   output,
   signal,
+  computed,
   inject,
   OnInit,
   ChangeDetectionStrategy,
@@ -76,6 +77,20 @@ export class ProductDetailSheetComponent implements OnInit {
 
   detailImageUrl = signal<string | null>(null);
   isGeneratingImage = signal<boolean>(false);
+  showImageActions = signal<boolean>(false);
+  readonly selectedCategory = computed(() => {
+    const categoryName = this.detailCategoryName().toLowerCase();
+    return this.categories().find(category => category.name.toLowerCase() === categoryName) ?? null;
+  });
+  readonly categoryImageUrl = computed(() => {
+    const selectedCategory = this.selectedCategory();
+    if (selectedCategory) return selectedCategory.imageUrl ?? null;
+
+    return this.detailCategoryName().toLowerCase() === this.product().categoryName?.toLowerCase()
+      ? this.product().categoryImageUrl ?? null
+      : null;
+  });
+  readonly hasDisplayedImage = computed(() => !!(this.detailImageUrl() || this.categoryImageUrl()));
 
   get isCustomProduct(): boolean {
     return this.product().isCustom;
@@ -134,6 +149,7 @@ export class ProductDetailSheetComponent implements OnInit {
       next: (imageUrl) => {
         if (imageUrl) {
           this.detailImageUrl.set(imageUrl);
+          this.showImageActions.set(false);
         } else {
           alert('API nie zwróciło adresu wygenerowanego zdjęcia.');
         }
@@ -151,7 +167,23 @@ export class ProductDetailSheetComponent implements OnInit {
 
   removeImage(): void {
     if (!this.isCustomProduct) return;
-    this.detailImageUrl.set(null);
+    if (this.detailImageUrl()) this.detailImageUrl.set(null);
+    this.showImageActions.set(true);
+  }
+
+  onDetailImageError(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    if (image.dataset['imageSource'] === 'placeholder') return;
+
+    const categoryImageUrl = this.categoryImageUrl();
+    if (image.dataset['imageSource'] === 'product' && categoryImageUrl) {
+      image.dataset['imageSource'] = 'category';
+      image.src = categoryImageUrl;
+      return;
+    }
+    image.dataset['imageSource'] = 'placeholder';
+    image.src = '/icons/food-placeholder.svg';
+    this.showImageActions.set(true);
   }
 
   async onImageFileChange(event: Event): Promise<void> {
@@ -168,6 +200,7 @@ export class ProductDetailSheetComponent implements OnInit {
       reader.onload = (e) => {
         if (typeof e.target?.result === 'string') {
           this.detailImageUrl.set(e.target.result);
+          this.showImageActions.set(false);
         }
         this.cdr.markForCheck();
       };
@@ -181,10 +214,7 @@ export class ProductDetailSheetComponent implements OnInit {
   }
 
   onSave(): void {
-    const selectedCategory = this.categories().find(
-      c => c.name.toLowerCase() === this.detailCategoryName().toLowerCase()
-    );
-
+    const selectedCategory = this.selectedCategory();
     this.save.emit({
       locationName: this.detailLocation(),
       quantity: this.detailQuantity(),
@@ -192,6 +222,7 @@ export class ProductDetailSheetComponent implements OnInit {
       expirationDate: this.detailExpirationDate(),
       categoryName: this.detailCategoryName(),
       categoryId: selectedCategory?.id,
+      ...(selectedCategory ? { categoryImageUrl: selectedCategory.imageUrl ?? null } : {}),
       customImageUrl: this.isCustomProduct ? this.detailImageUrl() : undefined
     });
   }
